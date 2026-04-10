@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Legal Information Assistant</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+    </style>
+</head>
+<body >
+    <header class="bg-white shadow-md py-4">
+        <div class="container mx-auto px-6 flex justify-between items-center">
+            <div class="flex items-center space-x-3">
+                <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-indigo-600"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+                <span class="text-2xl font-bold text-gray-900">LawGrid</span>
+            </div>
+            <nav class="hidden md:flex space-x-6 text-gray-600 text-sm font-medium">
+                <a href="#" class="hover:text-indigo-600 transition-colors duration-200">About Us</a>
+                <a href="#" class="hover:text-indigo-600 transition-colors duration-200">Services</a>
+                <a href="#" class="hover:text-indigo-600 transition-colors duration-200">Contact</a>
+            </nav>
+        </div>
+    </header>
+    <div class="min-h-screen bg-gradient-to-br from-blue-100 to-indigo-200 flex items-center justify-center p-4 font-sans">
+
+    <div class="bg-white rounded-xl shadow-2xl overflow-hidden w-full max-w-2xl flex flex-col h-[80vh]">
+        <!-- Chat Header -->
+        <div class="bg-indigo-600 text-white p-4 text-center text-2xl font-bold rounded-t-xl">
+            AI Legal Information Assistant
+        </div>
+
+        <!-- Chat Messages Area -->
+        <div id="chat-messages" class="flex-1 p-6 overflow-y-auto space-y-4">
+            <div class="text-center text-gray-500 italic mt-8">
+                Ask me anything about legal concepts or general law!
+            </div>
+        </div>
+
+        <!-- Chat Input Area -->
+        <div class="p-4 bg-gray-50 border-t border-gray-200 flex items-center rounded-b-xl">
+            <input
+                type="text"
+                id="user-input"
+                class="flex-1 p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 transition duration-200"
+                placeholder="Type your legal question here..."
+            />
+            <button
+                id="send-button"
+                class="ml-3 px-6 py-3 bg-indigo-600 text-white rounded-lg shadow-lg hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+                Send
+            </button>
+        </div>
+    </div>
+</div>
+    <script>
+        const chatMessages = document.getElementById('chat-messages');
+        const userInput = document.getElementById('user-input');
+        const sendButton = document.getElementById('send-button');
+
+        let isLoading = false;
+        let isReading = false;
+        let audioContext = null;
+        let currentSource = null; // To keep track of the currently playing AudioBufferSourceNode
+
+        // Utility function to convert base64 to ArrayBuffer
+        const base64ToArrayBuffer = (base64) => {
+            const binaryString = window.atob(base64);
+            const len = binaryString.length;
+            const bytes = new Uint8Array(len);
+            for (let i = 0; i < len; i++) {
+                bytes[i] = binaryString.charCodeAt(i);
+            }
+            return bytes.buffer;
+        };
+
+        // Utility function to convert PCM audio data to WAV Blob
+        const pcmToWav = (pcmData, sampleRate) => {
+            const numChannels = 1;
+            const bytesPerSample = 2; // 16-bit PCM
+            const bitDepth = 16;
+
+            const dataLength = pcmData.length * bytesPerSample;
+            const buffer = new ArrayBuffer(44 + dataLength);
+            const view = new DataView(buffer);
+
+            // RIFF chunk descriptor
+            writeString(view, 0, 'RIFF');
+            view.setUint32(4, 36 + dataLength, true);
+            writeString(view, 8, 'WAVE');
+
+            // FMT sub-chunk
+            writeString(view, 12, 'fmt ');
+            view.setUint32(16, 16, true); // Subchunk1Size for PCM
+            view.setUint16(20, 1, true); // AudioFormat (1 for PCM)
+            view.setUint16(22, numChannels, true);
+            view.setUint32(24, sampleRate, true);
+            view.setUint32(28, sampleRate * numChannels * bytesPerSample, true); // ByteRate
+            view.setUint16(32, numChannels * bytesPerSample, true); // BlockAlign
+            view.setUint16(34, bitDepth, true); // BitsPerSample
+
+            // DATA sub-chunk
+            writeString(view, 36, 'data');
+            view.setUint32(40, dataLength, true);
+
+            // Write the PCM data
+            let offset = 44;
+            for (let i = 0; i < pcmData.length; i++) {
+                view.setInt16(offset, pcmData[i], true);
+                offset += bytesPerSample;
+            }
+
+            return new Blob([view], { type: 'audio/wav' });
+        };
+
+        const writeString = (view, offset, string) => {
+            for (let i = 0; i < string.length; i++) {
+                view.setUint8(offset + i, string.charCodeAt(i));
+            }
+        };
+
+        // Function to add a message to the chat UI
+        const addMessageToChat = (role, text) => {
+            const messageContainer = document.createElement('div');
+            messageContainer.className = `flex ${role === 'user' ? 'justify-end' : 'justify-start'}`;
+
+            const messageBubble = document.createElement('div');
+            messageBubble.className = `max-w-[70%] p-3 rounded-lg shadow-md ${
+                role === 'user'
+                    ? 'bg-blue-500 text-white rounded-br-none'
+                    : 'bg-gray-100 text-gray-800 rounded-bl-none flex items-center'
+            }`;
+            messageBubble.textContent = text;
+
+            if (role === 'ai') {
+                const readAloudButton = document.createElement('button');
+                readAloudButton.className = 'ml-3 p-1 rounded-full bg-indigo-500 text-white hover:bg-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition duration-200';
+                readAloudButton.title = 'Read Aloud';
+                readAloudButton.innerHTML = `
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5">
+                        <path d="M11.5 2.25a.75.75 0 0 1 .75.75v8.75a.75.75 0 0 1-1.5 0V3a.75.75 0 0 1 .75-.75Z" />
+                        <path fillRule="evenodd" d="M12.558 17.001a.75.75 0 0 1-.894.894L8.356 16.47A6 6 0 0 0 6 15.75c-1.68 0-3.23-.658-4.402-1.725a.75.75 0 0 1 1.06-1.06 4.5 4.5 0 0 0 3.342 1.315c.84 0 1.63-.19 2.332-.534l3.962 1.98Z" clipRule="evenodd" />
+                        <path fillRule="evenodd" d="M12.558 6.999a.75.75 0 0 1 .894-.894l4.298 1.428A6 6 0 0 0 18 8.25c1.68 0 3.23.658 4.402 1.725a.75.75 0 0 1-1.06 1.06 4.5 4.5 0 0 0-3.342-1.315c-.84 0-1.63.19-2.332.534l-3.962-1.98Z" clipRule="evenodd" />
+                    </svg>
+                `;
+                readAloudButton.onclick = () => readMessage(text, readAloudButton);
+                messageBubble.appendChild(readAloudButton);
+            }
+
+            messageContainer.appendChild(messageBubble);
+            chatMessages.appendChild(messageContainer);
+            chatMessages.scrollTop = chatMessages.scrollHeight; // Scroll to bottom
+        };
+
+        // Function to show/hide loading indicator
+        const showLoadingIndicator = (type) => {
+            const existingIndicator = document.getElementById('loading-indicator');
+            if (existingIndicator) existingIndicator.remove();
+
+            const indicatorContainer = document.createElement('div');
+            indicatorContainer.id = 'loading-indicator';
+            indicatorContainer.className = 'flex justify-start';
+            indicatorContainer.innerHTML = `
+                <div class="max-w-[70%] p-3 rounded-lg shadow-md bg-gray-100 text-gray-800 rounded-bl-none">
+                    <div class="flex items-center">
+                        <span class="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-900 mr-2"></span>
+                        ${type === 'typing' ? 'Typing...' : 'Reading aloud...'}
+                    </div>
+                </div>
+            `;
+            chatMessages.appendChild(indicatorContainer);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        };
+
+        const hideLoadingIndicator = () => {
+            const existingIndicator = document.getElementById('loading-indicator');
+            if (existingIndicator) existingIndicator.remove();
+        };
+
+        // Function to set button/input disabled state
+        const setControlsDisabled = (disabled) => {
+            userInput.disabled = disabled;
+            sendButton.disabled = disabled;
+        };
+
+        // Function to handle sending a message
+        const sendMessage = async () => {
+            const message = userInput.value.trim();
+            if (message === '') return;
+
+            addMessageToChat('user', message);
+            userInput.value = '';
+            isLoading = true;
+            setControlsDisabled(true);
+            showLoadingIndicator('typing');
+
+            try {
+                const response = await fetch('/chat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ message: message })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const data = await response.json();
+                addMessageToChat('ai', data.response || 'An error occurred while getting AI response.');
+            } catch (error) {
+                console.error('Error sending message to Flask backend:', error);
+                addMessageToChat('ai', 'An error occurred while processing your request. Please try again.');
+            } finally {
+                isLoading = false;
+                hideLoadingIndicator();
+                setControlsDisabled(false);
+            }
+        };
+
+        // Function to handle reading a message aloud
+        const readMessage = async (text, buttonElement) => {
+            if (isReading) {
+                console.log("Stopping current audio playback.");
+                if (currentSource) {
+                    currentSource.stop(); // Stop the current audio
+                    currentSource.disconnect();
+                    currentSource = null;
+                }
+                if (audioContext && audioContext.state === 'running') {
+                    // It's good practice to suspend if not actively used, but not strictly necessary for every stop
+                    // audioContext.suspend();
+                }
+                isReading = false;
+                buttonElement.innerHTML = `
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5">
+                        <path d="M11.5 2.25a.75.75 0 0 1 .75.75v8.75a.75.75 0 0 1-1.5 0V3a.75.75 0 0 1 .75-.75Z" />
+                        <path fillRule="evenodd" d="M12.558 17.001a.75.75 0 0 1-.894.894L8.356 16.47A6 6 0 0 0 6 15.75c-1.68 0-3.23-.658-4.402-1.725a.75.75 0 0 1 1.06-1.06 4.5 4.5 0 0 0 3.342 1.315c.84 0 1.63-.19 2.332-.534l3.962 1.98Z" clipRule="evenodd" />
+                        <path fillRule="evenodd" d="M12.558 6.999a.75.75 0 0 1 .894-.894l4.298 1.428A6 6 0 0 0 18 8.25c1.68 0 3.23.658 4.402 1.725a.75.75 0 0 1-1.06 1.06 4.5 4.5 0 0 0-3.342-1.315c-.84 0-1.63.19-2.332.534l-3.962-1.98Z" clipRule="evenodd" />
+                    </svg>
+                `;
+                return;
+            }
+
+            isReading = true;
+            setControlsDisabled(true);
+            showLoadingIndicator('reading');
+            buttonElement.innerHTML = `
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5">
+                    <path fillRule="evenodd" d="M6.75 5.25a.75.75 0 0 1 .75-.75H9a.75.75 0 0 1 .75.75v13.5a.75.75 0 0 1-.75.75H7.5a.75.75 0 0 1-.75-.75V5.25Zm7.5 0A.75.75 0 0 1 15 4.5h1.5a.75.75 0 0 1 .75.75v13.5a.75.75 0 0 1-.75.75H15a.75.75 0 0 1-.75-.75V5.25Z" clipRule="evenodd" />
+                </svg>
+            `; // Change to stop icon
+
+            console.log("Attempting to read message via Flask TTS endpoint:", text.substring(0, 50) + "...");
+            try {
+                const response = await fetch('/tts', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ text: text })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const data = await response.json();
+                const audioData = data.audioData;
+                const mimeType = data.mimeType;
+
+                if (audioData && mimeType && mimeType.startsWith("audio/")) {
+                    const sampleRateMatch = mimeType.match(/rate=(\d+)/);
+                    const sampleRate = sampleRateMatch ? parseInt(sampleRateMatch[1], 10) : 16000;
+
+                    const pcmRawBuffer = base64ToArrayBuffer(audioData);
+                    const pcm16 = new Int16Array(pcmRawBuffer);
+                    const wavBlob = pcmToWav(pcm16, sampleRate);
+
+                    const reader = new FileReader();
+                    reader.onload = async (event) => {
+                        const wavArrayBuffer = event.target.result;
+
+                        if (!audioContext) {
+                            audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                            console.log("AudioContext initialized.");
+                        }
+
+                        try {
+                            const audioBuffer = await audioContext.decodeAudioData(wavArrayBuffer);
+                            console.log("Audio data decoded successfully by AudioContext.");
+
+                            if (currentSource) { // Stop any previous playback
+                                currentSource.stop();
+                                currentSource.disconnect();
+                            }
+
+                            currentSource = audioContext.createBufferSource();
+                            currentSource.buffer = audioBuffer;
+                            currentSource.connect(audioContext.destination);
+
+                            currentSource.onended = () => {
+                                console.log("AudioBuffer playback ended.");
+                                isReading = false;
+                                setControlsDisabled(false);
+                                hideLoadingIndicator();
+                                buttonElement.innerHTML = `
+                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5">
+                                        <path d="M11.5 2.25a.75.75 0 0 1 .75.75v8.75a.75.75 0 0 1-1.5 0V3a.75.75 0 0 1 .75-.75Z" />
+                                        <path fillRule="evenodd" d="M12.558 17.001a.75.75 0 0 1-.894.894L8.356 16.47A6 6 0 0 0 6 15.75c-1.68 0-3.23-.658-4.402-1.725a.75.75 0 0 1 1.06-1.06 4.5 4.5 0 0 0 3.342 1.315c.84 0 1.63-.19 2.332-.534l3.962 1.98Z" clipRule="evenodd" />
+                                        <path fillRule="evenodd" d="M12.558 6.999a.75.75 0 0 1 .894-.894l4.298 1.428A6 6 0 0 0 18 8.25c1.68 0 3.23.658 4.402 1.725a.75.75 0 0 1-1.06 1.06 4.5 4.5 0 0 0-3.342-1.315c-.84 0-1.63.19-2.332.534l-3.962-1.98Z" clipRule="evenodd" />
+                                    </svg>
+                                `; // Change back to play icon
+                                currentSource = null;
+                            };
+
+                            if (audioContext.state === 'suspended') {
+                                await audioContext.resume();
+                                console.log("AudioContext resumed.");
+                            }
+                            currentSource.start(0);
+                            console.log("Audio playback started via AudioContext.");
+
+                        } catch (e) {
+                            console.error("Error decoding or playing audio with AudioContext:", e);
+                            isReading = false;
+                            setControlsDisabled(false);
+                            hideLoadingIndicator();
+                            buttonElement.innerHTML = `
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5">
+                                    <path d="M11.5 2.25a.75.75 0 0 1 .75.75v8.75a.75.75 0 0 1-1.5 0V3a.75.75 0 0 1 .75-.75Z" />
+                                    <path fillRule="evenodd" d="M12.558 17.001a.75.75 0 0 1-.894.894L8.356 16.47A6 6 0 0 0 6 15.75c-1.68 0-3.23-.658-4.402-1.725a.75.75 0 0 1 1.06-1.06 4.5 4.5 0 0 0 3.342 1.315c.84 0 1.63-.19 2.332-.534l3.962 1.98Z" clipRule="evenodd" />
+                                    <path fillRule="evenodd" d="M12.558 6.999a.75.75 0 0 1 .894-.894l4.298 1.428A6 6 0 0 0 18 8.25c1.68 0 3.23.658 4.402 1.725a.75.75 0 0 1-1.06 1.06 4.5 4.5 0 0 0-3.342-1.315c-.84 0-1.63.19-2.332.534l-3.962-1.98Z" clipRule="evenodd" />
+                                </svg>
+                            `;
+                        }
+                    };
+                    reader.onerror = (e) => {
+                        console.error("FileReader error:", e);
+                        isReading = false;
+                        setControlsDisabled(false);
+                        hideLoadingIndicator();
+                        buttonElement.innerHTML = `
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5">
+                                <path d="M11.5 2.25a.75.75 0 0 1 .75.75v8.75a.75.75 0 0 1-1.5 0V3a.75.75 0 0 1 .75-.75Z" />
+                                <path fillRule="evenodd" d="M12.558 17.001a.75.75 0 0 1-.894.894L8.356 16.47A6 6 0 0 0 6 15.75c-1.68 0-3.23-.658-4.402-1.725a.75.75 0 0 1 1.06-1.06 4.5 4.5 0 0 0 3.342 1.315c.84 0 1.63-.19 2.332-.534l3.962 1.98Z" clipRule="evenodd" />
+                                <path fillRule="evenodd" d="M12.558 6.999a.75.75 0 0 1 .894-.894l4.298 1.428A6 6 0 0 0 18 8.25c1.68 0 3.23.658 4.402 1.725a.75.75 0 0 1-1.06 1.06 4.5 4.5 0 0 0-3.342-1.315c-.84 0-1.63.19-2.332.534l-3.962-1.98Z" clipRule="evenodd" />
+                            </svg>
+                        `;
+                    };
+                    reader.readAsArrayBuffer(wavBlob);
+                } else {
+                    console.error('TTS API did not return valid audio data or mimeType.', data);
+                    isReading = false;
+                    setControlsDisabled(false);
+                    hideLoadingIndicator();
+                    buttonElement.innerHTML = `
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5">
+                            <path d="M11.5 2.25a.75.75 0 0 1 .75.75v8.75a.75.75 0 0 1-1.5 0V3a.75.75 0 0 1 .75-.75Z" />
+                            <path fillRule="evenodd" d="M12.558 17.001a.75.75 0 0 1-.894.894L8.356 16.47A6 6 0 0 0 6 15.75c-1.68 0-3.23-.658-4.402-1.725a.75.75 0 0 1 1.06-1.06 4.5 4.5 0 0 0 3.342 1.315c.84 0 1.63-.19 2.332-.534l3.962 1.98Z" clipRule="evenodd" />
+                            <path fillRule="evenodd" d="M12.558 6.999a.75.75 0 0 1 .894-.894l4.298 1.428A6 6 0 0 0 18 8.25c1.68 0 3.23.658 4.402 1.725a.75.75 0 0 1-1.06 1.06 4.5 4.5 0 0 0-3.342-1.315c-.84 0-1.63.19-2.332.534l-3.962-1.98Z" clipRule="evenodd" />
+                        </svg>
+                    `;
+                }
+            } catch (error) {
+                console.error('Error fetching TTS from Flask backend:', error);
+                isReading = false;
+                setControlsDisabled(false);
+                hideLoadingIndicator();
+                buttonElement.innerHTML = `
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5">
+                        <path d="M11.5 2.25a.75.75 0 0 1 .75.75v8.75a.75.75 0 0 1-1.5 0V3a.75.75 0 0 1 .75-.75Z" />
+                        <path fillRule="evenodd" d="M12.558 17.001a.75.75 0 0 1-.894.894L8.356 16.47A6 6 0 0 0 6 15.75c-1.68 0-3.23-.658-4.402-1.725a.75.75 0 0 1 1.06-1.06 4.5 4.5 0 0 0 3.342 1.315c.84 0 1.63-.19 2.332-.534l3.962 1.98Z" clipRule="evenodd" />
+                        <path fillRule="evenodd" d="M12.558 6.999a.75.75 0 0 1 .894-.894l4.298 1.428A6 6 0 0 0 18 8.25c1.68 0 3.23.658 4.402 1.725a.75.75 0 0 1-1.06 1.06 4.5 4.5 0 0 0-3.342-1.315c-.84 0-1.63.19-2.332.534l-3.962-1.98Z" clipRule="evenodd" />
+                    </svg>
+                `;
+            }
+        };
+
+        // Event Listeners
+        sendButton.addEventListener('click', sendMessage);
+        userInput.addEventListener('keypress', (event) => {
+            if (event.key === 'Enter' && !isLoading) {
+                sendMessage();
+            }
+        });
+
+        // Initial message removal
+        document.addEventListener('DOMContentLoaded', () => {
+            const initialMessage = chatMessages.querySelector('.text-center.italic');
+            if (initialMessage) {
+                initialMessage.remove();
+            }
+        });
+
+    </script>
+</body>
+</html>
