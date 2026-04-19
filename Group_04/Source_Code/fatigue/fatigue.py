@@ -29,7 +29,7 @@ print("Model loaded successfully!")
 # Initialize Roboflow client
 roboflow_client = InferenceHTTPClient(
     api_url="https://serverless.roboflow.com",
-    api_key="hBljhOwZ15CdLgOj0Kjj"
+    api_key="ROBOFLOW_API_KEY"  # Replace with your actual API key
 )
 FATIGUE_MODEL = "eyes-bhltc/1"
 DRYNESS_MODEL = "dry-eye-prediction/3"
