@@ -1,0 +1,461 @@
+{% extends "base.html" %}
+{% block title %}Color Blindness Test — I-Care{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-10 bg-gradient-to-br from-pink-50 via-rose-50 to-slate-50 rounded-3xl border border-pink-100/70">
+
+  <!-- Instructions -->
+  <div id="instructions" class="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-8 text-center">
+    <div class="inline-flex items-center gap-1.5 bg-pink-100/60 border border-pink-200/60 rounded-full px-3 py-1 mb-4">
+      <span class="text-xs font-semibold text-pink-700 uppercase tracking-wider">Vision Test</span>
+    </div>
+    <h1 class="text-3xl sm:text-4xl font-bold text-slate-900 tracking-tight mb-6">Color Blindness Test</h1>
+
+    <div class="max-w-lg mx-auto text-left space-y-3 mb-8">
+      {% set rules = [
+        'Sit in a well-lit environment with natural light.',
+        'Do not use screen color filters or tinted glasses.',
+        'Keep your screen brightness at a moderate level.',
+        'Answer each question honestly for accurate results.',
+        'This is a screening tool, not a medical diagnosis.'
+      ] %}
+      {% for rule in rules %}
+      <div class="flex items-start gap-3">
+        <span class="flex-shrink-0 w-6 h-6 rounded-full bg-pink-100 text-pink-600 flex items-center justify-center text-xs font-bold mt-0.5">{{ loop.index }}</span>
+        <p class="text-sm text-slate-600">{{ rule }}</p>
+      </div>
+      {% endfor %}
+    </div>
+
+    <button id="startQuiz" class="inline-flex items-center gap-2 px-8 py-3 rounded-xl text-sm font-semibold text-white bg-brand-600 hover:bg-brand-700 shadow-lg shadow-brand-600/25 hover:shadow-brand-600/40 transition-all hover:-translate-y-0.5">
+      Start Test
+      <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3"/></svg>
+    </button>
+  </div>
+
+  <!-- Quiz -->
+  <div id="quizContainer" class="hidden">
+    <div class="text-center mb-6">
+      <h2 class="text-2xl font-bold text-slate-900">Color Blindness Test</h2>
+    </div>
+
+    <div class="flex flex-col md:flex-row gap-6">
+      <!-- Input card -->
+      <div class="md:w-2/5">
+        <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-6 sticky top-24">
+          <h3 class="text-sm font-semibold text-slate-900 mb-4 text-center">Type the number you see</h3>
+          <input id="answerInput" type="text" class="w-full px-4 py-3 rounded-xl border border-slate-300 bg-white text-slate-900 text-lg text-center font-semibold placeholder-slate-400 shadow-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-shadow" placeholder="e.g. 12" autocomplete="off" />
+          <p class="text-xs text-slate-400 mt-2 text-center">If you cannot see a number, leave blank or type 0.</p>
+          <div class="flex gap-3 mt-6">
+            <button id="backBtn" class="flex-1 px-4 py-2.5 rounded-xl text-sm font-medium text-slate-600 border border-slate-200 hover:bg-slate-50 transition-colors disabled:opacity-40">Back</button>
+            <button id="nextBtn" class="flex-1 px-4 py-2.5 rounded-xl text-sm font-semibold text-white bg-brand-600 hover:bg-brand-700 shadow-sm shadow-brand-600/20 transition-all">Next</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Image area -->
+      <div class="md:w-3/5">
+        <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-6 text-center">
+          <div class="flex items-center justify-between mb-4">
+            <span class="text-sm text-slate-500">Question <span id="currentQuestion" class="font-semibold text-slate-900">1</span> of <span id="totalQuestions" class="font-semibold text-slate-900">10</span></span>
+            <div class="h-1.5 flex-1 mx-4 bg-slate-100 rounded-full overflow-hidden">
+              <div id="progressBar" class="h-full bg-brand-500 rounded-full transition-all duration-300" style="width:10%"></div>
+            </div>
+          </div>
+          <img id="quizImage" src="" alt="Quiz Image" class="rounded-2xl shadow-md mx-auto max-h-[380px] object-contain">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Result -->
+  <div id="resultContainer" class="hidden">
+    <div id="resultSummaryCard" class="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-6 sm:p-8">
+      <div class="flex flex-col lg:flex-row gap-6 lg:items-start">
+        <div class="flex-1">
+          <p class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800 mb-3" id="resultBadge">
+            Screening Complete
+          </p>
+          <h2 class="text-2xl sm:text-3xl font-bold text-slate-900" id="resultHeadline">Your vision screening result is ready</h2>
+          <p class="text-sm text-slate-600 mt-2" id="resultAdvice">
+            This result helps you understand likely color perception patterns and next best steps.
+          </p>
+
+          <div class="grid sm:grid-cols-3 gap-4 mt-6">
+            <div class="bg-slate-50 rounded-xl p-4 border border-slate-200/70">
+              <p class="text-2xl font-bold text-slate-900"><span id="scoreText">0</span> / <span id="totalQuestionsResult">10</span></p>
+              <p class="text-xs text-slate-500 mt-1">Correct Responses</p>
+            </div>
+            <div class="bg-slate-50 rounded-xl p-4 border border-slate-200/70">
+              <p class="text-lg font-bold text-slate-900" id="typeText">--</p>
+              <p class="text-xs text-slate-500 mt-1">Likely Type</p>
+            </div>
+            <div class="bg-slate-50 rounded-xl p-4 border border-slate-200/70">
+              <p class="text-lg font-bold text-slate-900" id="severityText">--</p>
+              <p class="text-xs text-slate-500 mt-1">Estimated Severity</p>
+            </div>
+          </div>
+
+          <div class="mt-6">
+            <div class="flex items-center justify-between text-xs text-slate-500 mb-2">
+              <span>Test Accuracy</span>
+              <span id="scorePercent">0%</span>
+            </div>
+            <div class="h-2.5 w-full bg-slate-100 rounded-full overflow-hidden">
+              <div id="accuracyBar" class="h-full bg-brand-500 rounded-full transition-all duration-500" style="width:0%"></div>
+            </div>
+            <p class="text-xs text-slate-500 mt-2" id="scoreBreakdown">Answer quality insights will appear here.</p>
+          </div>
+
+          <div id="probsContainer" class="hidden mt-5 rounded-xl border border-slate-200 bg-slate-50 p-4"></div>
+        </div>
+
+        <div class="w-full lg:w-60 bg-gradient-to-br from-brand-50 to-pink-50 rounded-2xl border border-brand-100 p-5">
+          <p class="text-xs font-semibold text-slate-500 uppercase tracking-wide">What to do next</p>
+          <ul class="mt-3 space-y-2 text-sm text-slate-700">
+            <li>Review your result and severity level.</li>
+            <li>Try the simulation to understand daily color differences.</li>
+            <li>Consult an eye specialist for clinical confirmation.</li>
+          </ul>
+          <button id="restartQuiz" class="mt-5 w-full inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold text-white bg-brand-600 hover:bg-brand-700 shadow-md shadow-brand-600/20 transition-all">
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+            Retake Test
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div id="resultFaqCard" class="mt-6 bg-white rounded-2xl border border-slate-200/80 shadow-sm p-6 sm:p-8">
+      <div class="flex items-center justify-between gap-4 mb-5">
+        <h3 class="text-xl sm:text-2xl font-bold text-slate-900">About color blindness and its correction</h3>
+        <p class="text-xs sm:text-sm text-slate-500">Frequently asked questions</p>
+      </div>
+
+      <div class="grid md:grid-cols-2 gap-3" id="faqList">
+        <details class="group rounded-xl border border-slate-200 bg-slate-50/70 open:bg-white open:border-brand-200 p-4 transition-colors">
+          <summary class="list-none cursor-pointer flex items-center justify-between gap-3 text-sm font-semibold text-slate-800">WHAT IS COLOR BLINDNESS?<span class="text-brand-700 text-lg leading-none group-open:rotate-90 transition-transform">›</span></summary>
+          <p class="mt-3 text-sm text-slate-600">Color blindness is a reduced ability to distinguish certain shades, most commonly red and green tones. It is usually inherited and affects how color signals are interpreted by cone cells in the retina.</p>
+        </details>
+
+        <details class="group rounded-xl border border-slate-200 bg-slate-50/70 open:bg-white open:border-brand-200 p-4 transition-colors">
+          <summary class="list-none cursor-pointer flex items-center justify-between gap-3 text-sm font-semibold text-slate-800">WHAT DOES IT MEAN, DIAGNOSIS: PROTAN OR DEUTAN COLOR BLINDNESS?<span class="text-brand-700 text-lg leading-none group-open:rotate-90 transition-transform">›</span></summary>
+          <p class="mt-3 text-sm text-slate-600">Protan indicates reduced sensitivity to red light, while deutan indicates reduced sensitivity to green light. These are the two most common forms of red-green color vision deficiency.</p>
+        </details>
+
+        <details class="group rounded-xl border border-slate-200 bg-slate-50/70 open:bg-white open:border-brand-200 p-4 transition-colors">
+          <summary class="list-none cursor-pointer flex items-center justify-between gap-3 text-sm font-semibold text-slate-800">WHY COLOR BLINDNESS CORRECTION IS IMPORTANT?<span class="text-brand-700 text-lg leading-none group-open:rotate-90 transition-transform">›</span></summary>
+          <p class="mt-3 text-sm text-slate-600">Correction tools and awareness strategies can improve safety, accessibility, and confidence in everyday tasks such as reading charts, identifying signals, and choosing matching colors.</p>
+        </details>
+
+        <details class="group rounded-xl border border-slate-200 bg-slate-50/70 open:bg-white open:border-brand-200 p-4 transition-colors">
+          <summary class="list-none cursor-pointer flex items-center justify-between gap-3 text-sm font-semibold text-slate-800">WHAT IS BACKGROUND OF COLOR BLINDNESS?<span class="text-brand-700 text-lg leading-none group-open:rotate-90 transition-transform">›</span></summary>
+          <p class="mt-3 text-sm text-slate-600">Most cases are genetic and linked to the X chromosome, which is why it is more common in males. It can also be acquired due to eye disease, aging, medication effects, or nerve damage.</p>
+        </details>
+
+        <details class="group rounded-xl border border-slate-200 bg-slate-50/70 open:bg-white open:border-brand-200 p-4 transition-colors">
+          <summary class="list-none cursor-pointer flex items-center justify-between gap-3 text-sm font-semibold text-slate-800">CAN COLOR DEFICIENCY OR COLOR BLINDNESS BE CURED?<span class="text-brand-700 text-lg leading-none group-open:rotate-90 transition-transform">›</span></summary>
+          <p class="mt-3 text-sm text-slate-600">Inherited color blindness has no permanent cure today, but supportive options like color filters, adaptive apps, and visual design adjustments can significantly improve daily function.</p>
+        </details>
+
+        <details class="group rounded-xl border border-slate-200 bg-slate-50/70 open:bg-white open:border-brand-200 p-4 transition-colors">
+          <summary class="list-none cursor-pointer flex items-center justify-between gap-3 text-sm font-semibold text-slate-800">WHAT ARE THE CHANCES THAT MY SON WILL BE COLOR BLIND IF I AM COLOR BLIND?<span class="text-brand-700 text-lg leading-none group-open:rotate-90 transition-transform">›</span></summary>
+          <p class="mt-3 text-sm text-slate-600">Risk depends on whether the mother carries the gene variant. In X-linked inheritance patterns, sons receive their X chromosome from their mother, so maternal genetics strongly influence the probability.</p>
+        </details>
+
+        <details class="group rounded-xl border border-slate-200 bg-slate-50/70 open:bg-white open:border-brand-200 p-4 transition-colors">
+          <summary class="list-none cursor-pointer flex items-center justify-between gap-3 text-sm font-semibold text-slate-800">HOW DO COLORBLIND PEOPLE SEE?<span class="text-brand-700 text-lg leading-none group-open:rotate-90 transition-transform">›</span></summary>
+          <p class="mt-3 text-sm text-slate-600">They usually see a full visual scene but with certain color ranges appearing less distinct. For example, reds and greens may look similar in shade or brightness.</p>
+        </details>
+
+        <details class="group rounded-xl border border-slate-200 bg-slate-50/70 open:bg-white open:border-brand-200 p-4 transition-colors">
+          <summary class="list-none cursor-pointer flex items-center justify-between gap-3 text-sm font-semibold text-slate-800">CAN MY COLOR BLINDNESS CHANGE OVER THE YEARS?<span class="text-brand-700 text-lg leading-none group-open:rotate-90 transition-transform">›</span></summary>
+          <p class="mt-3 text-sm text-slate-600">Inherited forms are usually stable, but acquired color vision issues can change over time. Any sudden or progressive change should be evaluated by an eye-care professional.</p>
+        </details>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+(() => {
+  const startBtn = document.getElementById("startQuiz");
+  const instructions = document.getElementById("instructions");
+  const quizContainer = document.getElementById("quizContainer");
+  const quizImage = document.getElementById("quizImage");
+  const answerInput = document.getElementById("answerInput");
+  const backBtn = document.getElementById("backBtn");
+  const nextBtn = document.getElementById("nextBtn");
+  const resultContainer = document.getElementById("resultContainer");
+  const scoreText = document.getElementById("scoreText");
+  const severityText = document.getElementById("severityText");
+  const typeText = document.getElementById("typeText");
+  const resultHeadline = document.getElementById("resultHeadline");
+  const resultAdvice = document.getElementById("resultAdvice");
+  const resultBadge = document.getElementById("resultBadge");
+  const totalQuestionsResult = document.getElementById("totalQuestionsResult");
+  const scorePercent = document.getElementById("scorePercent");
+  const accuracyBar = document.getElementById("accuracyBar");
+  const scoreBreakdown = document.getElementById("scoreBreakdown");
+  const probsContainer = document.getElementById("probsContainer");
+  const faqList = document.getElementById("faqList");
+  const resultSummaryCard = document.getElementById("resultSummaryCard");
+  const resultFaqCard = document.getElementById("resultFaqCard");
+  const restartQuiz = document.getElementById("restartQuiz");
+  const currentQuestionEl = document.getElementById("currentQuestion");
+  const totalQuestionsEl = document.getElementById("totalQuestions");
+  const progressBar = document.getElementById("progressBar");
+
+  let quizQuestions = [];
+  let currentIndex = 0;
+  let userAnswers = [];
+  let currentSessionId = '';
+
+  const shuffleArray = arr => arr.sort(() => Math.random() - 0.5);
+
+  const toDisplayLabel = (value) => {
+    if (!value) return 'Unknown';
+    return String(value)
+      .replace(/_/g, ' ')
+      .replace(/\b\w/g, c => c.toUpperCase());
+  };
+
+  const getSeverityTone = (severity) => {
+    const s = String(severity || '').toLowerCase();
+    if (s.includes('normal') || s.includes('none')) {
+      return {
+        badge: 'bg-emerald-100 text-emerald-800',
+        headline: 'No major color vision deficiency detected',
+        advice: 'Your responses look consistent with normal color vision on this screening tool.'
+      };
+    }
+    if (s.includes('mild')) {
+      return {
+        badge: 'bg-amber-100 text-amber-800',
+        headline: 'Mild color vision deficiency likely',
+        advice: 'You may have mild color confusion in some scenarios. Consider confirmatory testing with an eye specialist.'
+      };
+    }
+    if (s.includes('moderate') || s.includes('severe')) {
+      return {
+        badge: 'bg-rose-100 text-rose-800',
+        headline: 'Color vision deficiency detected',
+        advice: 'This screening suggests a stronger color differentiation issue. A clinical exam is recommended.'
+      };
+    }
+    return {
+      badge: 'bg-slate-200 text-slate-700',
+      headline: 'Screening complete',
+      advice: 'Result confidence is limited for this run. You can retake the test for better consistency.'
+    };
+  };
+
+  const setResultAnimationBaseline = () => {
+    [resultSummaryCard, resultFaqCard].forEach((el) => {
+      if (!el) return;
+      el.classList.add('transition-all', 'duration-500', 'ease-out');
+      el.classList.remove('opacity-100', 'translate-y-0');
+      el.classList.add('opacity-0', 'translate-y-2');
+    });
+  };
+
+  const animateResultEntrance = () => {
+    const reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (reduceMotion) {
+      [resultSummaryCard, resultFaqCard].forEach((el) => {
+        if (!el) return;
+        el.classList.remove('opacity-0', 'translate-y-2');
+        el.classList.add('opacity-100', 'translate-y-0');
+      });
+      return;
+    }
+
+    setResultAnimationBaseline();
+
+    requestAnimationFrame(() => {
+      if (resultSummaryCard) {
+        resultSummaryCard.classList.remove('opacity-0', 'translate-y-2');
+        resultSummaryCard.classList.add('opacity-100', 'translate-y-0');
+      }
+      setTimeout(() => {
+        if (resultFaqCard) {
+          resultFaqCard.classList.remove('opacity-0', 'translate-y-2');
+          resultFaqCard.classList.add('opacity-100', 'translate-y-0');
+        }
+      }, 120);
+    });
+  };
+
+  const enableSingleOpenFaq = () => {
+    if (!faqList) return;
+    const items = Array.from(faqList.querySelectorAll('details'));
+    items.forEach((item) => {
+      item.addEventListener('toggle', () => {
+        if (!item.open) return;
+        items.forEach((other) => {
+          if (other !== item) other.open = false;
+        });
+      });
+    });
+  };
+
+  const loadQuestion = async (idx) => {
+    currentIndex = idx;
+    const q = quizQuestions[idx];
+    currentQuestionEl.textContent = idx + 1;
+    if(progressBar) progressBar.style.width = ((idx+1)/quizQuestions.length*100)+'%';
+
+    try {
+      const resp = await fetch('/color/next-plate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ plate_id: idx, type_idx: q.type_idx, numeral: q.correct, style: 'ishihara' })
+      });
+      const data = await resp.json();
+      if(data.path){ quizImage.src = data.path + '?t=' + Date.now(); }
+    } catch (e) { console.warn('Plate generation failed', e); }
+
+    answerInput.value = userAnswers[idx] ?? "";
+    answerInput.focus();
+    backBtn.disabled = idx === 0;
+    nextBtn.disabled = false;
+  };
+
+  const showResult = async () => {
+    quizContainer.classList.add("hidden");
+    resultContainer.classList.remove("hidden");
+    animateResultEntrance();
+
+    let score = quizQuestions.reduce((acc,q,i) => acc + (userAnswers[i]===q.correct?1:0),0);
+    scoreText.textContent = score;
+    totalQuestionsResult.textContent = quizQuestions.length;
+    const pct = Math.round((score / quizQuestions.length) * 100);
+    if (scorePercent) scorePercent.textContent = `${pct}%`;
+    if (accuracyBar) accuracyBar.style.width = `${pct}%`;
+    if (scoreBreakdown) {
+      scoreBreakdown.textContent = `${score} out of ${quizQuestions.length} plates were identified correctly.`;
+    }
+
+    if (probsContainer) {
+      probsContainer.classList.add('hidden');
+      probsContainer.innerHTML = '';
+    }
+    severityText.textContent = 'Computing...';
+
+    const responsesPayload = quizQuestions.map((q,i)=>({
+      numeral: q.correct, expected: q.correct, answer: userAnswers[i] ?? '',
+      type_idx: q.type_idx, is_correct: (userAnswers[i]||'') === q.correct
+    }));
+
+    let modelLabel=''; let modelSeverity='';
+    typeText.textContent = '--';
+    try {
+      const r = await fetch('/color/predict-session', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ model: 'lr', responses: responsesPayload, allow_overrides: true })
+      });
+      const data = await r.json();
+      if(data && data.status){
+        modelLabel = data.label || ''; modelSeverity = data.severity || '';
+        typeText.textContent = toDisplayLabel(modelLabel);
+        severityText.textContent = modelSeverity ? `${toDisplayLabel(modelSeverity)}` : 'Unknown';
+
+        const tone = getSeverityTone(modelSeverity);
+        if (resultBadge) {
+          resultBadge.className = `inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold mb-3 ${tone.badge}`;
+          resultBadge.textContent = 'Screening Complete';
+        }
+        if (resultHeadline) resultHeadline.textContent = tone.headline;
+        if (resultAdvice) resultAdvice.textContent = tone.advice;
+
+        if (probsContainer && Array.isArray(data.probs) && data.probs.length) {
+          const sorted = [...data.probs].sort((a,b) => (b.prob || 0) - (a.prob || 0)).slice(0, 2);
+          probsContainer.innerHTML = `
+            <p class="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">Model Confidence</p>
+            <div class="space-y-2">
+              ${sorted.map(item => {
+                const label = toDisplayLabel(item.label || 'unknown');
+                const val = Math.round((Number(item.prob) || 0) * 100);
+                return `<div class="flex items-center justify-between text-sm text-slate-700"><span>${label}</span><span class="font-semibold text-slate-900">${val}%</span></div>`;
+              }).join('')}
+            </div>
+          `;
+          probsContainer.classList.remove('hidden');
+        }
+
+        try {
+          await fetch('/color/append-result', { method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ session_id: currentSessionId, label: modelLabel, probs: data.probs || [], total: quizQuestions.length })
+          });
+        } catch(_e){}
+        try {
+          const rows = responsesPayload.map(rp => `${rp.numeral},${rp.type_idx},${rp.answer}`);
+          await fetch('/color/append-responses', { method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ rows, session_id: currentSessionId })
+          });
+        } catch(_e){}
+      } else {
+        typeText.textContent = 'Unavailable'; severityText.textContent = 'Result unavailable';
+        if (resultHeadline) resultHeadline.textContent = 'Result unavailable for this session';
+        if (resultAdvice) resultAdvice.textContent = 'Please retake the test. If the issue continues, try again after refreshing the page.';
+        if (resultBadge) resultBadge.className = 'inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold bg-slate-200 text-slate-700 mb-3';
+      }
+    } catch (e){
+      console.warn('Prediction failed', e);
+      typeText.textContent = 'Error'; severityText.textContent = 'Prediction error';
+      if (resultHeadline) resultHeadline.textContent = 'Prediction error occurred';
+      if (resultAdvice) resultAdvice.textContent = 'Your answers were saved locally in this session. Please retake to generate a complete report.';
+      if (resultBadge) resultBadge.className = 'inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold bg-slate-200 text-slate-700 mb-3';
+    }
+  };
+
+  startBtn.addEventListener("click", async () => {
+    try {
+      const r = await fetch('/color/new-session', { method: 'POST' });
+      const d = await r.json();
+      currentSessionId = d && d.session_id ? String(d.session_id) : '';
+    } catch(_e){ currentSessionId = ''; }
+    let base = ["12","8","6","29","57","5","3","15","74","26"];
+    try {
+      const m = await fetch('/static/color/plates_manifest.json');
+      if (m.ok) {
+        const manifest = await m.json();
+        if (Array.isArray(manifest.plates)) {
+          const nums = manifest.plates.map(p=>String(p.numeral)).filter(Boolean);
+          if (nums.length >= 6) base = nums;
+        }
+      }
+    } catch(e){}
+    quizQuestions = shuffleArray(base).slice(0,10).map((num,i)=>({ correct: num, type_idx: i % 4 }));
+    totalQuestionsEl.textContent = quizQuestions.length;
+    userAnswers = [];
+    instructions.classList.add("hidden");
+    quizContainer.classList.remove("hidden");
+    loadQuestion(0);
+  });
+
+  nextBtn.addEventListener("click", ()=> {
+    const val = answerInput.value.trim();
+    userAnswers[currentIndex] = val === '' ? '' : val;
+    if(currentIndex<quizQuestions.length-1) { loadQuestion(currentIndex+1); }
+    else { showResult(); }
+  });
+
+  answerInput?.addEventListener('keydown', e => { if(e.key === 'Enter') nextBtn.click(); });
+  backBtn.addEventListener("click", ()=> { if(currentIndex>0) loadQuestion(currentIndex-1); });
+
+  restartQuiz.addEventListener("click", async ()=> {
+    try {
+      const r = await fetch('/color/new-session', { method: 'POST' });
+      const d = await r.json();
+      currentSessionId = d && d.session_id ? String(d.session_id) : '';
+    } catch(_e){ currentSessionId = ''; }
+    resultContainer.classList.add("hidden");
+    instructions.classList.remove("hidden");
+  });
+
+  enableSingleOpenFaq();
+})();
+</script>
+{% endblock %}

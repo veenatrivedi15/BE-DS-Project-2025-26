@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>iCare - Color Blindness Simulator</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <header class="app-header" style="display:flex;align-items:center;justify-content:space-between;gap:12px">
+      <h1>iCare – Color Blindness Simulator</h1>
+      <nav>
+        <a href="test.html" class="btn" style="text-decoration:none;">Open Detection (Ishihara Test)</a>
+      </nav>
+    </header>
+
+    <main class="app">
+      <div id="dropHint" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);color:#e6eaf2;z-index:10;align-items:center;justify-content:center;font-size:20px;text-align:center">
+        <div style="border:2px dashed #4f8cff;padding:24px;border-radius:12px;background:#0f1115cc">Drop image here to preview</div>
+      </div>
+      <section class="controls">
+        <div class="control-row">
+          <label class="btn">
+            <input id="fileInput" type="file" accept="image/*" hidden />
+            <span>Open Image…</span>
+          </label>
+          
+          <button id="downloadBtn" class="btn" disabled>Download Simulation</button>
+        </div>
+
+        <div class="control-row">
+          <label for="typeSelect">Type</label>
+          <select id="typeSelect">
+            <option value="Protanopia">Protanopia</option>
+            <option value="Deuteranopia" selected>Deuteranopia</option>
+            <option value="Tritanopia">Tritanopia</option>
+          </select>
+        </div>
+
+        <div class="control-row">
+          <label for="severity">Severity</label>
+          <input id="severity" type="range" min="0" max="1" step="0.01" value="1" />
+          <span id="severityValue" class="mono">1.00</span>
+        </div>
+
+        <p class="hint">Load an image, choose a type, and adjust severity. Download when ready.</p>
+      </section>
+
+      <section class="previews">
+        <div class="panel">
+          <div class="panel-title">Original</div>
+          <canvas id="canvasOriginal" width="640" height="480"></canvas>
+        </div>
+        <div class="panel">
+          <div class="panel-title">Simulation</div>
+          <canvas id="canvasSim" width="640" height="480"></canvas>
+        </div>
+        <div class="panel" id="thumbPanel" style="display:none;">
+          <div class="panel-title">In‑app Thumbnails (click to load)</div>
+          <div id="thumbGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:8px"></div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="app-footer">
+      <span>Uses sRGB linearization and 3×3 matrices for fast simulation.</span>
+    </footer>
+
+    <script src="app.js"></script>
+  </body>
+  </html>
+
+

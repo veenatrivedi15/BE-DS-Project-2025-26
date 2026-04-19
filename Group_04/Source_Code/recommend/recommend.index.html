@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Eye-Care Assistant</title>
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <header>
+        <h1>Eye-Care Chatbot & Clinic Finder</h1>
+    </header>
+    
+    <div class="container">
+        <div class="chat-section">
+            <div id="chat-window">
+                <div class="message bot">
+                    <p>Hello! I can help with eye symptoms. How are you feeling today? (Note: I am not a doctor.)</p>
+                </div>
+            </div>
+            <div class="input-area">
+                <select id="language-select">
+                    <option value="mr">Marathi (मराठी)</option>
+                    <option value="hi">Hindi (हिंदी)</option>
+                    <option value="en">English</option>
+        
+                </select>
+                <input type="text" id="user-input" placeholder="Describe your symptoms...">
+                <button onclick="sendMessage()">Send</button>
+            </div>
+            <button id="find-clinics-btn" onclick="getClinics()">Find Nearby Clinics Manually</button>
+        </div>
+        
+        <div class="map-section">
+            <div id="map"></div>
+        </div>
+    </div>
+
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>

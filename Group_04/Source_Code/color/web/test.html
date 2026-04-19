@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>iCare – Ishihara Test (AI)</title>
+    <link rel="stylesheet" href="styles.css" />
+    <style>
+      .test-grid{display:grid;grid-template-columns:360px 1fr;gap:16px}
+      .qa{display:flex;gap:8px;flex-wrap:wrap}
+      .qa input{width:120px}
+      .result-box{white-space:pre-wrap;background:#10131a;border:1px solid var(--border);border-radius:8px;padding:10px}
+    </style>
+  </head>
+  <body>
+    <header class="app-header"><h1>iCare – Ishihara Test (AI)</h1></header>
+    <main class="app" style="grid-template-columns:1fr;">
+      <section class="controls">
+        <div class="control-row">
+          <button class="btn" id="loadBtn">Load Plates (manifest)</button>
+          <button class="btn" id="startBtn">Start Test</button>
+          <button class="btn" id="predictBtn" disabled>Predict</button>
+        </div>
+        <div class="control-row">
+          <label>Plates Loaded</label>
+          <span id="loadedCount" class="mono">0</span>
+        </div>
+        <div class="control-row">
+          <label>Progress</label>
+          <span id="progressLabel" class="mono">0/0</span>
+        </div>
+        <div class="control-row">
+          <label>Current Plate</label>
+          <span id="plateInfo" class="mono">-</span>
+        </div>
+        <div class="control-row qa">
+          <input id="responseInput" placeholder="Enter number seen" />
+          <button class="btn" id="nextBtn" disabled>Next Plate</button>
+          <button class="btn" id="resetBtn">Reset</button>
+        </div>
+        <p class="hint">This demo uses a simple AI model trained on (plate, response) pairs to infer color vision type and severity—not a fixed rule table.</p>
+      </section>
+
+      <section class="previews test-grid">
+        <div class="panel">
+          <div class="panel-title">Plate</div>
+          <img id="plateImg" alt="plate" style="width:100%;height:auto;border-radius:8px;border:1px solid var(--border)" />
+        </div>
+        <div class="panel">
+          <div class="panel-title">Prediction</div>
+          <div class="result-box" id="resultBox">No prediction yet.</div>
+        </div>
+      </section>
+    </main>
+    <footer class="app-footer"><span>Training pipeline creates weights.json for browser inference.</span></footer>
+    <script src="test_app.js"></script>
+  </body>
+  </html>
+
+

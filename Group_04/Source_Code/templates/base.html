@@ -1,0 +1,379 @@
+<!doctype html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>{% block title %}I-Care | Intelligent Vision Platform{% endblock %}</title>
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#f4f8ff',
+              100: '#e8f1ff',
+              200: '#c8ddff',
+              300: '#a4c5ff',
+              400: '#73a3fe',
+              500: '#4c83f6',
+              600: '#3267df',
+              700: '#2854c7',
+              800: '#2448a1',
+              900: '#223f80'
+            },
+            mint: {
+              100: '#e8fff7',
+              200: '#c5ffea',
+              600: '#08997f'
+            }
+          },
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'system-ui', '-apple-system', 'sans-serif'],
+            display: ['"Manrope"', '"Plus Jakarta Sans"', 'system-ui', 'sans-serif']
+          },
+          boxShadow: {
+            soft: '0 18px 45px -22px rgba(35, 70, 132, 0.38)',
+            halo: '0 0 0 1px rgba(76, 131, 246, 0.22), 0 20px 40px -24px rgba(48, 84, 162, 0.42)'
+          },
+          keyframes: {
+            appear: {
+              '0%': { opacity: '0', transform: 'translateY(26px) scale(0.985)' },
+              '100%': { opacity: '1', transform: 'translateY(0) scale(1)' }
+            }
+          },
+          animation: {
+            appear: 'appear 0.75s cubic-bezier(.22,.61,.36,1) both'
+          }
+        }
+      }
+    }
+  </script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+
+  <style>
+    .goog-te-banner-frame, .goog-te-spinner-pos { display: none !important; }
+    body, body.translated-ltr, body.translated-rtl { top: 0 !important; margin-top: 0 !important; }
+    .goog-te-gadget { font-size: 0 !important; color: transparent !important; }
+    #goog-gt-tt, .goog-te-balloon-frame { display: none !important; }
+  </style>
+
+  {% block head %}{% endblock %}
+</head>
+<body class="page-shell text-slate-900 antialiased">
+  {% set ep = request.endpoint or '' %}
+
+  <a href="#main-content" class="sr-only focus:not-sr-only focus:absolute focus:top-3 focus:left-3 focus:px-4 focus:py-2 focus:rounded-xl focus:bg-brand-600 focus:text-white focus:z-[9999]">Skip to content</a>
+
+  <header id="main-nav" class="fixed top-0 inset-x-0 z-50 transition-all duration-300">
+    <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-3">
+      <div class="nav-panel rounded-2xl px-4 sm:px-5">
+        <div class="h-16 flex items-center justify-between">
+          <a href="{{ url_for('home') }}" class="flex items-center gap-3">
+            <span class="h-10 w-10 rounded-2xl bg-gradient-to-br from-brand-500 via-brand-600 to-mint-600 text-white flex items-center justify-center shadow-soft">
+              <i class="bi bi-eye text-lg"></i>
+            </span>
+            <div>
+              <p class="font-display text-lg leading-none tracking-tight text-slate-900">I-Care</p>
+              <p class="text-[11px] leading-none mt-1 text-slate-500 font-medium tracking-[0.18em] uppercase">Vision Intelligence</p>
+            </div>
+          </a>
+
+          <nav class="hidden lg:flex items-center gap-1">
+            <a href="{{ url_for('home') }}" class="nav-tab {% if ep == 'home' %}is-active{% endif %}">Home</a>
+
+            <div class="relative" id="featuresDropdownWrap">
+              <button id="featuresDropdown" class="nav-tab inline-flex items-center gap-1.5 {% if ep in ['detection', 'colorblind', 'fatigue', 'recommendations', 'color_feature.simulator'] %}is-active{% endif %}">
+                Solutions
+                <svg id="featuresChevron" class="w-4 h-4 transition-transform duration-200" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.3"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+              </button>
+
+              <div id="megaMenu" class="absolute top-full left-1/2 -translate-x-1/2 w-[680px] pt-3 opacity-0 invisible pointer-events-none transition-all duration-200 origin-top scale-95">
+                <div class="mega-panel rounded-2xl p-3">
+                  <div class="grid grid-cols-2 gap-2">
+                    <a href="{{ url_for('detection') }}" class="mega-entry">
+                      <span class="mega-icon bg-sky-100 text-sky-700"><i class="bi bi-camera2"></i></span>
+                      <span>
+                        <span class="mega-title">Eye Disease Detection</span>
+                        <span class="mega-desc">Retinal scan analysis to detect major risk conditions early.</span>
+                      </span>
+                    </a>
+                    <a href="{{ url_for('colorblind') }}" class="mega-entry">
+                      <span class="mega-icon bg-rose-100 text-rose-700"><i class="bi bi-palette"></i></span>
+                      <span>
+                        <span class="mega-title">Color Blindness Test</span>
+                        <span class="mega-desc">Interactive Ishihara-based screening for color vision deficiencies.</span>
+                      </span>
+                    </a>
+                    <a href="{{ url_for('fatigue') }}" class="mega-entry">
+                      <span class="mega-icon bg-amber-100 text-amber-700"><i class="bi bi-moon-stars"></i></span>
+                      <span>
+                        <span class="mega-title">Eye Fatigue Analysis</span>
+                        <span class="mega-desc">Track strain indicators and improve digital comfort habits.</span>
+                      </span>
+                    </a>
+                    <a href="{{ url_for('color_feature.simulator') }}" class="mega-entry">
+                      <span class="mega-icon bg-emerald-100 text-emerald-700"><i class="bi bi-image"></i></span>
+                      <span>
+                        <span class="mega-title">Color Vision Simulator</span>
+                        <span class="mega-desc">Preview images through protan, deutan, and tritan perspectives.</span>
+                      </span>
+                    </a>
+                  </div>
+                  <a href="{{ url_for('recommendations') }}" class="mega-entry mt-2 border border-slate-200/80 bg-slate-50/75">
+                    <span class="mega-icon bg-indigo-100 text-indigo-700"><i class="bi bi-stars"></i></span>
+                    <span>
+                      <span class="mega-title">Personalized Recommendations</span>
+                      <span class="mega-desc">Receive practical guidance tailored to your vision profile.</span>
+                    </span>
+                  </a>
+                </div>
+              </div>
+            </div>
+
+            <a href="{{ url_for('aboutus') }}" class="nav-tab {% if ep == 'aboutus' %}is-active{% endif %}">About</a>
+
+            <div class="relative ml-2" id="langPickerWrap">
+              <button id="langPickerBtn" class="lang-trigger" aria-label="Select language">
+                <i class="bi bi-translate text-sm"></i>
+                <span id="langPickerLabel" class="text-xs font-semibold tracking-wider">EN</span>
+                <svg id="langChevron" class="w-3.5 h-3.5 transition-transform duration-200" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.3"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+              </button>
+              <div id="langPickerMenu" class="absolute right-0 top-full mt-2 w-44 opacity-0 invisible pointer-events-none transition-all duration-150 origin-top-right scale-95 z-50">
+                <div class="surface-card rounded-xl p-1 text-sm overflow-hidden">
+                  <button onclick="setLang('en','EN')" class="lang-item">English</button>
+                  <button onclick="setLang('hi','HI')" class="lang-item">हिन्दी</button>
+                  <button onclick="setLang('mr','MR')" class="lang-item">मराठी</button>
+                  <button onclick="setLang('gu','GU')" class="lang-item">ગુજરાતી</button>
+                </div>
+              </div>
+            </div>
+            <div id="google_translate_element" class="hidden"></div>
+          </nav>
+
+          <div class="hidden lg:flex items-center gap-2.5">
+            {% if session.get('username') %}
+            <div class="relative" id="profileDropdownWrap">
+              <button id="profileDropdown" class="profile-trigger">
+                {% if nav_profile_image_url %}
+                <img src="{{ nav_profile_image_url }}" alt="Profile picture" class="h-8 w-8 rounded-full object-cover ring-2 ring-white shadow-soft" />
+                {% else %}
+                <span class="profile-avatar">{{ nav_initial or session['username'][0].upper() }}</span>
+                {% endif %}
+                <span class="text-sm font-semibold text-slate-700 max-w-[140px] truncate">{{ (nav_user.username if nav_user else session['username']) }}</span>
+                <i class="bi bi-chevron-down text-xs text-slate-400"></i>
+              </button>
+              <div id="profileMenu" class="absolute right-0 top-full mt-2 w-44 opacity-0 invisible pointer-events-none transition-all duration-200 origin-top-right scale-95">
+                <div class="surface-card rounded-xl p-1">
+                  <a href="{{ url_for('profile') }}" class="menu-item"><i class="bi bi-person-circle"></i>Profile</a>
+                  <a href="{{ url_for('logout') }}" class="menu-item"><i class="bi bi-box-arrow-right"></i>Sign Out</a>
+                </div>
+              </div>
+            </div>
+            {% else %}
+            <a href="{{ url_for('login') }}" class="px-4 py-2 text-sm font-semibold text-slate-600 hover:text-slate-900 transition-colors">Log in</a>
+            <a href="{{ url_for('signup') }}" class="btn-primary px-5 py-2.5 text-sm">Start Free</a>
+            {% endif %}
+          </div>
+
+          <button id="mobileMenuBtn" class="lg:hidden p-2.5 rounded-xl border border-slate-200/80 bg-white/80 text-slate-700">
+            <svg id="menuOpenIcon" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"/></svg>
+            <svg id="menuCloseIcon" class="w-5 h-5 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+          </button>
+        </div>
+
+        <div id="mobileMenu" class="hidden lg:hidden border-t border-slate-200/80 pb-4">
+          <div class="pt-3 space-y-1">
+            <a href="{{ url_for('home') }}" class="mobile-link">Home</a>
+            <a href="{{ url_for('detection') }}" class="mobile-link">Eye Disease Detection</a>
+            <a href="{{ url_for('colorblind') }}" class="mobile-link">Color Blindness Test</a>
+            <a href="{{ url_for('fatigue') }}" class="mobile-link">Eye Fatigue Analysis</a>
+            <a href="{{ url_for('color_feature.simulator') }}" class="mobile-link">Color Vision Simulator</a>
+            <a href="{{ url_for('recommendations') }}" class="mobile-link">Recommendations</a>
+            <a href="{{ url_for('aboutus') }}" class="mobile-link">About</a>
+
+            <div class="pt-2 mt-3 border-t border-slate-200/80 flex gap-2">
+              {% if session.get('username') %}
+              <a href="{{ url_for('profile') }}" class="mobile-action">Profile</a>
+              <a href="{{ url_for('logout') }}" class="mobile-action">Sign Out</a>
+              {% else %}
+              <a href="{{ url_for('login') }}" class="mobile-action">Log in</a>
+              <a href="{{ url_for('signup') }}" class="mobile-action is-filled">Start Free</a>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <div class="h-[88px]"></div>
+
+  <div id="toast-container" class="fixed top-24 right-4 z-[9999] flex flex-col gap-2 max-w-sm">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          {% set colors = {'success':'border-emerald-200 bg-emerald-50/95 text-emerald-800','danger':'border-rose-200 bg-rose-50/95 text-rose-800','warning':'border-amber-200 bg-amber-50/95 text-amber-800','info':'border-sky-200 bg-sky-50/95 text-sky-800'} %}
+          {% set icons = {'success':'bi-check-circle-fill','danger':'bi-exclamation-triangle-fill','warning':'bi-exclamation-circle-fill','info':'bi-info-circle-fill'} %}
+          <div class="toast-msg {{ colors.get(category, 'border-slate-200 bg-slate-50 text-slate-800') }} border rounded-xl px-4 py-3 shadow-soft flex items-start gap-3" role="alert">
+            <i class="bi {{ icons.get(category, 'bi-info-circle-fill') }} mt-0.5"></i>
+            <p class="text-sm font-medium flex-1">{{ message|safe }}</p>
+            <button onclick="this.parentElement.remove()" class="text-slate-400 hover:text-slate-700 transition-colors">
+              <i class="bi bi-x-lg text-xs"></i>
+            </button>
+          </div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+  </div>
+
+  <main id="main-content" class="relative z-10">{% block content %}{% endblock %}</main>
+
+  <script>
+  (function () {
+    const nav = document.getElementById('main-nav');
+    const navPanel = document.querySelector('.nav-panel');
+    window.addEventListener('scroll', () => {
+      const scrolled = window.scrollY > 16;
+      navPanel?.classList.toggle('is-scrolled', scrolled);
+      nav?.classList.toggle('backdrop-blur-sm', scrolled);
+    }, { passive: true });
+
+    const mobileBtn = document.getElementById('mobileMenuBtn');
+    const mobileMenu = document.getElementById('mobileMenu');
+    const openIcon = document.getElementById('menuOpenIcon');
+    const closeIcon = document.getElementById('menuCloseIcon');
+    mobileBtn?.addEventListener('click', () => {
+      const isHidden = mobileMenu.classList.toggle('hidden');
+      openIcon.classList.toggle('hidden', !isHidden);
+      closeIcon.classList.toggle('hidden', isHidden);
+    });
+
+    const setupDropdown = (wrapId, triggerId, panelId, chevronId) => {
+      const wrap = document.getElementById(wrapId);
+      const trigger = document.getElementById(triggerId);
+      const panel = document.getElementById(panelId);
+      const chevron = chevronId ? document.getElementById(chevronId) : null;
+      if (!wrap || !trigger || !panel) return;
+      let open = false;
+      let timer;
+
+      const toggle = (show) => {
+        open = show;
+        panel.classList.toggle('opacity-0', !show);
+        panel.classList.toggle('invisible', !show);
+        panel.classList.toggle('pointer-events-none', !show);
+        panel.classList.toggle('scale-95', !show);
+        panel.classList.toggle('opacity-100', show);
+        panel.classList.toggle('scale-100', show);
+        chevron?.classList.toggle('rotate-180', show);
+      };
+
+      trigger.addEventListener('click', (e) => {
+        e.preventDefault();
+        clearTimeout(timer);
+        toggle(!open);
+      });
+
+      wrap.addEventListener('mouseenter', () => {
+        clearTimeout(timer);
+        toggle(true);
+      });
+
+      wrap.addEventListener('mouseleave', () => {
+        timer = setTimeout(() => toggle(false), 120);
+      });
+
+      document.addEventListener('click', (e) => {
+        if (open && !wrap.contains(e.target)) {
+          toggle(false);
+        }
+      });
+    };
+
+    setupDropdown('featuresDropdownWrap', 'featuresDropdown', 'megaMenu', 'featuresChevron');
+    setupDropdown('langPickerWrap', 'langPickerBtn', 'langPickerMenu', 'langChevron');
+    setupDropdown('profileDropdownWrap', 'profileDropdown', 'profileMenu');
+
+    document.querySelectorAll('.toast-msg').forEach((toast) => {
+      setTimeout(() => {
+        toast.style.transition = 'opacity .4s ease, transform .4s ease';
+        toast.style.opacity = '0';
+        toast.style.transform = 'translateX(14px)';
+        setTimeout(() => toast.remove(), 400);
+      }, 4500);
+    });
+
+    window.setLang = function (langCode, label) {
+      const pickerLabel = document.getElementById('langPickerLabel');
+      if (pickerLabel) pickerLabel.textContent = label;
+
+      const trySet = (attempts) => {
+        const combo = document.querySelector('.goog-te-combo');
+        if (combo) {
+          combo.value = langCode;
+          combo.dispatchEvent(new Event('change'));
+          return;
+        }
+        if (attempts > 0) {
+          setTimeout(() => trySet(attempts - 1), 500);
+          return;
+        }
+        if (langCode === 'en') {
+          document.cookie = 'googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/';
+          document.cookie = 'googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=.' + location.hostname;
+        } else {
+          document.cookie = `googtrans=/en/${langCode}; path=/`;
+          document.cookie = `googtrans=/en/${langCode}; path=/; domain=.${location.hostname}`;
+        }
+        location.reload();
+      };
+
+      trySet(10);
+    };
+
+    const revealTargets = document.querySelectorAll('[data-reveal]');
+    if (revealTargets.length) {
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('revealed');
+            observer.unobserve(entry.target);
+          }
+        });
+      }, {
+        threshold: 0.10,
+        rootMargin: '0px 0px -8% 0px'
+      });
+
+      revealTargets.forEach((target) => {
+        // Optional per-element delay if needed: data-reveal-delay="120"
+        const customDelay = Number(target.getAttribute('data-reveal-delay') || 0);
+        target.style.transitionDelay = `${Math.max(customDelay, 0)}ms`;
+        observer.observe(target);
+      });
+    }
+  })();
+  </script>
+
+  <script>
+    function googleTranslateElementInit() {
+      new google.translate.TranslateElement({
+        pageLanguage: 'en',
+        includedLanguages: 'en,hi,mr,gu',
+        layout: google.translate.TranslateElement.InlineLayout.SIMPLE,
+        autoDisplay: false
+      }, 'google_translate_element');
+    }
+  </script>
+  <script src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit" async defer></script>
+
+  {% block scripts %}{% endblock %}
+</body>
+</html>

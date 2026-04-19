@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+{% block title %}Eye Exercises — I-Care{% endblock %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10 bg-gradient-to-br from-emerald-50 via-lime-50 to-slate-50 rounded-3xl border border-emerald-100/70">
+    <!-- Header -->
+    <div class="text-center mb-10">
+        <div class="inline-flex items-center gap-1.5 bg-emerald-100/60 border border-emerald-200/60 rounded-full px-3 py-1 mb-3">
+            <span class="text-xs font-semibold text-emerald-700 uppercase tracking-wider">Interactive</span>
+        </div>
+        <h1 class="text-3xl sm:text-4xl font-bold text-slate-900 tracking-tight">Eye Exercise Library</h1>
+        <p class="mt-2 text-slate-500 max-w-xl mx-auto">AI-guided exercises to strengthen your eye muscles, reduce fatigue, and improve focus</p>
+    </div>
+
+    <!-- Exercise Grid -->
+    <div id="exercisesGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        <!-- Cards injected by JS -->
+        <div class="col-span-full text-center py-16 text-slate-400">
+            <div class="inline-block w-8 h-8 border-4 border-brand-200 border-t-brand-600 rounded-full animate-spin mb-4"></div>
+            <p>Loading exercises…</p>
+        </div>
+    </div>
+</div>
+
+<script>
+    async function loadExercises() {
+        try {
+            const res = await fetch('/api/exercises');
+            const exercises = await res.json();
+            const grid = document.getElementById('exercisesGrid');
+            grid.innerHTML = '';
+            exercises.forEach(ex => grid.appendChild(createExerciseCard(ex)));
+        } catch (e) {
+            document.getElementById('exercisesGrid').innerHTML =
+                '<p class="col-span-full text-center text-red-500 py-12">Failed to load exercises. Please try again later.</p>';
+        }
+    }
+
+    function createExerciseCard(ex) {
+        const card = document.createElement('div');
+        card.className = 'group bg-white rounded-2xl border border-slate-200/80 shadow-sm hover:shadow-md transition-all duration-200 overflow-hidden cursor-pointer';
+        card.onclick = () => selectExercise(ex.id);
+
+        const icons = { blink: '👁️', left_right: '↔️', up_down: '↕️', near_far: '🔍', palming: '🤲' };
+        const icon = icons[ex.id] || '👁️';
+
+        card.innerHTML = `
+            <div class="h-40 bg-gradient-to-br from-brand-50 to-brand-100 flex items-center justify-center text-5xl group-hover:scale-105 transition-transform duration-300">${icon}</div>
+            <div class="p-5">
+                <h3 class="text-lg font-semibold text-slate-900 mb-1">${ex.name}</h3>
+                <p class="text-sm text-slate-500 mb-3 line-clamp-2">${ex.benefits || 'Strengthen your eye muscles with this exercise.'}</p>
+                <div class="flex items-center gap-3 text-xs text-slate-400">
+                    <span class="inline-flex items-center gap-1"><i class="bi bi-clock"></i> ${ex.duration || '2 min'}</span>
+                    <span class="inline-flex items-center gap-1"><i class="bi bi-arrow-repeat"></i> ${ex.target_reps || 10} reps</span>
+                </div>
+                <button class="mt-4 w-full text-sm font-medium text-brand-600 border border-brand-200 rounded-lg py-2 hover:bg-brand-50 transition-colors">
+                    Start Exercise →
+                </button>
+            </div>
+        `;
+        return card;
+    }
+
+    function selectExercise(id) {
+        window.location.href = '/exercise?id=' + id;
+    }
+
+    document.addEventListener('DOMContentLoaded', loadExercises);
+</script>
+{% endblock %}
