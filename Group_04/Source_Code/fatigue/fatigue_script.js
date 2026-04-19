@@ -207,31 +207,52 @@ function displayResults(data) {
     
     // Display conditions
     const conditionsList = document.getElementById('conditionsList');
+    conditionsList.replaceChildren();
     if (diagnosis.conditions.length > 0) {
-        conditionsList.innerHTML = '<div class="conditions-header">Detected Conditions:</div>' +
-            diagnosis.conditions.map(c => `<span class="condition-badge">${c}</span>`).join('');
+        const header = document.createElement('div');
+        header.className = 'conditions-header';
+        header.textContent = 'Detected Conditions:';
+        conditionsList.appendChild(header);
+        diagnosis.conditions.forEach((condition) => {
+            const badge = document.createElement('span');
+            badge.className = 'condition-badge';
+            badge.textContent = condition;
+            conditionsList.appendChild(badge);
+        });
     } else {
-        conditionsList.innerHTML = '<div class="no-conditions">✓ No significant conditions detected</div>';
+        const noConditions = document.createElement('div');
+        noConditions.className = 'no-conditions';
+        noConditions.textContent = '✓ No significant conditions detected';
+        conditionsList.appendChild(noConditions);
     }
     
     // Display findings
     const findingsList = document.getElementById('findingsList');
+    findingsList.replaceChildren();
     if (diagnosis.findings.length > 0) {
-        findingsList.innerHTML = '<ul>' + 
-            diagnosis.findings.map(f => `<li>${f}</li>`).join('') +
-            '</ul>';
-    } else {
-        findingsList.innerHTML = '';
+        const list = document.createElement('ul');
+        diagnosis.findings.forEach((finding) => {
+            const item = document.createElement('li');
+            item.textContent = finding;
+            list.appendChild(item);
+        });
+        findingsList.appendChild(list);
     }
     
     // Display recommendations
     const recommendationsList = document.getElementById('recommendationsList');
-    recommendationsList.innerHTML = '<ul class="recommendations">' +
-        diagnosis.recommendations.map((rec, index) => {
-            const isUrgent = rec.includes('⚠️') || rec.includes('🚨');
-            return `<li class="${isUrgent ? 'urgent' : ''}">${rec}</li>`;
-        }).join('') +
-        '</ul>';
+    recommendationsList.replaceChildren();
+    const recList = document.createElement('ul');
+    recList.className = 'recommendations';
+    diagnosis.recommendations.forEach((rec) => {
+        const item = document.createElement('li');
+        if (rec.includes('⚠️') || rec.includes('🚨')) {
+            item.classList.add('urgent');
+        }
+        item.textContent = rec;
+        recList.appendChild(item);
+    });
+    recommendationsList.appendChild(recList);
     
     // Display medical disclaimer
     const medicalNote = document.getElementById('medicalNote');

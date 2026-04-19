@@ -120,7 +120,11 @@ function setup(){
     // Single file load into canvases
     const file = files[0];
     const img = new Image();
+    img.onerror = ()=> alert('Failed to load image.');
+    const objectUrl = URL.createObjectURL(file);
+    img.src = objectUrl;
     img.onload = ()=>{
+      URL.revokeObjectURL(objectUrl);
       state.img = img;
       const maxW = 1280, maxH = 960;
       const scale = Math.min(maxW / img.width, maxH / img.height, 1);
@@ -129,13 +133,10 @@ function setup(){
       state.canvasO.width = state.canvasS.width = w;
       state.canvasO.height = state.canvasS.height = h;
       downloadBtn.disabled = false;
-      // Hide thumbnail panel if visible from a previous multi-select
       const panel = document.getElementById('thumbPanel');
       if(panel) panel.style.display = 'none';
       redraw();
     };
-    img.onerror = ()=> alert('Failed to load image.');
-    img.src = URL.createObjectURL(file);
   });
 
   // Build an in-app thumbnail panel from the current folder of the last chosen file.
@@ -149,10 +150,15 @@ function setup(){
     if(!files || files.length <= 1) return; // if user picked multiple, show thumb panel
     const grid = document.getElementById('thumbGrid');
     const panel = document.getElementById('thumbPanel');
-    grid.innerHTML = '';
+    if (grid._thumbUrls) {
+      grid._thumbUrls.forEach((u) => URL.revokeObjectURL(u));
+    }
+    grid._thumbUrls = [];
+    grid.replaceChildren();
     const list = Array.from(files).filter(f => f.type.startsWith('image/')).slice(0,60);
     for(const f of list){
       const url = URL.createObjectURL(f);
+      grid._thumbUrls.push(url);
       const img = new Image();
       img.src = url;
       img.style.width = '100%';
@@ -198,11 +204,13 @@ function setup(){
     state.canvasS.toBlob((blob)=>{
       if(!blob){ alert('Export failed.'); return; }
       const a = document.createElement('a');
-      a.href = URL.createObjectURL(blob);
+      const blobUrl = URL.createObjectURL(blob);
+      a.href = blobUrl;
       a.download = 'simulation.png';
       document.body.appendChild(a);
       a.click();
       a.remove();
+      URL.revokeObjectURL(blobUrl);
     }, 'image/png');
   });
 

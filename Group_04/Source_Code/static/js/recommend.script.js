@@ -1,7 +1,26 @@
-﻿let map;
+let map;
 let markers = [];
 let userMarker;
 const clinicsListEl = document.getElementById('clinics-list');
+
+function normalizeText(value) {
+    return String(value || '').trim();
+}
+
+function toSafeHttpUrl(value) {
+    const raw = normalizeText(value);
+    if (!raw) return '';
+    try {
+        const parsed = new URL(raw, window.location.origin);
+        const protocol = parsed.protocol.toLowerCase();
+        if (protocol === 'http:' || protocol === 'https:') {
+            return parsed.href;
+        }
+    } catch (_err) {
+        return '';
+    }
+    return '';
+}
 
 document.addEventListener('DOMContentLoaded', () => {
     initMap();
@@ -60,7 +79,9 @@ function showTyping() {
     const chatWindow = document.getElementById('chat-window');
     const el = document.createElement('div');
     el.classList.add('typing-indicator');
-    el.innerHTML = '<span></span><span></span><span></span>';
+    for (let i = 0; i < 3; i += 1) {
+        el.appendChild(document.createElement('span'));
+    }
     chatWindow.appendChild(el);
     chatWindow.scrollTop = chatWindow.scrollHeight;
     return el;
@@ -201,23 +222,70 @@ function renderClinicCards(clinics) {
     }
 
     if (!clinics || clinics.length === 0) {
-        clinicsListEl.innerHTML = '<div class="clinic-card"><div class="clinic-name">No nearby clinics found</div><div class="clinic-meta">Try again with location enabled, or search manually for eye hospitals in your city.</div></div>';
+        clinicsListEl.replaceChildren();
+        const card = document.createElement('div');
+        card.className = 'clinic-card';
+        const name = document.createElement('div');
+        name.className = 'clinic-name';
+        name.textContent = 'No nearby clinics found';
+        const meta = document.createElement('div');
+        meta.className = 'clinic-meta';
+        meta.textContent = 'Try again with location enabled, or search manually for eye hospitals in your city.';
+        card.appendChild(name);
+        card.appendChild(meta);
+        clinicsListEl.appendChild(card);
         return;
     }
 
-    clinicsListEl.innerHTML = clinics.slice(0, 12).map(function(clinic) {
-        var ratingText = (clinic.rating !== undefined && clinic.rating !== null) ? ('Rating: ' + clinic.rating + (clinic.reviews ? ' (' + clinic.reviews + ' reviews)' : '')) : '';
-        var site = clinic.website ? ('<div class="clinic-meta"><a href="' + clinic.website + '" target="_blank" rel="noopener noreferrer">Visit website</a></div>') : '';
-        return (
-            '<div class="clinic-card">' +
-            '<div class="clinic-name">' + (clinic.name || 'Eye Clinic') + '</div>' +
-            (clinic.address ? '<div class="clinic-meta">Address: ' + clinic.address + '</div>' : '') +
-            (clinic.phone ? '<div class="clinic-meta">Phone: ' + clinic.phone + '</div>' : '') +
-            (ratingText ? '<div class="clinic-meta">' + ratingText + '</div>' : '') +
-            site +
-            '</div>'
-        );
-    }).join('');
+    clinicsListEl.replaceChildren();
+    clinics.slice(0, 12).forEach(function (clinic) {
+        const card = document.createElement('div');
+        card.className = 'clinic-card';
+
+        const name = document.createElement('div');
+        name.className = 'clinic-name';
+        name.textContent = normalizeText(clinic.name) || 'Eye Clinic';
+        card.appendChild(name);
+
+        const address = normalizeText(clinic.address);
+        if (address) {
+            const row = document.createElement('div');
+            row.className = 'clinic-meta';
+            row.textContent = 'Address: ' + address;
+            card.appendChild(row);
+        }
+
+        const phone = normalizeText(clinic.phone);
+        if (phone) {
+            const row = document.createElement('div');
+            row.className = 'clinic-meta';
+            row.textContent = 'Phone: ' + phone;
+            card.appendChild(row);
+        }
+
+        if (clinic.rating !== undefined && clinic.rating !== null) {
+            const ratingRow = document.createElement('div');
+            ratingRow.className = 'clinic-meta';
+            const reviews = clinic.reviews ? ` (${clinic.reviews} reviews)` : '';
+            ratingRow.textContent = `Rating: ${clinic.rating}${reviews}`;
+            card.appendChild(ratingRow);
+        }
+
+        const safeWebsite = toSafeHttpUrl(clinic.website);
+        if (safeWebsite) {
+            const siteRow = document.createElement('div');
+            siteRow.className = 'clinic-meta';
+            const link = document.createElement('a');
+            link.href = safeWebsite;
+            link.target = '_blank';
+            link.rel = 'noopener noreferrer';
+            link.textContent = 'Visit website';
+            siteRow.appendChild(link);
+            card.appendChild(siteRow);
+        }
+
+        clinicsListEl.appendChild(card);
+    });
 }
 
 function updateMap(clinics) {
@@ -230,16 +298,54 @@ function updateMap(clinics) {
     if (userMarker) bounds.extend(userMarker.getLatLng());
 
     clinics.forEach(function(clinic) {
-        var popupHtml =
-            '<div style="font-family:Inter,sans-serif;min-width:170px;line-height:1.5;">' +
-            '<strong style="color:#1e293b;font-size:13px;">' + clinic.name + '</strong>' +
-            (clinic.address ? '<div style="color:#64748b;font-size:11px;margin-top:4px;">📍 ' + clinic.address + '</div>' : '') +
-            (clinic.phone ? '<div style="color:#64748b;font-size:11px;margin-top:2px;">📞 ' + clinic.phone + '</div>' : '') +
-            (clinic.website ? '<div style="font-size:11px;margin-top:4px;"><a href="' + clinic.website + '" target="_blank" style="color:#6366f1;">🌐 Visit website</a></div>' : '') +
-            '</div>';
+        var popupContent = document.createElement('div');
+        popupContent.style.fontFamily = 'Inter, sans-serif';
+        popupContent.style.minWidth = '170px';
+        popupContent.style.lineHeight = '1.5';
+
+        var title = document.createElement('strong');
+        title.style.color = '#1e293b';
+        title.style.fontSize = '13px';
+        title.textContent = normalizeText(clinic.name) || 'Eye Clinic';
+        popupContent.appendChild(title);
+
+        var address = normalizeText(clinic.address);
+        if (address) {
+            var addressRow = document.createElement('div');
+            addressRow.style.color = '#64748b';
+            addressRow.style.fontSize = '11px';
+            addressRow.style.marginTop = '4px';
+            addressRow.textContent = '📍 ' + address;
+            popupContent.appendChild(addressRow);
+        }
+
+        var phone = normalizeText(clinic.phone);
+        if (phone) {
+            var phoneRow = document.createElement('div');
+            phoneRow.style.color = '#64748b';
+            phoneRow.style.fontSize = '11px';
+            phoneRow.style.marginTop = '2px';
+            phoneRow.textContent = '📞 ' + phone;
+            popupContent.appendChild(phoneRow);
+        }
+
+        var safeWebsite = toSafeHttpUrl(clinic.website);
+        if (safeWebsite) {
+            var siteRow = document.createElement('div');
+            siteRow.style.fontSize = '11px';
+            siteRow.style.marginTop = '4px';
+            var siteLink = document.createElement('a');
+            siteLink.href = safeWebsite;
+            siteLink.target = '_blank';
+            siteLink.rel = 'noopener noreferrer';
+            siteLink.style.color = '#6366f1';
+            siteLink.textContent = '🌐 Visit website';
+            siteRow.appendChild(siteLink);
+            popupContent.appendChild(siteRow);
+        }
 
         var marker = L.marker([clinic.latitude, clinic.longitude], { icon: makeIcon('#ef4444', 14) }).addTo(map);
-        marker.bindPopup(popupHtml);
+        marker.bindPopup(popupContent);
         markers.push(marker);
         bounds.extend([clinic.latitude, clinic.longitude]);
     });

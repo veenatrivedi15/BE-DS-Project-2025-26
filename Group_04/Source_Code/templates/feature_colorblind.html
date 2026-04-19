@@ -339,7 +339,7 @@
 
     if (probsContainer) {
       probsContainer.classList.add('hidden');
-      probsContainer.innerHTML = '';
+      probsContainer.replaceChildren();
     }
     severityText.textContent = 'Computing...';
 
@@ -371,16 +371,31 @@
 
         if (probsContainer && Array.isArray(data.probs) && data.probs.length) {
           const sorted = [...data.probs].sort((a,b) => (b.prob || 0) - (a.prob || 0)).slice(0, 2);
-          probsContainer.innerHTML = `
-            <p class="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">Model Confidence</p>
-            <div class="space-y-2">
-              ${sorted.map(item => {
-                const label = toDisplayLabel(item.label || 'unknown');
-                const val = Math.round((Number(item.prob) || 0) * 100);
-                return `<div class="flex items-center justify-between text-sm text-slate-700"><span>${label}</span><span class="font-semibold text-slate-900">${val}%</span></div>`;
-              }).join('')}
-            </div>
-          `;
+          probsContainer.replaceChildren();
+          const heading = document.createElement('p');
+          heading.className = 'text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2';
+          heading.textContent = 'Model Confidence';
+          const list = document.createElement('div');
+          list.className = 'space-y-2';
+
+          sorted.forEach((item) => {
+            const row = document.createElement('div');
+            row.className = 'flex items-center justify-between text-sm text-slate-700';
+
+            const label = document.createElement('span');
+            label.textContent = toDisplayLabel(item.label || 'unknown');
+
+            const value = document.createElement('span');
+            value.className = 'font-semibold text-slate-900';
+            value.textContent = `${Math.round((Number(item.prob) || 0) * 100)}%`;
+
+            row.appendChild(label);
+            row.appendChild(value);
+            list.appendChild(row);
+          });
+
+          probsContainer.appendChild(heading);
+          probsContainer.appendChild(list);
           probsContainer.classList.remove('hidden');
         }
 

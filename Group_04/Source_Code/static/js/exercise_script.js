@@ -30,7 +30,7 @@ async function loadExerciseDetails() {
         document.getElementById('benefitsText').textContent = currentExercise.benefits;
         
         const instructionsList = document.getElementById('instructionsList');
-        instructionsList.innerHTML = '';
+        instructionsList.replaceChildren();
         currentExercise.instructions.forEach(instruction => {
             const li = document.createElement('li');
             li.textContent = instruction;
@@ -46,13 +46,13 @@ async function loadExerciseDetails() {
 
 function getExerciseImage(exerciseId) {
     const images = {
-        'blink': '/static/demo/Blink Eye.jpg',
-        'left_right': '/static/demo/Left Right Gaze.jpg',
-        'up_down': '/static/demo/Up Down Gaze.webp',
-        'near_far': '/static/demo/Near far.webp',
-        'palming': '/static/demo/Plaming.webp'
+        'blink': '/static/exercise/demo/Blink Eye.jpg',
+        'left_right': '/static/exercise/demo/Left Right Gaze.jpg',
+        'up_down': '/static/exercise/demo/Up Down Gaze.webp',
+        'near_far': '/static/exercise/demo/Near far.webp',
+        'palming': '/static/exercise/demo/Plaming.webp'
     };
-    return images[exerciseId] || '/static/demo/Blink Eye.jpg';
+    return images[exerciseId] || '/static/exercise/demo/Blink Eye.jpg';
 }
 
 // Start exercise session

@@ -67,6 +67,7 @@
   <!-- Upload Section (Hidden by Default) -->
   <div id="upload-section" class="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-6 sm:p-8" style="display:none;">
     <form id="eye-upload-form" method="POST" enctype="multipart/form-data" novalidate>
+      <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
       <p class="text-sm font-medium text-slate-700 text-center mb-4">Upload an eye image for disease detection</p>
 
       <div id="drop-zone" class="relative border-2 border-dashed border-slate-300 rounded-2xl p-8 text-center cursor-pointer bg-slate-50/50 transition-all duration-200 hover:border-brand-400 hover:bg-brand-50/30 hover:shadow-lg">
@@ -105,6 +106,25 @@
   const livePreview = document.getElementById('live-preview');
   const dropZone = document.getElementById('drop-zone');
   const clearBtn = document.getElementById('clear-btn');
+  let previewObjectUrl = null;
+
+  function clearLivePreview(){
+    if (previewObjectUrl) {
+      URL.revokeObjectURL(previewObjectUrl);
+      previewObjectUrl = null;
+    }
+    livePreview.replaceChildren();
+    livePreview.style.display = 'none';
+  }
+
+  function showPreviewError(message) {
+    clearLivePreview();
+    const errorBox = document.createElement('div');
+    errorBox.className = 'text-red-600 text-sm p-3 bg-red-50 rounded-xl';
+    errorBox.textContent = message;
+    livePreview.appendChild(errorBox);
+    livePreview.style.display = 'block';
+  }
 
   function setDropZoneActive(active){
     if(active){ dropZone.classList.add('border-brand-500','bg-brand-50/50'); dropZone.classList.remove('border-slate-300'); }
@@ -113,27 +133,51 @@
 
   function handleFiles(files){
     const file = files && files[0];
-    if(!file) { livePreview.style.display='none'; livePreview.innerHTML=''; return; }
+    if(!file) { clearLivePreview(); return; }
     if(!/\.(jpe?g|png)$/i.test(file.name)){
-      livePreview.style.display='block';
-      livePreview.innerHTML = '<div class="text-red-600 text-sm p-3 bg-red-50 rounded-xl">Unsupported file type. Please use .jpg, .jpeg, or .png</div>';
+      showPreviewError('Unsupported file type. Please use .jpg, .jpeg, or .png');
       imageInput.value='';
       return;
     }
+    clearLivePreview();
     const url = URL.createObjectURL(file);
+    previewObjectUrl = url;
+
+    const wrapper = document.createElement('div');
+    wrapper.className = 'flex items-start gap-4 flex-wrap p-4 bg-slate-50 rounded-xl border border-slate-200';
+
+    const left = document.createElement('div');
+    const label = document.createElement('p');
+    label.className = 'text-sm font-medium text-slate-700 mb-2';
+    label.textContent = 'Preview';
+    const img = document.createElement('img');
+    img.src = url;
+    img.className = 'rounded-xl shadow-sm border border-slate-200';
+    img.style.maxWidth = '280px';
+    left.appendChild(label);
+    left.appendChild(img);
+
+    const right = document.createElement('div');
+    right.className = 'text-xs text-slate-500 space-y-1 pt-1';
+
+    const mkMeta = (title, value) => {
+      const p = document.createElement('p');
+      const span = document.createElement('span');
+      span.className = 'font-medium text-slate-700';
+      span.textContent = `${title}: `;
+      p.appendChild(span);
+      p.appendChild(document.createTextNode(value));
+      return p;
+    };
+
+    right.appendChild(mkMeta('Name', file.name));
+    right.appendChild(mkMeta('Size', `${(file.size/1024).toFixed(1)} KB`));
+    right.appendChild(mkMeta('Type', file.type || 'n/a'));
+
+    wrapper.appendChild(left);
+    wrapper.appendChild(right);
+    livePreview.appendChild(wrapper);
     livePreview.style.display='block';
-    livePreview.innerHTML = `
-      <div class="flex items-start gap-4 flex-wrap p-4 bg-slate-50 rounded-xl border border-slate-200">
-        <div>
-          <p class="text-sm font-medium text-slate-700 mb-2">Preview</p>
-          <img src="${url}" class="rounded-xl shadow-sm border border-slate-200" style="max-width:280px;">
-        </div>
-        <div class="text-xs text-slate-500 space-y-1 pt-1">
-          <p><span class="font-medium text-slate-700">Name:</span> ${file.name}</p>
-          <p><span class="font-medium text-slate-700">Size:</span> ${(file.size/1024).toFixed(1)} KB</p>
-          <p><span class="font-medium text-slate-700">Type:</span> ${file.type || 'n/a'}</p>
-        </div>
-      </div>`;
   }
 
   getStartedBtn.addEventListener('click', () => {
@@ -155,8 +199,7 @@
 
   clearBtn.addEventListener('click', ()=>{
     imageInput.value='';
-    livePreview.style.display='none';
-    livePreview.innerHTML='';
+    clearLivePreview();
   });
 
   const hasUploaded = "{{ uploaded_file|default('') }}".length > 0;
@@ -174,7 +217,9 @@
   form.addEventListener('submit', () => {
     const btn = document.getElementById('analyze-btn');
     btn.disabled = true;
-    btn.innerHTML = '<svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg> Analyzing...';
+    btn.textContent = 'Analyzing...';
   });
+
+  window.addEventListener('beforeunload', clearLivePreview);
 </script>
 {% endblock %}

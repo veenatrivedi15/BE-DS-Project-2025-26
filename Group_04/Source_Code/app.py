@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for, flash, session, jsonify
+from flask import Flask, render_template, request, redirect, url_for, flash, session, jsonify, abort
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
 import sqlite3
@@ -6,10 +6,14 @@ import atexit
 import os
 import json
 import uuid
+import tempfile
+import secrets
+import logging
 import numpy as np
 import io
 import base64
 import re
+from urllib.parse import urlparse
 from PIL import Image
 
 # New Feature Imports
@@ -41,7 +45,34 @@ from color_feature import color_bp
 
 # ---------------- App Setup ----------------
 app = Flask(__name__)
-app.secret_key = "change_this_secret"
+
+
+def _env_flag(name, default=False):
+    value = os.getenv(name)
+    if value is None:
+        return default
+    return value.strip().lower() in {"1", "true", "yes", "on"}
+
+
+FLASK_DEBUG = _env_flag("FLASK_DEBUG", False)
+logging.basicConfig(
+    level=logging.DEBUG if FLASK_DEBUG else logging.INFO,
+    format="%(asctime)s %(levelname)s %(name)s: %(message)s"
+)
+logger = logging.getLogger("icare")
+
+
+def _load_secret_key():
+    secret = os.getenv("SECRET_KEY")
+    if secret:
+        return secret
+    if FLASK_DEBUG:
+        logger.warning("SECRET_KEY is missing; using temporary key because FLASK_DEBUG is enabled.")
+        return secrets.token_urlsafe(32)
+    raise RuntimeError("Missing SECRET_KEY environment variable. Set SECRET_KEY for production.")
+
+
+app.secret_key = _load_secret_key()
 
 # Configure Groq API
 try:
@@ -49,7 +80,7 @@ try:
         api_key=os.getenv("GROQ_API_KEY"),
     )
 except Exception as e:
-    print(f"Groq Client Init Error: {e}")
+    logger.warning("Groq client init failed: %s", e)
     groq_client = None
 
 UPLOAD_FOLDER = "static/uploads"
@@ -176,7 +207,7 @@ def _to_display_disease_label(label):
 def _load_disease_classes_from_file():
     global DISEASE_CLASSES
     if not os.path.exists(CLASS_LABELS_PATH):
-        print(f"Warning: class labels file not found at {CLASS_LABELS_PATH}; using defaults")
+        logger.warning("Class labels file not found at %s; using defaults", CLASS_LABELS_PATH)
         return
 
     try:
@@ -186,9 +217,9 @@ def _load_disease_classes_from_file():
         if isinstance(labels, list) and labels:
             DISEASE_CLASSES = [_to_display_disease_label(label) for label in labels]
         else:
-            print(f"Warning: invalid class labels format in {CLASS_LABELS_PATH}; using defaults")
+            logger.warning("Invalid class labels format in %s; using defaults", CLASS_LABELS_PATH)
     except Exception as exc:
-        print(f"Warning: failed to load class labels from {CLASS_LABELS_PATH}: {exc}; using defaults")
+        logger.warning("Failed to load class labels from %s: %s; using defaults", CLASS_LABELS_PATH, exc)
 
 
 _load_disease_classes_from_file()
@@ -197,6 +228,58 @@ _load_disease_classes_from_file()
 EYE_REDNESS_MODEL_PATH = os.path.join("static", "models", "eye_redness_model.keras")
 eye_redness_model = None
 roboflow_client = None
+ROBOFLOW_API_KEY = os.getenv("ROBOFLOW_API_KEY")
+
+
+def _sanitize_text(value, max_len=200):
+    text = "" if value is None else str(value)
+    text = re.sub(r"[\x00-\x1f\x7f]+", "", text).strip()
+    return text[:max_len]
+
+
+def _safe_http_url(value):
+    if not value:
+        return ""
+    url = str(value).strip()
+    parsed = urlparse(url)
+    if parsed.scheme.lower() in {"http", "https"} and parsed.netloc:
+        return url
+    return ""
+
+
+def generate_csrf_token():
+    token = session.get("_csrf_token")
+    if not token:
+        token = secrets.token_urlsafe(32)
+        session["_csrf_token"] = token
+    return token
+
+
+@app.context_processor
+def inject_csrf_token():
+    return {"csrf_token": generate_csrf_token}
+
+
+@app.before_request
+def validate_csrf_token():
+    if request.method not in {"POST", "PUT", "PATCH", "DELETE"}:
+        return
+
+    if request.path.startswith("/api/") or request.path.startswith("/color/"):
+        return
+
+    csrf_exempt_endpoints = {
+        "chat",
+        "search_clinics",
+        "fatigue_predict",
+    }
+    if request.endpoint in csrf_exempt_endpoints:
+        return
+
+    expected = session.get("_csrf_token")
+    provided = request.form.get("_csrf_token") or request.headers.get("X-CSRF-Token")
+    if not expected or not provided or not secrets.compare_digest(expected, provided):
+        abort(400, description="CSRF token missing or invalid.")
 
 def ensure_eye_model():
     global eye_disease_model
@@ -226,14 +309,16 @@ def ensure_fatigue_models():
             return False, e
     
     # Initialize Roboflow client
-    if roboflow_client is None and _inference_sdk_available:
+    if roboflow_client is None and _inference_sdk_available and ROBOFLOW_API_KEY:
         try:
             roboflow_client = InferenceHTTPClient(
                 api_url="https://serverless.roboflow.com",
-                api_key="hBljhOwZ15CdLgOj0Kjj"
+                api_key=ROBOFLOW_API_KEY
             )
         except Exception as e:
-            print(f"Warning: Could not initialize Roboflow client: {e}")
+            logger.warning("Could not initialize Roboflow client: %s", e)
+    elif roboflow_client is None and _inference_sdk_available and not ROBOFLOW_API_KEY:
+        logger.warning("ROBOFLOW_API_KEY is not set. Fatigue/dryness Roboflow inference is disabled.")
     
     return True, None
 
@@ -413,6 +498,7 @@ def fatigue_predict():
     if not ok:
         return jsonify({'error': f'Model loading failed: {str(err)}'}), 500
     
+    temp_path = None
     try:
         # Read image
         image_bytes = file.read()
@@ -442,7 +528,8 @@ def fatigue_predict():
             normal_score = float(prediction[0][0]) * 100
         
         # 2. Fatigue Detection (Roboflow)
-        temp_path = os.path.join(UPLOAD_FOLDER, 'temp_fatigue_image.jpg')
+        with tempfile.NamedTemporaryFile(delete=False, suffix='.jpg', dir=UPLOAD_FOLDER) as tmp_file:
+            temp_path = tmp_file.name
         if image.mode == 'RGBA':
             rgb_image = Image.new('RGB', image.size, (255, 255, 255))
             rgb_image.paste(image, mask=image.split()[3])
@@ -483,7 +570,7 @@ def fatigue_predict():
                                 fatigue_score = fatigue_confidence
                                 fatigue_status = "Fatigued"
             except Exception as e:
-                print(f"Fatigue detection error: {str(e)}")
+                logger.warning("Fatigue detection error: %s", e)
         
         # 3. Dryness Detection (Roboflow)
         dryness_score = 0
@@ -503,11 +590,7 @@ def fatigue_predict():
                         dryness_score = dryness_confidence
                         dryness_status = "Dry"
             except Exception as e:
-                print(f"Dryness detection error: {str(e)}")
-        
-        # Clean up temp file
-        if os.path.exists(temp_path):
-            os.remove(temp_path)
+                logger.warning("Dryness detection error: %s", e)
         
         # Generate diagnosis
         diagnosis = generate_fatigue_diagnosis(
@@ -531,6 +614,12 @@ def fatigue_predict():
     
     except Exception as e:
         return jsonify({'error': f'Error processing image: {str(e)}'}), 500
+    finally:
+        if temp_path and os.path.exists(temp_path):
+            try:
+                os.remove(temp_path)
+            except OSError:
+                logger.warning("Could not delete temporary file: %s", temp_path)
 
 def generate_fatigue_diagnosis(redness_score, fatigue_score, dryness_score, questionnaire):
     """Generate comprehensive diagnosis and recommendations"""
@@ -755,7 +844,7 @@ def chat():
     if not groq_client:
         return jsonify({'error': 'Groq client not initialized (Missing API Key?)'}), 500
 
-    data = request.json
+    data = request.get_json(silent=True) or {}
     user_message = data.get('message')
     target_language = data.get('language', 'en')
     
@@ -821,7 +910,7 @@ def chat():
                     for s in suggestions
                 ]
             except Exception as trans_e:
-                print(f"Translation Error: {trans_e}")
+                logger.warning("Translation error: %s", trans_e)
                 # Fallback to English but append a note? Or just leave it as is.
                 pass
         
@@ -871,10 +960,10 @@ def search_clinics():
                     continue
 
                 clinics.append({
-                    'name': item.get('title', 'Eye Clinic'),
-                    'address': item.get('address', ''),
-                    'phone': item.get('phone', ''),
-                    'website': item.get('website', ''),
+                    'name': _sanitize_text(item.get('title', 'Eye Clinic')),
+                    'address': _sanitize_text(item.get('address', ''), max_len=240),
+                    'phone': _sanitize_text(item.get('phone', ''), max_len=50),
+                    'website': _safe_http_url(item.get('website', '')),
                     'rating': item.get('rating'),
                     'reviews': item.get('reviews'),
                     'latitude': clat,
@@ -884,7 +973,7 @@ def search_clinics():
             return jsonify({'clinics': clinics, 'source': 'serpapi'})
         except Exception as e:
             # Fall back to OpenStreetMap query if SerpApi fails.
-            print(f"SerpApi clinic lookup failed, falling back to Overpass: {e}")
+            logger.warning("SerpApi clinic lookup failed, falling back to Overpass: %s", e)
 
     # 2) Fallback: OpenStreetMap Overpass
     try:
@@ -920,9 +1009,9 @@ def search_clinics():
                 tags.get('addr:suburb'), tags.get('addr:city')
             ])
             clinics.append({
-                'name': tags.get('name', 'Eye Clinic'),
-                'address': ', '.join(addr_parts) or tags.get('addr:full', ''),
-                'phone': tags.get('phone') or tags.get('contact:phone', ''),
+                'name': _sanitize_text(tags.get('name', 'Eye Clinic')),
+                'address': _sanitize_text(', '.join(addr_parts) or tags.get('addr:full', ''), max_len=240),
+                'phone': _sanitize_text(tags.get('phone') or tags.get('contact:phone', ''), max_len=50),
                 'latitude': clat,
                 'longitude': clng,
             })
@@ -941,9 +1030,21 @@ def report():
 @app.route('/signup', methods=['GET', 'POST'])
 def signup():
     if request.method == 'POST':
-        username = request.form['username']
-        email = request.form['email']
-        password = generate_password_hash(request.form['password'])
+        username = (request.form.get('username') or '').strip()
+        email = (request.form.get('email') or '').strip().lower()
+        raw_password = request.form.get('password') or ''
+
+        if not username or len(username) > 64:
+            flash("Username is required and must be under 65 characters.", "danger")
+            return render_template('signup.html')
+        if not re.match(r"^[^@\s]+@[^@\s]+\.[^@\s]+$", email):
+            flash("Please enter a valid email address.", "danger")
+            return render_template('signup.html')
+        if len(raw_password) < 8:
+            flash("Password must be at least 8 characters.", "danger")
+            return render_template('signup.html')
+
+        password = generate_password_hash(raw_password)
 
         try:
             cursor.execute(
@@ -964,8 +1065,12 @@ def signup():
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
-        email = request.form['email']
-        password = request.form['password']
+        email = (request.form.get('email') or '').strip().lower()
+        password = request.form.get('password') or ''
+
+        if not email or not password:
+            flash("Email and password are required.", "danger")
+            return render_template('login.html')
 
         cursor.execute("SELECT * FROM users WHERE email=?", (email,))
         user = cursor.fetchone()
@@ -1103,4 +1208,4 @@ def aboutus():
 # ---------------- Run App ----------------
 if __name__ == '__main__':
     port = int(os.environ.get("PORT", 5000))
-    app.run(host='0.0.0.0', port=port, debug=True)
+    app.run(host='0.0.0.0', port=port, debug=FLASK_DEBUG)
