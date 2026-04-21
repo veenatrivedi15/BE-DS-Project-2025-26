@@ -1,0 +1,55 @@
+<tr id="user-{{ user.id }}">
+  <td class="px-6 py-4 whitespace-nowrap">
+    <div class="flex items-center">
+      <div class="flex-shrink-0 h-10 w-10 bg-primary-100 rounded-full flex items-center justify-center text-primary-600 font-medium">
+        {{ user.first_name|slice:":1" }}{{ user.last_name|slice:":1" }}
+      </div>
+      <div class="ml-4">
+        <div class="text-sm font-medium text-gray-900">
+          {% if user.first_name or user.last_name %}
+            {{ user.first_name }} {{ user.last_name }}
+          {% else %}
+            {{ user.email }}
+          {% endif %}
+        </div>
+        <div class="text-sm text-gray-500">{{ user.email }}</div>
+      </div>
+    </div>
+  </td>
+  <td class="px-6 py-4 whitespace-nowrap">
+    <div class="text-sm text-gray-900">
+      {% if user.is_super_admin %}Super Admin
+      {% elif user.is_bank_admin %}Bank Admin
+      {% elif user.is_employer %}Employer
+      {% elif user.is_employee %}Employee
+      {% else %}Unknown{% endif %}
+    </div>
+    {% if user.is_employer and user.employer_profile %}
+    <div class="text-sm text-gray-500">{{ user.employer_profile.company_name }}</div>
+    {% endif %}
+  </td>
+  <td class="px-6 py-4 whitespace-nowrap">
+    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+      {% if user.approved %}bg-green-100 text-green-800{% else %}bg-yellow-100 text-yellow-800{% endif %}">
+      {% if user.approved %}Approved{% else %}Pending{% endif %}
+    </span>
+  </td>
+  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+    {{ user.date_joined|date:"M d, Y" }}
+  </td>
+  <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+    <div class="flex space-x-2">
+      <a href="{% url 'admin_user_detail' user.id %}" class="text-indigo-600 hover:text-indigo-900">View</a>
+      {% if not user.approved %}
+      <form method="post" action="{% url 'admin_approve_user' user.id %}" class="inline">
+        {% csrf_token %}
+        <button type="submit" class="text-green-600 hover:text-green-900 mr-3">Approve</button>
+      </form>
+      <form method="post" action="{% url 'admin_reject_user' user.id %}" class="inline">
+        {% csrf_token %}
+        <button type="submit" class="text-red-600 hover:text-red-900 mr-3">Reject</button>
+      </form>
+      {% endif %}
+    </div>
+  </td>
+</tr> 

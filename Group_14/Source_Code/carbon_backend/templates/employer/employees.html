@@ -1,0 +1,429 @@
+{% extends 'base.html' %}
+
+{% block title %}Manage Employees - Carbon Credits Platform{% endblock %}
+
+{% block extra_css %}
+<style>
+    .employees-container {
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+    
+    .employee-card {
+        transition: all 0.3s ease;
+    }
+    
+    .employee-card:hover {
+        transform: translateY(-5px);
+    }
+    
+    .badge {
+        display: inline-block;
+        padding: 0.25em 0.6em;
+        font-size: 0.75rem;
+        font-weight: 700;
+        line-height: 1;
+        text-align: center;
+        white-space: nowrap;
+        vertical-align: baseline;
+        border-radius: 9999px;
+    }
+    
+    .badge-success {
+        background-color: #DEF7EC;
+        color: #0E9F6E;
+    }
+    
+    .badge-warning {
+        background-color: #FEF3C7;
+        color: #D97706;
+    }
+    
+    .badge-danger {
+        background-color: #FDE2E2;
+        color: #E02424;
+    }
+    
+    .action-btn {
+        transition: all 0.2s ease;
+    }
+    
+    .action-btn:hover {
+        transform: translateY(-2px);
+    }
+    
+    .search-container {
+        position: relative;
+    }
+    
+    .search-icon {
+        position: absolute;
+        left: 12px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #9CA3AF;
+    }
+    
+    .search-input {
+        padding-left: 40px;
+    }
+    
+    .modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
+        z-index: 100;
+        overflow-y: auto;
+    }
+    
+    .modal-open {
+        display: flex;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="employees-container px-4 py-6">
+    <div class="relative mb-8">
+        <div class="bg-pattern"></div>
+        <div class="relative z-10">
+            <h1 class="section-headline text-3xl md:text-4xl font-bold mb-6">Manage Employees</h1>
+            <p class="text-gray-600 max-w-3xl">
+                View and manage employees in your organization. Approve new employee requests and update their information.
+            </p>
+        </div>
+    </div>
+
+    <!-- Display flash messages if any -->
+    {% if messages %}
+    <div class="mb-6">
+        {% for message in messages %}
+        <div class="p-4 rounded-lg {% if message.tags == 'success' %}bg-green-100 text-green-800{% elif message.tags == 'error' %}bg-red-100 text-red-800{% else %}bg-blue-100 text-blue-800{% endif %}">
+            {{ message }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Employee Management Tools -->
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
+        <div class="search-container w-full md:w-64">
+            <div class="search-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+            </div>
+            <input type="text" placeholder="Search employees..." id="employee-search" class="search-input w-full px-4 py-2 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent">
+        </div>
+        
+        <div class="flex items-center space-x-4">
+            <div class="flex items-center space-x-2">
+                <span class="text-sm text-gray-600">Status:</span>
+                <select id="status-filter" class="px-3 py-2 rounded-md border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent">
+                    <option value="all">All</option>
+                    <option value="approved">Approved</option>
+                    <option value="pending">Pending</option>
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <!-- Employee Statistics -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+        <div class="modern-card p-5">
+            <h3 class="text-lg font-medium text-gray-500">Total Employees</h3>
+            <p class="text-3xl font-bold text-gray-800">{{ total_employees }}</p>
+        </div>
+        
+        <div class="modern-card p-5">
+            <h3 class="text-lg font-medium text-gray-500">Approved</h3>
+            <p class="text-3xl font-bold text-green-600">{{ approved_employees }}</p>
+        </div>
+        
+        <div class="modern-card p-5">
+            <h3 class="text-lg font-medium text-gray-500">Pending</h3>
+            <p class="text-3xl font-bold text-yellow-600">{{ pending_employees }}</p>
+        </div>
+        
+        <div class="modern-card p-5">
+            <h3 class="text-lg font-medium text-gray-500">Active This Week</h3>
+            <p class="text-3xl font-bold text-blue-600">{{ active_employees_count }}</p>
+        </div>
+    </div>
+
+    <!-- Employees List -->
+    <div class="modern-card overflow-hidden">
+        <div class="px-6 py-5 border-b border-gray-200 bg-gray-50">
+            <h3 class="text-lg font-medium text-gray-700">Employee Directory</h3>
+        </div>
+        
+        {% if employees %}
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Employee</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Carbon Credits</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date Joined</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200" id="employees-table-body">
+                    {% for employee in employees %}
+                    <tr class="employee-row" data-status="{% if employee.approved %}approved{% else %}pending{% endif %}">
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="flex items-center">
+                                <div class="h-10 w-10 rounded-full bg-green-100 flex items-center justify-center text-green-600 font-medium">
+                                    {{ employee.user.first_name|slice:":1" }}{{ employee.user.last_name|slice:":1" }}
+                                </div>
+                                <div class="ml-4">
+                                    <div class="text-sm font-medium text-gray-900">{{ employee.user.get_full_name }}</div>
+                                    <div class="text-sm text-gray-500">{{ employee.department|default:"No Department" }}</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="text-sm text-gray-900">{{ employee.user.email }}</div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            {% if employee.approved %}
+                            <span class="badge badge-success">Approved</span>
+                            {% else %}
+                            <span class="badge badge-warning">Pending</span>
+                            {% endif %}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="text-sm text-gray-900">{{ employee.total_credits|default:"0.00" }}</div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            {{ employee.created_at|date:"M d, Y" }}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                            <div class="flex space-x-2">
+                                <button 
+                                    class="text-blue-600 hover:text-blue-900 action-btn view-employee-btn"
+                                    data-employee-id="{{ employee.id }}"
+                                    data-employee-name="{{ employee.user.get_full_name }}"
+                                    data-employee-email="{{ employee.user.email }}"
+                                    data-employee-status="{% if employee.approved %}Approved{% else %}Pending{% endif %}"
+                                    data-employee-joined="{{ employee.created_at|date:'M d, Y' }}"
+                                    data-employee-department="{{ employee.department|default:'Not specified' }}"
+                                    data-employee-credits="{{ employee.total_credits|default:'0.00' }}"
+                                    data-employee-trips="{{ employee.trip_count|default:'0' }}"
+                                    data-employee-co2="{{ employee.total_co2_saved|default:'0.00' }}"
+                                >
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                    </svg>
+                                </button>
+                                
+                                {% if not employee.approved %}
+                                <form method="post" action="{% url 'employer:employee_approval' employee.id %}?action=approve" class="inline">
+                                    {% csrf_token %}
+                                    <button type="submit" class="px-3 py-1 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors text-xs font-medium">
+                                        Approve
+                                    </button>
+                                </form>
+                                
+                                <form method="post" action="{% url 'employer:employee_approval' employee.id %}?action=reject" class="inline ml-2">
+                                    {% csrf_token %}
+                                    <button type="submit" class="px-3 py-1 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors text-xs font-medium">
+                                        Reject
+                                    </button>
+                                </form>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center py-10">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 text-gray-400 mx-auto mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+            </svg>
+            <p class="text-gray-500">No employees found</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Employee Details Modal -->
+<div id="employee-detail-modal" class="modal">
+    <div class="flex items-center justify-center min-h-screen px-4">
+        <div class="bg-white rounded-lg shadow-xl max-w-4xl w-full mx-auto">
+            <div class="flex justify-between items-center border-b px-6 py-4">
+                <h3 class="text-lg font-medium text-gray-900">Employee Details</h3>
+                <button id="close-employee-modal" class="text-gray-400 hover:text-gray-500">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+            <div class="p-6">
+                <div class="flex flex-col md:flex-row gap-6">
+                    <!-- Employee Basic Info -->
+                    <div class="w-full md:w-1/3">
+                        <div class="flex flex-col items-center text-center">
+                            <div class="h-24 w-24 rounded-full bg-green-100 flex items-center justify-center text-green-600 text-2xl font-medium mb-4">
+                                <span id="employee-initials"></span>
+                            </div>
+                            <h4 id="employee-name" class="text-lg font-medium text-gray-900"></h4>
+                            <p id="employee-email" class="text-sm text-gray-500 mt-1"></p>
+                            <div id="employee-status-badge" class="mt-3"></div>
+                            <p class="text-sm text-gray-500 mt-2">Joined: <span id="employee-joined"></span></p>
+                            <p class="text-sm text-gray-500">Department: <span id="employee-department"></span></p>
+                        </div>
+                    </div>
+                    
+                    <!-- Employee Stats -->
+                    <div class="w-full md:w-2/3">
+                        <h4 class="font-medium text-gray-900 mb-4">Performance Statistics</h4>
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+                            <div class="bg-white border border-gray-200 rounded-lg p-4 text-center">
+                                <p class="text-sm text-gray-500">Carbon Credits</p>
+                                <p id="employee-credits" class="text-2xl font-bold text-green-600"></p>
+                            </div>
+                            <div class="bg-white border border-gray-200 rounded-lg p-4 text-center">
+                                <p class="text-sm text-gray-500">Trips Logged</p>
+                                <p id="employee-trips" class="text-2xl font-bold text-blue-600"></p>
+                            </div>
+                            <div class="bg-white border border-gray-200 rounded-lg p-4 text-center">
+                                <p class="text-sm text-gray-500">CO₂ Saved (kg)</p>
+                                <p id="employee-co2" class="text-2xl font-bold text-purple-600"></p>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-6">
+                            <h4 class="font-medium text-gray-900 mb-3">Recent Activity</h4>
+                            <div class="bg-gray-50 rounded-lg p-4">
+                                <p class="text-sm text-gray-500">Coming soon: Trip history, reward achievements, and monthly progress</p>
+                            </div>
+                        </div>
+                        
+                        <div class="flex justify-end space-x-3">
+                            <button id="close-detail-modal" class="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 transition-colors">
+                                Close
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Search functionality
+        const searchInput = document.getElementById('employee-search');
+        searchInput.addEventListener('input', filterEmployees);
+        
+        // Status filter
+        const statusFilter = document.getElementById('status-filter');
+        statusFilter.addEventListener('change', filterEmployees);
+        
+        // Function to filter employees
+        function filterEmployees() {
+            const searchTerm = searchInput.value.toLowerCase();
+            const status = statusFilter.value;
+            const rows = document.querySelectorAll('.employee-row');
+            
+            rows.forEach(row => {
+                const name = row.querySelector('.text-gray-900').textContent.toLowerCase();
+                const email = row.querySelector('.employee-row td:nth-child(2) .text-gray-900').textContent.toLowerCase();
+                const rowStatus = row.getAttribute('data-status');
+                
+                const matchesSearch = name.includes(searchTerm) || email.includes(searchTerm);
+                const matchesStatus = status === 'all' || rowStatus === status;
+                
+                if (matchesSearch && matchesStatus) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        }
+        
+        // Employee Detail Modal Functionality
+        const employeeDetailModal = document.getElementById('employee-detail-modal');
+        const closeEmployeeModal = document.getElementById('close-employee-modal');
+        const closeDetailModal = document.getElementById('close-detail-modal');
+        const viewEmployeeButtons = document.querySelectorAll('.view-employee-btn');
+        
+        // Open employee detail modal
+        viewEmployeeButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                const employeeName = button.getAttribute('data-employee-name');
+                const employeeEmail = button.getAttribute('data-employee-email');
+                const employeeStatus = button.getAttribute('data-employee-status');
+                const employeeJoined = button.getAttribute('data-employee-joined');
+                const employeeDepartment = button.getAttribute('data-employee-department');
+                const employeeCredits = button.getAttribute('data-employee-credits');
+                const employeeTrips = button.getAttribute('data-employee-trips');
+                const employeeCO2 = button.getAttribute('data-employee-co2');
+                
+                // Set employee initials
+                const nameParts = employeeName.split(' ');
+                let initials = '';
+                if (nameParts.length >= 2) {
+                    initials = nameParts[0].charAt(0) + nameParts[1].charAt(0);
+                } else if (nameParts.length === 1) {
+                    initials = nameParts[0].charAt(0);
+                }
+                
+                document.getElementById('employee-initials').textContent = initials;
+                document.getElementById('employee-name').textContent = employeeName;
+                document.getElementById('employee-email').textContent = employeeEmail;
+                document.getElementById('employee-joined').textContent = employeeJoined;
+                document.getElementById('employee-department').textContent = employeeDepartment;
+                document.getElementById('employee-credits').textContent = employeeCredits;
+                document.getElementById('employee-trips').textContent = employeeTrips;
+                document.getElementById('employee-co2').textContent = employeeCO2;
+                
+                // Set status badge
+                const statusBadgeContainer = document.getElementById('employee-status-badge');
+                let badgeHTML = '';
+                
+                if (employeeStatus === 'Approved') {
+                    badgeHTML = '<span class="badge badge-success">Approved</span>';
+                } else {
+                    badgeHTML = '<span class="badge badge-warning">Pending</span>';
+                }
+                
+                statusBadgeContainer.innerHTML = badgeHTML;
+                
+                // Show modal
+                employeeDetailModal.classList.add('modal-open');
+            });
+        });
+        
+        // Close employee detail modal
+        closeEmployeeModal.addEventListener('click', () => {
+            employeeDetailModal.classList.remove('modal-open');
+        });
+        
+        closeDetailModal.addEventListener('click', () => {
+            employeeDetailModal.classList.remove('modal-open');
+        });
+        
+        // Close modals when clicking outside
+        window.addEventListener('click', (e) => {
+            if (e.target === employeeDetailModal) {
+                employeeDetailModal.classList.remove('modal-open');
+            }
+        });
+    });
+</script>
+{% endblock %} 

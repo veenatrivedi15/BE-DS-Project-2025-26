@@ -1,0 +1,382 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}VayuNetra{% endblock %}</title>
+    
+    <!-- Add Poppins font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    
+    <!-- HTMX -->
+    <script src="https://unpkg.com/htmx.org@1.9.9" crossorigin="anonymous"></script>
+    
+    <!-- Custom CSS -->
+    <style>
+        :root {
+            --primary: #2B9348;
+            --secondary: #55A630;
+            --neutral-dark: #1C1C1C;
+            --light-bg: #F5F5F5;
+            --accent: #F9DC5C;
+            --secondary-accent: #70A9A1;
+            --cta-blue: #1E88E5;
+        }
+        
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--light-bg);
+        }
+        
+        /* Modern UI Components */
+        .modern-card {
+            border-radius: 16px;
+            box-shadow: 0px 6px 24px rgba(0, 0, 0, 0.08);
+            transition: all 0.3s ease;
+            background-color: white;
+        }
+        
+        .modern-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0px 12px 30px rgba(0, 0, 0, 0.12);
+        }
+        
+        .btn-primary {
+            background-color: var(--primary);
+            color: white;
+            border-radius: 12px;
+            padding: 10px 20px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .btn-primary:hover {
+            background-color: #237c3a;
+            transform: translateY(-2px);
+            box-shadow: 0px 4px 12px rgba(43, 147, 72, 0.25);
+        }
+        
+        .btn-secondary {
+            background-color: white;
+            color: var(--neutral-dark);
+            border: 2px solid var(--primary);
+            border-radius: 12px;
+            padding: 8px 18px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-secondary:hover {
+            background-color: rgba(85, 166, 48, 0.1);
+            transform: translateY(-2px);
+        }
+        
+        .section-headline {
+            font-weight: 800;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 1.5rem;
+        }
+        
+        .stats-card {
+            background-color: white;
+            border-radius: 16px;
+            box-shadow: 0px 6px 24px rgba(0, 0, 0, 0.08);
+            padding: 1.5rem;
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .stats-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0px 12px 30px rgba(0, 0, 0, 0.12);
+        }
+        
+        .stats-card .number {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+        
+        .stats-card .label {
+            font-size: 0.875rem;
+            color: #4A5568;
+            margin-top: 0.25rem;
+        }
+        
+        /* Navigation */
+        .nav-link {
+            color: #4A5568;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+        }
+        
+        .nav-link:hover, .nav-link.active {
+            color: var(--primary);
+            background-color: rgba(43, 147, 72, 0.1);
+        }
+        
+        /* Form Controls */
+        .input {
+            border: 1px solid #E2E8F0;
+            border-radius: 12px;
+            padding: 10px 16px;
+            transition: all 0.3s ease;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+        }
+        
+        .input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(43, 147, 72, 0.2);
+            outline: none;
+        }
+        
+        /* Card layout */
+        .card {
+            background-color: white;
+            border-radius: 16px;
+            box-shadow: 0px 6px 24px rgba(0, 0, 0, 0.08);
+            padding: 1.5rem;
+            transition: all 0.3s ease;
+        }
+        
+        .card:hover {
+            box-shadow: 0px 12px 30px rgba(0, 0, 0, 0.12);
+        }
+        
+        /* Loading indicator for HTMX */
+        .htmx-indicator {
+            opacity: 0;
+            transition: opacity 500ms ease-in;
+        }
+        .htmx-request .htmx-indicator {
+            opacity: 1;
+        }
+        .htmx-request.htmx-indicator {
+            opacity: 1;
+        }
+        
+        /* Background element */
+        .bg-pattern {
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 100%;
+            height: 100%;
+            background-image: radial-gradient(var(--secondary-accent) 2px, transparent 2px);
+            background-size: 30px 30px;
+            opacity: 0.1;
+            z-index: 0;
+        }
+        
+        /* Modal styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+        
+        .modal-content {
+            background-color: #fefefe;
+            margin: 5% auto;
+            padding: 20px;
+            border: 1px solid #ddd;
+            width: 90%;
+            max-width: 600px;
+            border-radius: 1rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            position: relative;
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        
+        .close:hover,
+        .close:focus {
+            color: #000;
+            text-decoration: none;
+        }
+    </style>
+    
+    {% block extra_css %}{% endblock %}
+</head>
+<body class="flex flex-col min-h-screen">
+    <!-- Header -->
+    <header class="bg-white shadow-sm sticky top-0 z-50">
+        <nav class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex">
+                    <div class="flex-shrink-0 flex items-center">
+                        <a href="{% url 'home' %}" class="flex items-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
+                            </svg>
+                            <span class="ml-2 text-xl font-bold text-green-700">VayuNetra</span>
+                        </a>
+                    </div>
+                    
+                    {% if user.is_authenticated %}
+                    <div class="hidden sm:ml-6 sm:flex sm:space-x-4 items-center">
+                        <!-- Navigation links based on user role -->
+                        {% if user.is_super_admin %}
+                        <a href="{% url 'admin_dashboard' %}" class="nav-link {% if request.resolver_match.url_name == 'admin_dashboard' %}active{% endif %}">Dashboard</a>
+                        <a href="{% url 'admin_users' %}" class="nav-link {% if request.resolver_match.url_name == 'admin_users' %}active{% endif %}">Users</a>
+                        <a href="{% url 'admin_reports' %}" class="nav-link {% if request.resolver_match.url_name == 'admin_reports' %}active{% endif %}">Reports</a>
+                        {% elif user.is_bank_admin %}
+                        <a href="{% url 'bank:bank_dashboard' %}" class="nav-link {% if request.resolver_match.url_name == 'bank_dashboard' %}active{% endif %}">Dashboard</a>
+                        <a href="{% url 'bank:bank_employers' %}" class="nav-link {% if request.resolver_match.url_name == 'bank_employers' %}active{% endif %}">Employers</a>
+                        <a href="{% url 'bank:bank_approvals' %}" class="nav-link {% if request.resolver_match.url_name == 'bank_approvals' %}active{% endif %}">Approvals</a>
+                        <a href="{% url 'bank:bank_reports' %}" class="nav-link {% if request.resolver_match.url_name == 'bank_reports' %}active{% endif %}">Reports</a>
+                        {% elif user.is_employer %}
+                        <a href="{% url 'employer:employer_dashboard' %}" class="nav-link {% if request.resolver_match.url_name == 'employer_dashboard' %}active{% endif %}">Dashboard</a>
+                        <a href="{% url 'employer:employees' %}" class="nav-link {% if request.resolver_match.url_name == 'employees' %}active{% endif %}">Employees</a>
+                        <a href="{% url 'employer:locations' %}" class="nav-link {% if request.resolver_match.url_name == 'locations' %}active{% endif %}">Locations</a>
+                        <a href="{% url 'employer:trading' %}" class="nav-link {% if request.resolver_match.url_name == 'trading' %}active{% endif %}">Trading</a>
+                        <a href="{% url 'employer:redemption_requests' %}" class="nav-link {% if request.resolver_match.url_name == 'redemption_requests' %}active{% endif %}">Redemption Requests</a>
+                        {% elif user.is_employee %}
+                        <a href="{% url 'employee_dashboard' %}" class="nav-link {% if request.resolver_match.url_name == 'employee_dashboard' %}active{% endif %}">Dashboard</a>
+                        <a href="{% url 'employee_trip_log' %}" class="nav-link {% if request.resolver_match.url_name == 'employee_trip_log' %}active{% endif %}">Log Trip</a>
+                        <a href="{% url 'employee_trips' %}" class="nav-link {% if request.resolver_match.url_name == 'employee_trips' %}active{% endif %}">My Trips</a>
+                        <a href="{% url 'pollution:dashboard' %}" class="nav-link {% if 'pollution' in request.resolver_match.url_name %}active{% endif %}">Pollution</a>
+                        <a href="{% url 'gamification:dashboard' %}" class="nav-link {% if 'gamification' in request.resolver_match.url_name %}active{% endif %}">Achievements</a>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                </div>
+                
+                <div class="flex items-center">
+                    {% if user.is_authenticated %}
+                    <!-- Notification Bell Icon -->
+                    <div class="ml-3 relative" id="notification-container">
+                        <button type="button" class="relative p-2 text-gray-600 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 rounded-full" id="notification-button" aria-expanded="false" aria-haspopup="true">
+                            <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path>
+                            </svg>
+                            <span class="absolute top-0 right-0 block h-2 w-2 rounded-full bg-red-500 ring-2 ring-white" id="notification-badge" style="display: none;"></span>
+                        </button>
+                        
+                        <!-- Notification Dropdown -->
+                        <div class="hidden origin-top-right absolute right-0 mt-2 w-80 rounded-xl shadow-lg bg-white ring-1 ring-black ring-opacity-5 focus:outline-none z-50" id="notification-dropdown" style="max-height: 500px; overflow-y: auto;">
+                            <div class="p-4 border-b border-gray-200 flex justify-between items-center">
+                                <h3 class="text-lg font-semibold text-gray-900">Notifications</h3>
+                                <button type="button" class="text-sm text-green-600 hover:text-green-800" id="mark-all-read-btn">Mark all read</button>
+                            </div>
+                            <div id="notification-list" class="divide-y divide-gray-200">
+                                <div class="p-4 text-center text-gray-500">Loading notifications...</div>
+                            </div>
+                            <div class="p-2 border-t border-gray-200 text-center">
+                                <a href="#" class="text-sm text-green-600 hover:text-green-800">View all notifications</a>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="ml-3 relative">
+                        <div>
+                            <button type="button" class="bg-white rounded-full flex text-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500" id="user-menu-button" aria-expanded="false" aria-haspopup="true">
+                                <span class="sr-only">Open user menu</span>
+                                <div class="h-10 w-10 rounded-full bg-green-100 flex items-center justify-center text-green-600 font-medium">
+                                    {{ user.first_name|slice:":1" }}{{ user.last_name|slice:":1" }}
+                                </div>
+                            </button>
+                        </div>
+                        
+                        <!-- Dropdown menu, hidden by default -->
+                        <div class="hidden origin-top-right absolute right-0 mt-2 w-48 rounded-xl shadow-lg py-1 bg-white ring-1 ring-black ring-opacity-5 focus:outline-none z-10" role="menu" aria-orientation="vertical" aria-labelledby="user-menu-button" tabindex="-1" id="user-menu">
+                            <a href="{% url 'profile' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" role="menuitem">Profile</a>
+                            <form method="post" action="{% url 'logout' %}" class="inline-block w-full">
+                                {% csrf_token %}
+                                <button type="submit" class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" role="menuitem">Sign out</button>
+                            </form>
+                        </div>
+                    </div>
+                    {% else %}
+                    <a href="{% url 'login' %}" class="btn-secondary">Log in</a>
+                    <a href="{% url 'register' %}" class="ml-3 btn-primary">Register</a>
+                    {% endif %}
+                </div>
+            </div>
+        </nav>
+    </header>
+    
+    <!-- Main content -->
+    <main class="flex-grow py-6">
+        {% block content %}{% endblock %}
+    </main>
+    
+    <!-- Footer -->
+    <footer class="bg-white py-6 border-t border-gray-200 mt-auto">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex flex-col md:flex-row md:justify-between items-center">
+                <div class="flex items-center mb-4 md:mb-0">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
+                    </svg>
+                    <span class="ml-2 text-lg font-semibold text-green-700">Carbon Credits</span>
+                </div>
+                <p class="text-center text-gray-500 text-sm">
+                    &copy; {% now "Y" %} VayuNetra. All rights reserved.
+                </p>
+            </div>
+        </div>
+    </footer>
+    
+    <!-- User menu toggle script -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const userMenuButton = document.getElementById('user-menu-button');
+            const userMenu = document.getElementById('user-menu');
+            
+            if (userMenuButton && userMenu) {
+                userMenuButton.addEventListener('click', function() {
+                    userMenu.classList.toggle('hidden');
+                });
+                
+                // Close when clicking outside
+                document.addEventListener('click', function(event) {
+                    if (!userMenuButton.contains(event.target) && !userMenu.contains(event.target)) {
+                        userMenu.classList.add('hidden');
+                    }
+                });
+            }
+        });
+    </script>
+    
+    <!-- Add Chart.js for graphs -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    {% block extra_js %}{% endblock %}
+</body>
+</html> 

@@ -1,0 +1,482 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Leaderboards - VayuNetra{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/design-system.css' %}">
+<style>
+    .leaderboards-grid {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 2rem;
+    }
+    
+    @media (min-width: 1024px) {
+        .leaderboards-grid {
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+        }
+    }
+    
+    .leaderboard-card {
+        background: white;
+        border-radius: 16px;
+        padding: 2rem;
+        box-shadow: 0px 6px 24px rgba(0, 0, 0, 0.08);
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    
+    .leaderboard-card:hover {
+        transform: translateY(-8px);
+        box-shadow: 0px 20px 40px rgba(0, 0, 0, 0.15);
+    }
+    
+    .leaderboard-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 2rem;
+        padding-bottom: 1rem;
+        border-bottom: 2px solid #e5e7eb;
+    }
+    
+    .leaderboard-title {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #1f2937;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .leaderboard-icon {
+        font-size: 1.75rem;
+    }
+    
+    .leaderboard-filters {
+        display: flex;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+        align-items: center;
+    }
+    
+    .filter-button {
+        padding: 0.5rem 1rem;
+        border-radius: 8px;
+        font-weight: 500;
+        transition: all 0.3s ease;
+        cursor: pointer;
+        border: none;
+        background: #f3f4f6;
+        color: #6b7280;
+        font-size: 0.875rem;
+    }
+    
+    .filter-button.active {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        box-shadow: 0px 4px 12px rgba(102, 126, 234, 0.3);
+    }
+    
+    .filter-button:hover:not(.active) {
+        background: white;
+        color: #374151;
+        border-color: #d1d5db;
+    }
+    
+    .leaderboard-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+    
+    .leaderboard-table th {
+        background: #f9fafb;
+        padding: 1rem;
+        text-align: left;
+        font-weight: 600;
+        color: #374151;
+        border-bottom: 2px solid #e5e7eb;
+        font-size: 0.875rem;
+    }
+    
+    .leaderboard-table td {
+        padding: 1rem;
+        border-bottom: 1px solid #f3f4f6;
+        font-size: 0.875rem;
+    }
+    
+    .leaderboard-table tr:hover {
+        background: #f9fafb;
+    }
+    
+    .rank-badge {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        font-weight: bold;
+        font-size: 0.875rem;
+    }
+    
+    .rank-1 {
+        background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+        color: white;
+    }
+    
+    .rank-2 {
+        background: linear-gradient(135deg, #d1d5db 0%, #9ca3af 100%);
+        color: white;
+    }
+    
+    .rank-3 {
+        background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);
+        color: white;
+    }
+    
+    .rank-other {
+        background: #f3f4f6;
+        color: #374151;
+    }
+    
+    .user-info {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+    
+    .user-avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 600;
+        font-size: 0.875rem;
+    }
+    
+    .user-details {
+        flex: 1;
+    }
+    
+    .user-name {
+        font-weight: 600;
+        color: #1f2937;
+        margin-bottom: 0.25rem;
+    }
+    
+    .user-stats {
+        font-size: 0.75rem;
+        color: #6b7280;
+    }
+    
+    .stat-value {
+        font-weight: 600;
+        color: #1f2937;
+    }
+    
+    .current-user {
+        background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%) !important;
+        border-left: 4px solid #10b981;
+    }
+    
+    .time-period {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.875rem;
+        color: #6b7280;
+    }
+    
+    .no-data {
+        text-align: center;
+        padding: 3rem 2rem;
+        color: #6b7280;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-container">
+    <!-- Page Header -->
+    <div class="page-header">
+        <div class="px-6">
+            <h1 class="page-title">Leaderboards</h1>
+            <p class="page-subtitle">Compete with others and track your ranking</p>
+        </div>
+    </div>
+
+    <div class="leaderboards-grid">
+        <!-- Points Leaderboard -->
+        <div class="leaderboard-card">
+            <div class="leaderboard-header">
+                <div class="leaderboard-title">
+                    <span class="leaderboard-icon">🏆</span>
+                    Points Leaderboard
+                </div>
+                <div class="leaderboard-filters">
+                    <button class="filter-button active" data-category="points" data-period="weekly">Weekly</button>
+                    <button class="filter-button" data-category="points" data-period="monthly">Monthly</button>
+                    <button class="filter-button" data-category="points" data-period="all-time">All Time</button>
+                </div>
+            </div>
+            
+            <div class="leaderboard-content" id="points-leaderboard">
+                <table class="leaderboard-table">
+                    <thead>
+                        <tr>
+                            <th>Rank</th>
+                            <th>User</th>
+                            <th>Points</th>
+                            <th>Level</th>
+                        </tr>
+                    </thead>
+                    <tbody id="points-tbody">
+                        <!-- Will be populated dynamically -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Carbon Saved Leaderboard -->
+        <div class="leaderboard-card">
+            <div class="leaderboard-header">
+                <div class="leaderboard-title">
+                    <span class="leaderboard-icon">🌱</span>
+                    Carbon Saved Leaderboard
+                </div>
+                <div class="leaderboard-filters">
+                    <button class="filter-button active" data-category="carbon_saved" data-period="daily">Daily</button>
+                    <button class="filter-button" data-category="carbon_saved" data-period="weekly">Weekly</button>
+                    <button class="filter-button" data-category="carbon_saved" data-period="monthly">Monthly</button>
+                </div>
+            </div>
+            
+            <div class="leaderboard-content" id="carbon-saved-leaderboard">
+                <table class="leaderboard-table">
+                    <thead>
+                        <tr>
+                            <th>Rank</th>
+                            <th>User</th>
+                            <th>CO₂ Saved (kg)</th>
+                            <th>Trees Equivalent</th>
+                        </tr>
+                    </thead>
+                    <tbody id="carbon-saved-tbody">
+                        <!-- Will be populated dynamically -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Trips Leaderboard -->
+        <div class="leaderboard-card">
+            <div class="leaderboard-header">
+                <div class="leaderboard-title">
+                    <span class="leaderboard-icon">🚴‍♀️</span>
+                    Trips Leaderboard
+                </div>
+                <div class="leaderboard-filters">
+                    <button class="filter-button active" data-category="trips_count" data-period="daily">Daily</button>
+                    <button class="filter-button" data-category="trips_count" data-period="weekly">Weekly</button>
+                    <button class="filter-button" data-category="trips_count" data-period="monthly">Monthly</button>
+                </div>
+            </div>
+            
+            <div class="leaderboard-content" id="trips-leaderboard">
+                <table class="leaderboard-table">
+                    <thead>
+                        <tr>
+                            <th>Rank</th>
+                            <th>User</th>
+                            <th>Trips</th>
+                            <th>Streak</th>
+                        </tr>
+                    </thead>
+                    <tbody id="trips-tbody">
+                        <!-- Will be populated dynamically -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Badges Leaderboard -->
+        <div class="leaderboard-card">
+            <div class="leaderboard-header">
+                <div class="leaderboard-title">
+                    <span class="leaderboard-icon">🏅</span>
+                    Badges Leaderboard
+                </div>
+                <div class="leaderboard-filters">
+                    <button class="filter-button active" data-category="badges_count" data-period="weekly">Weekly</button>
+                    <button class="filter-button" data-category="badges_count" data-period="monthly">Monthly</button>
+                    <button class="filter-button" data-category="badges_count" data-period="all-time">All Time</button>
+                </div>
+            </div>
+            
+            <div class="leaderboard-content" id="badges-leaderboard">
+                <table class="leaderboard-table">
+                    <thead>
+                        <tr>
+                            <th>Rank</th>
+                            <th>User</th>
+                            <th>Badges</th>
+                            <th>Rare Badges</th>
+                        </tr>
+                    </thead>
+                    <tbody id="badges-tbody">
+                        <!-- Will be populated dynamically -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+class LeaderboardsDashboard {
+    constructor() {
+        this.currentCategory = 'points';
+        this.currentPeriod = 'weekly';
+        this.initEventListeners();
+        this.loadLeaderboardData();
+    }
+    
+    initEventListeners() {
+        // Filter buttons
+        document.querySelectorAll('.filter-button').forEach(button => {
+            button.addEventListener('click', (e) => {
+                const category = e.target.dataset.category;
+                const period = e.target.dataset.period;
+                
+                // Update active state for category
+                document.querySelectorAll(`[data-category="${category}"]`).forEach(btn => {
+                    btn.classList.remove('active');
+                });
+                e.target.classList.add('active');
+                
+                this.currentCategory = category;
+                this.currentPeriod = period;
+                this.loadLeaderboardData();
+            });
+        });
+    }
+    
+    async loadLeaderboardData() {
+        try {
+            const response = await fetch(`/employee/gamification/api/leaderboard-data/?category=${this.currentCategory}&type=${this.currentPeriod}&limit=10`);
+            const data = await response.json();
+            
+            if (data.success) {
+                this.updateLeaderboardTable(this.currentCategory, data.leaderboard);
+            }
+        } catch (error) {
+            console.error('Error loading leaderboard data:', error);
+        }
+    }
+    
+    updateLeaderboardTable(category, leaderboard) {
+        const tbody = document.getElementById(`${category.replace('_', '-')}-tbody`);
+        
+        if (!tbody || !leaderboard || leaderboard.length === 0) {
+            this.showNoData(tbody);
+            return;
+        }
+        
+        tbody.innerHTML = '';
+        
+        leaderboard.forEach((entry, index) => {
+            const row = document.createElement('tr');
+            if (entry.is_current_user) {
+                row.classList.add('current-user');
+            }
+            
+            let rankHtml = this.getRankBadge(index + 1);
+            let userInfoHtml = this.getUserInfoHtml(entry);
+            let statsHtml = this.getStatsHtml(category, entry);
+            
+            row.innerHTML = `
+                <td>${rankHtml}</td>
+                <td>${userInfoHtml}</td>
+                ${statsHtml}
+            `;
+            
+            tbody.appendChild(row);
+        });
+    }
+    
+    getRankBadge(rank) {
+        let className = 'rank-other';
+        if (rank === 1) className = 'rank-1';
+        else if (rank === 2) className = 'rank-2';
+        else if (rank === 3) className = 'rank-3';
+        
+        return `<div class="rank-badge ${className}">${rank}</div>`;
+    }
+    
+    getUserInfoHtml(entry) {
+        return `
+            <div class="user-info">
+                <div class="user-avatar">${entry.username ? entry.username.charAt(0).toUpperCase() : 'U'}</div>
+                <div class="user-details">
+                    <div class="user-name">${entry.username || 'Unknown User'}</div>
+                    <div class="user-stats">
+                        Level ${entry.level || 1} • Joined ${entry.joined_date || 'Recently'}
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+    
+    getStatsHtml(category, entry) {
+        switch (category) {
+            case 'points':
+                return `
+                    <td><span class="stat-value">${entry.points || 0}</span> points</td>
+                    <td>Level ${entry.level || 1}</td>
+                `;
+            case 'carbon-saved':
+                return `
+                    <td><span class="stat-value">${entry.carbon_saved || 0}</span> kg</td>
+                    <td><span class="stat-value">${entry.trees_equivalent || 0}</span> trees</td>
+                `;
+            case 'trips-count':
+                return `
+                    <td><span class="stat-value">${entry.trips_count || 0}</span> trips</td>
+                    <td><span class="stat-value">${entry.streak || 0}</span> days</td>
+                `;
+            case 'badges-count':
+                return `
+                    <td><span class="stat-value">${entry.badges_count || 0}</span> badges</td>
+                    <td><span class="stat-value">${entry.rare_badges || 0}</span> rare</td>
+                `;
+            default:
+                return '';
+        }
+    }
+    
+    showNoData(tbody) {
+        if (tbody) {
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="4" class="no-data">
+                        No data available for this time period
+                    </td>
+                </tr>
+            `;
+        }
+    }
+}
+
+// Initialize dashboard when DOM is ready
+document.addEventListener('DOMContentLoaded', () => {
+    window.leaderboardsDashboard = new LeaderboardsDashboard();
+});
+</script>
+{% endblock %}

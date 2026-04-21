@@ -1,0 +1,69 @@
+Folder PATH listing for volume OS
+Volume serial number is 2ADA-77A0
+C:\USERS\CHOUG\DOWNLOADS\CARBONCREDITS\CARBON_BACKEND\TEMPLATES
+¦   base.html
+¦   landing.html
+¦   templates_structure.txt
+¦   
++---admin
+¦   ¦   create_user.html
+¦   ¦   dashboard.html
+¦   ¦   employers.html
+¦   ¦   profile.html
+¦   ¦   reports.html
+¦   ¦   users.html
+¦   ¦   user_detail.html
+¦   ¦   user_hierarchy.html
+¦   ¦   
+¦   +---partials
+¦           recent_trips.html
+¦           
++---auth
+¦       login.html
+¦       logout.html
+¦       password_reset_complete.html
+¦       password_reset_confirm.html
+¦       password_reset_done.html
+¦       password_reset_form.html
+¦       register.html
+¦       
++---bank
+¦   ¦   base.html
+¦   ¦   dashboard.html
+¦   ¦   employers.html
+¦   ¦   profile.html
+¦   ¦   reports.html
+¦   ¦   trading.html
+¦   ¦   trading.html.bak
+¦   ¦   
+¦   +---partials
+¦           report_content.html
+¦           
++---components
+¦       file_upload_modal.html
+¦       
++---employee
+¦       dashboard.html
+¦       manage_home_location.html
+¦       marketplace.html
+¦       profile.html
+¦       sidebar.html
+¦       trips.html
+¦       trip_log.html
+¦       
++---employer
+¦       dashboard.html
+¦       employees.html
+¦       employee_marketplace.html
+¦       locations.html
+¦       pending_trips.html
+¦       profile.html
+¦       sidebar.html
+¦       trading.html
+¦       
++---marketplace
++---registration
+        pending_approval.html
+        register_employee.html
+        register_employer.html
+        

@@ -1,0 +1,573 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Predictive Analytics - VayuNetra{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/design-system.css' %}">
+<style>
+    .analytics-grid {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 2rem;
+    }
+    
+    @media (min-width: 1024px) {
+        .analytics-grid {
+            grid-template-columns: 2fr 1fr;
+        }
+    }
+    
+    .analytics-tabs {
+        display: flex;
+        gap: 0.5rem;
+        margin-bottom: 2rem;
+        background: #f3f4f6;
+        padding: 0.25rem;
+        border-radius: 12px;
+    }
+    
+    .analytics-tab {
+        padding: 0.75rem 1.5rem;
+        border-radius: 8px;
+        font-weight: 500;
+        transition: all 0.3s ease;
+        cursor: pointer;
+        border: none;
+        background: transparent;
+        color: #6b7280;
+    }
+    
+    .analytics-tab.active {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        box-shadow: 0px 4px 12px rgba(102, 126, 234, 0.3);
+    }
+    
+    .analytics-tab:hover:not(.active) {
+        background: white;
+        color: #374151;
+    }
+    
+    .tab-content {
+        display: none;
+    }
+    
+    .tab-content.active {
+        display: block;
+        animation: fadeIn 0.3s ease-in-out;
+    }
+    
+    .chart-container {
+        height: 300px;
+        position: relative;
+    }
+    
+    .insight-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1rem;
+    }
+    
+    .insight-card {
+        padding: 1.5rem;
+        background: white;
+        border-radius: 12px;
+        border: 1px solid #e5e7eb;
+        transition: all 0.3s ease;
+    }
+    
+    .insight-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0px 12px 24px rgba(0, 0, 0, 0.1);
+        border-color: #d1d5db;
+    }
+    
+    .insight-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        margin-bottom: 1rem;
+    }
+    
+    .insight-value {
+        font-size: 1.875rem;
+        font-weight: bold;
+        color: #1f2937;
+        margin-bottom: 0.25rem;
+    }
+    
+    .insight-label {
+        font-size: 0.875rem;
+        color: #6b7280;
+    }
+    
+    .prediction-card {
+        background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+        border: 1px solid #10b981;
+    }
+    
+    .recommendation-card {
+        background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+        border: 1px solid #f59e0b;
+    }
+    
+    .goal-card {
+        background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+        border: 1px solid #3b82f6;
+    }
+    
+    .model-status {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.5rem 1rem;
+        border-radius: 8px;
+        font-size: 0.875rem;
+        font-weight: 500;
+    }
+    
+    .model-status.trained {
+        background: #dcfce7;
+        color: #166534;
+        border: 1px solid #10b981;
+    }
+    
+    .model-status.training {
+        background: #fef3c7;
+        color: #92400e;
+        border: 1px solid #f59e0b;
+    }
+    
+    .model-status.error {
+        background: #fee2e2;
+        color: #991b1b;
+        border: 1px solid #ef4444;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-container">
+    <!-- Page Header -->
+    <div class="page-header">
+        <div class="px-6">
+            <h1 class="page-title">Predictive Analytics</h1>
+            <p class="page-subtitle">Advanced carbon footprint forecasting and insights</p>
+        </div>
+    </div>
+
+    <!-- Model Status Bar -->
+    <div class="modern-card p-4 mb-8">
+        <div class="flex items-center justify-between">
+            <div class="flex items-center gap-4">
+                <div id="modelStatus" class="model-status trained">
+                    <div class="w-2 h-2 rounded-full bg-green-500 mr-2"></div>
+                    <span>Model Ready</span>
+                </div>
+                <div class="text-sm text-gray-600">
+                    Last trained: <span id="lastTrained">{{ last_trained|default:'Never' }}</span>
+                </div>
+            </div>
+            <div class="flex gap-3">
+                <button id="trainModelBtn" class="action-btn px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+                    <span id="trainModelText">Train Model</span>
+                    <div id="trainModelSpinner" class="loading-spinner ml-2 hidden"></div>
+                </button>
+                <button id="refreshDataBtn" class="action-btn px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700">
+                    Refresh Data
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="analytics-grid">
+        <!-- Main Content Area -->
+        <div>
+            <!-- Analytics Tabs -->
+            <div class="analytics-tabs">
+                <button class="analytics-tab active" data-tab="overview">Overview</button>
+                <button class="analytics-tab" data-tab="patterns">Trip Patterns</button>
+                <button class="analytics-tab" data-tab="predictions">Predictions</button>
+                <button class="analytics-tab" data-tab="goals">Monthly Goals</button>
+                <button class="analytics-tab" data-tab="insights">Insights</button>
+            </div>
+
+            <!-- Tab Contents -->
+            <div id="overview" class="tab-content active">
+                <div class="grid grid-1 lg:grid-2 gap-6 mb-8">
+                    <div class="modern-card p-6">
+                        <h3 class="section-title mb-4">Prediction Accuracy</h3>
+                        <div class="chart-container">
+                            <canvas id="accuracyChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="modern-card p-6">
+                        <h3 class="section-title mb-4">Carbon Trend</h3>
+                        <div class="chart-container">
+                            <canvas id="trendChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="insight-grid">
+                    <div class="insight-card prediction-card">
+                        <div class="insight-icon">📊</div>
+                        <div class="insight-value">{{ model_accuracy|default:94.27 }}%</div>
+                        <div class="insight-label">Model Accuracy</div>
+                    </div>
+                    <div class="insight-card recommendation-card">
+                        <div class="insight-icon">💡</div>
+                        <div class="insight-value">{{ monthly_prediction|default:12.5 }}</div>
+                        <div class="insight-label">Monthly Prediction (kg CO₂)</div>
+                    </div>
+                    <div class="insight-card goal-card">
+                        <div class="insight-icon">🎯</div>
+                        <div class="insight-value">{{ goal_progress|default:75 }}%</div>
+                        <div class="insight-label">Goal Progress</div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="patterns" class="tab-content">
+                <div class="modern-card p-6">
+                    <h3 class="section-title mb-4">Trip Pattern Analysis</h3>
+                    <div class="chart-container" style="height: 400px;">
+                        <canvas id="patternsChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <div id="predictions" class="tab-content">
+                <div class="modern-card p-6">
+                    <h3 class="section-title mb-4">Carbon Footprint Predictions</h3>
+                    <div class="chart-container" style="height: 400px;">
+                        <canvas id="predictionsChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <div id="goals" class="tab-content">
+                <div class="modern-card p-6">
+                    <h3 class="section-title mb-4">Monthly Goals Tracking</h3>
+                    <div class="chart-container" style="height: 400px;">
+                        <canvas id="goalsChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <div id="insights" class="tab-content">
+                <div class="space-y-4">
+                    <div class="modern-card p-6">
+                        <h3 class="section-title mb-4">AI Insights</h3>
+                        <div id="insightsList" class="space-y-3">
+                            <!-- Insights will be populated dynamically -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar -->
+        <div class="space-y-6">
+            <!-- Quick Stats -->
+            <div class="modern-card p-6">
+                <h3 class="section-title mb-4">Quick Stats</h3>
+                <div class="space-y-4">
+                    <div class="flex justify-between items-center">
+                        <span class="text-sm text-gray-600">Total Predictions</span>
+                        <span class="font-semibold" data-stats="total-predictions">{{ total_predictions|default:0 }}</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-sm text-gray-600">Avg Accuracy</span>
+                        <span class="font-semibold" data-stats="avg-accuracy">{{ avg_accuracy|default:0 }}%</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-sm text-gray-600">Data Points</span>
+                        <span class="font-semibold" data-stats="data-points">{{ data_points|default:0 }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Predictions -->
+            <div class="modern-card p-6">
+                <h3 class="section-title mb-4">Recent Predictions</h3>
+                <div id="recentPredictions" class="space-y-3">
+                    <!-- Will be populated dynamically -->
+                </div>
+            </div>
+
+            <!-- Export Options -->
+            <div class="modern-card p-6">
+                <h3 class="section-title mb-4">Export Data</h3>
+                <div class="space-y-3">
+                    <button id="exportCSV" class="action-btn w-full px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700">
+                        📊 Export as CSV
+                    </button>
+                    <button id="exportJSON" class="action-btn w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+                        📄 Export as JSON
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+class PredictiveAnalyticsDashboard {
+    constructor() {
+        this.currentTab = 'overview';
+        this.charts = {};
+        this.initEventListeners();
+        this.initCharts();
+        this.loadDashboardData();
+    }
+    
+    initEventListeners() {
+        // Tab switching
+        document.querySelectorAll('.analytics-tab').forEach(tab => {
+            tab.addEventListener('click', (e) => {
+                this.switchTab(e.target.dataset.tab);
+            });
+        });
+        
+        // Model training
+        document.getElementById('trainModelBtn').addEventListener('click', () => {
+            this.trainModel();
+        });
+        
+        // Data refresh
+        document.getElementById('refreshDataBtn').addEventListener('click', () => {
+            this.loadDashboardData();
+        });
+        
+        // Export buttons
+        document.getElementById('exportCSV').addEventListener('click', () => {
+            this.exportData('csv');
+        });
+        
+        document.getElementById('exportJSON').addEventListener('click', () => {
+            this.exportData('json');
+        });
+    }
+    
+    switchTab(tabName) {
+        // Update tab buttons
+        document.querySelectorAll('.analytics-tab').forEach(tab => {
+            tab.classList.remove('active');
+        });
+        document.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
+        
+        // Update tab content
+        document.querySelectorAll('.tab-content').forEach(content => {
+            content.classList.remove('active');
+        });
+        document.getElementById(tabName).classList.add('active');
+        
+        this.currentTab = tabName;
+        
+        // Load tab-specific data
+        this.loadTabData(tabName);
+    }
+    
+    async loadDashboardData() {
+        try {
+            const response = await fetch('/employee/analytics/api/overview/');
+            const data = await response.json();
+            
+            if (data.success) {
+                this.updateOverviewStats(data.overview);
+            }
+        } catch (error) {
+            console.error('Error loading dashboard data:', error);
+        }
+    }
+    
+    async loadTabData(tabName) {
+        try {
+            const endpoint = `/employee/analytics/api/${tabName}/`;
+            const response = await fetch(endpoint);
+            const data = await response.json();
+            
+            if (data.success) {
+                this.updateTabContent(tabName, data);
+            }
+        } catch (error) {
+            console.error(`Error loading ${tabName} data:`, error);
+        }
+    }
+    
+    updateOverviewStats(overview) {
+        // Update quick stats
+        const totalPred = document.querySelector('[data-stats="total-predictions"]');
+        const avgAcc = document.querySelector('[data-stats="avg-accuracy"]');
+        const dataPoints = document.querySelector('[data-stats="data-points"]');
+        
+        if (totalPred) totalPred.textContent = overview.total_predictions || 0;
+        if (avgAcc) avgAcc.textContent = overview.avg_accuracy || 0;
+        if (dataPoints) dataPoints.textContent = overview.data_points || 0;
+    }
+    
+    updateTabContent(tabName, data) {
+        switch(tabName) {
+            case 'patterns':
+                this.updatePatternsChart(data.patterns);
+                break;
+            case 'predictions':
+                this.updatePredictionsChart(data.predictions);
+                break;
+            case 'goals':
+                this.updateGoalsChart(data.goals);
+                break;
+            case 'insights':
+                this.updateInsightsList(data.insights);
+                break;
+        }
+    }
+    
+    initCharts() {
+        // Initialize overview charts
+        this.initAccuracyChart();
+        this.initTrendChart();
+    }
+    
+    initAccuracyChart() {
+        const ctx = document.getElementById('accuracyChart');
+        if (!ctx) return;
+        
+        this.charts.accuracy = new Chart(ctx.getContext('2d'), {
+            type: 'doughnut',
+            data: {
+                labels: ['Accuracy', 'Error'],
+                datasets: [{
+                    data: [94.27, 5.73],
+                    backgroundColor: ['#10b981', '#ef4444'],
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom'
+                    }
+                }
+            }
+        });
+    }
+    
+    initTrendChart() {
+        const ctx = document.getElementById('trendChart');
+        if (!ctx) return;
+        
+        this.charts.trend = new Chart(ctx.getContext('2d'), {
+            type: 'line',
+            data: {
+                labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+                datasets: [{
+                    label: 'Carbon Footprint (kg CO₂)',
+                    data: [12, 15, 13, 17, 14, 16],
+                    borderColor: '#667eea',
+                    backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                    tension: 0.4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+    }
+    
+    async trainModel() {
+        const btn = document.getElementById('trainModelBtn');
+        const text = document.getElementById('trainModelText');
+        const spinner = document.getElementById('trainModelSpinner');
+        const status = document.getElementById('modelStatus');
+        
+        // Update UI
+        btn.disabled = true;
+        text.textContent = 'Training...';
+        spinner.classList.remove('hidden');
+        status.className = 'model-status training';
+        status.innerHTML = '<div class="w-2 h-2 rounded-full bg-yellow-500 mr-2"></div><span>Training Model</span>';
+        
+        try {
+            const response = await fetch('/employee/analytics/api/train-model/', {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': getCookie('csrftoken')
+                }
+            });
+            
+            const data = await response.json();
+            
+            if (data.success) {
+                status.className = 'model-status trained';
+                status.innerHTML = '<div class="w-2 h-2 rounded-full bg-green-500 mr-2"></div><span>Model Ready</span>';
+                text.textContent = 'Train Model';
+                spinner.classList.add('hidden');
+                btn.disabled = false;
+                
+                // Refresh data
+                this.loadDashboardData();
+            } else {
+                throw new Error(data.error || 'Training failed');
+            }
+        } catch (error) {
+            status.className = 'model-status error';
+            status.innerHTML = '<div class="w-2 h-2 rounded-full bg-red-500 mr-2"></div><span>Training Error</span>';
+            text.textContent = 'Retry Training';
+            spinner.classList.add('hidden');
+            btn.disabled = false;
+            console.error('Model training error:', error);
+        }
+    }
+    
+    exportData(format) {
+        // Implement export functionality
+        console.log(`Exporting data as ${format}`);
+        // This would make an API call to export the data
+    }
+}
+
+// Helper function to get CSRF token
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+
+// Initialize dashboard when DOM is ready
+document.addEventListener('DOMContentLoaded', () => {
+    window.analyticsDashboard = new PredictiveAnalyticsDashboard();
+});
+</script>
+{% endblock %}

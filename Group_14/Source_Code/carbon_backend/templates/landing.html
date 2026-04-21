@@ -1,0 +1,318 @@
+{% extends 'base.html' %}
+
+{% block title %}Carbon Credits - Track Your Carbon Footprint{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Modern landing page styles */
+    :root {
+        --primary: #2B9348;
+        --secondary: #55A630;
+        --neutral-dark: #1C1C1C;
+        --light-bg: #F5F5F5;
+        --accent: #F9DC5C;
+        --secondary-accent: #70A9A1;
+        --cta-blue: #1E88E5;
+    }
+    
+    body {
+        font-family: 'Poppins', sans-serif;
+    }
+    
+    .hero-section {
+        background-color: var(--light-bg);
+        overflow: hidden;
+        position: relative;
+    }
+    
+    .modern-card {
+        border-radius: 16px;
+        box-shadow: 0px 6px 24px rgba(0, 0, 0, 0.08);
+        transition: all 0.3s ease;
+    }
+    
+    .modern-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0px 12px 30px rgba(0, 0, 0, 0.12);
+    }
+    
+    .primary-btn {
+        background-color: var(--primary);
+        color: white;
+        border-radius: 12px;
+        padding: 14px 30px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+    }
+    
+    .primary-btn:hover {
+        background-color: #237c3a;
+        transform: translateY(-2px);
+        box-shadow: 0px 4px 12px rgba(43, 147, 72, 0.25);
+    }
+    
+    .secondary-btn {
+        background-color: white;
+        color: var(--neutral-dark);
+        border: 2px solid var(--primary);
+        border-radius: 12px;
+        padding: 12px 28px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+    
+    .secondary-btn:hover {
+        background-color: rgba(85, 166, 48, 0.1);
+        transform: translateY(-2px);
+    }
+    
+    .section-headline {
+        font-weight: 800;
+        background: linear-gradient(90deg, var(--primary), var(--secondary));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        margin-bottom: 1.5rem;
+    }
+    
+    .feature-icon {
+        background-color: rgba(85, 166, 48, 0.15);
+        border-radius: 50%;
+        width: 64px;
+        height: 64px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 1.5rem;
+    }
+    
+    .feature-icon svg {
+        width: 32px;
+        height: 32px;
+        color: var(--primary);
+    }
+    
+    /* Background element */
+    .bg-pattern {
+        position: absolute;
+        top: 0;
+        right: 0;
+        width: 100%;
+        height: 100%;
+        background-image: radial-gradient(var(--secondary-accent) 2px, transparent 2px);
+        background-size: 30px 30px;
+        opacity: 0.1;
+        z-index: 0;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<!-- Modern Hero Section -->
+<section class="hero-section py-20 md:py-32">
+    <div class="bg-pattern"></div>
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+        <div class="flex flex-col lg:flex-row items-center gap-16">
+            <!-- Left content -->
+            <div class="lg:w-1/2 text-left">
+                <h1 class="text-5xl md:text-6xl font-extrabold text-gray-900 mb-6 leading-tight">
+                    Earn. Trade. <span class="text-green-600">Protect.</span>
+                </h1>
+                <p class="text-xl md:text-2xl text-gray-700 mb-10 leading-relaxed">
+                    Let your carbon credits work for you — join the green economy revolution.
+                </p>
+                <p class="text-lg text-gray-600 mb-12 max-w-xl">
+                    Empowering individuals and businesses to track, earn, and trade carbon credits with transparency and ease.
+                    Built for a sustainable future.
+                </p>
+                <div class="flex flex-col sm:flex-row gap-4 mb-8">
+                    <a href="{% url 'register' %}" class="primary-btn">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                        </svg>
+                        🌱 Get Started for Free
+                    </a>
+                    <a href="#how-it-works" class="secondary-btn">
+                        Learn How It Works
+                    </a>
+                </div>
+            </div>
+            
+            <!-- Right content: Dashboard preview -->
+            <div class="lg:w-1/2">
+                <div class="modern-card bg-white p-6 relative">
+                    <div class="absolute top-4 right-4 flex space-x-2">
+                        <span class="h-3 w-3 bg-red-500 rounded-full"></span>
+                        <span class="h-3 w-3 bg-yellow-500 rounded-full"></span>
+                        <span class="h-3 w-3 bg-green-500 rounded-full"></span>
+                    </div>
+                    
+                    <div class="pt-6">
+                        <div class="mb-6">
+                            <h3 class="text-lg font-semibold text-gray-700 mb-3">Your Carbon Credits</h3>
+                            <div class="grid grid-cols-3 gap-4">
+                                <div class="bg-gray-50 p-4 rounded-lg text-center">
+                                    <div class="text-2xl font-bold text-green-600">247</div>
+                                    <div class="text-xs text-gray-500">Credits Earned</div>
+                                </div>
+                                <div class="bg-gray-50 p-4 rounded-lg text-center">
+                                    <div class="text-2xl font-bold text-blue-600">184</div>
+                                    <div class="text-xs text-gray-500">Credits Available</div>
+                                </div>
+                                <div class="bg-gray-50 p-4 rounded-lg text-center">
+                                    <div class="text-2xl font-bold text-purple-600">63</div>
+                                    <div class="text-xs text-gray-500">Credits Traded</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <h3 class="text-lg font-semibold text-gray-700 mb-3">Recent Activity</h3>
+                            <div class="space-y-3">
+                                <div class="flex items-center p-3 bg-gray-50 rounded-lg">
+                                    <div class="h-8 w-8 bg-green-100 rounded-full flex items-center justify-center mr-3">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+                                        </svg>
+                                    </div>
+                                    <div>
+                                        <div class="text-sm font-medium text-gray-900">Bicycle Commute Verified</div>
+                                        <div class="text-xs text-gray-500">+12 credits • Today</div>
+                                    </div>
+                                </div>
+                                <div class="flex items-center p-3 bg-gray-50 rounded-lg">
+                                    <div class="h-8 w-8 bg-blue-100 rounded-full flex items-center justify-center mr-3">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+                                        </svg>
+                                    </div>
+                                    <div>
+                                        <div class="text-sm font-medium text-gray-900">Credits Transferred</div>
+                                        <div class="text-xs text-gray-500">25 credits • Yesterday</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Features Section -->
+<section id="how-it-works" class="py-24 px-4 bg-white">
+    <div class="max-w-7xl mx-auto">
+        <h2 class="section-headline text-center text-4xl mb-16">
+            How It Works
+        </h2>
+        <div class="grid md:grid-cols-3 gap-10">
+            <div class="modern-card bg-white p-8">
+                <div class="feature-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                    </svg>
+                </div>
+                <h3 class="text-xl font-bold text-gray-800 mb-4">Track Your Commute</h3>
+                <p class="text-gray-600 leading-relaxed">
+                    Log your daily commutes between home and office, choosing eco-friendly transportation modes to maximize your impact and earnings.
+                </p>
+            </div>
+            <div class="modern-card bg-white p-8">
+                <div class="feature-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                </div>
+                <h3 class="text-xl font-bold text-gray-800 mb-4">Earn Carbon Credits</h3>
+                <p class="text-gray-600 leading-relaxed">
+                    Get rewarded with carbon credits based on your transportation choices and distance traveled, all verified through our transparent system.
+                </p>
+            </div>
+            <div class="modern-card bg-white p-8">
+                <div class="feature-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3" />
+                    </svg>
+                </div>
+                <h3 class="text-xl font-bold text-gray-800 mb-4">Trade in Marketplace</h3>
+                <p class="text-gray-600 leading-relaxed">
+                    Organizations can trade carbon credits in our marketplace, creating a sustainable eco-system and incentivizing green transportation.
+                </p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Roles Section -->
+<section class="py-24 px-4 bg-gray-50">
+    <div class="max-w-7xl mx-auto">
+        <h2 class="section-headline text-center text-4xl mb-16">
+            Who Can Use Our Platform
+        </h2>
+        <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+            <div class="modern-card bg-white p-8">
+                <h3 class="text-xl font-bold text-gray-800 mb-4">Employees</h3>
+                <p class="text-gray-600 leading-relaxed">
+                    Track your commutes, earn credits, and contribute to your organization's sustainability goals while reducing your carbon footprint.
+                </p>
+            </div>
+            <div class="modern-card bg-white p-8">
+                <h3 class="text-xl font-bold text-gray-800 mb-4">Employers</h3>
+                <p class="text-gray-600 leading-relaxed">
+                    Manage your organization's carbon footprint, incentivize sustainable commuting, and trade credits in the marketplace.
+                </p>
+            </div>
+            <div class="modern-card bg-white p-8">
+                <h3 class="text-xl font-bold text-gray-800 mb-4">Bank Admins</h3>
+                <p class="text-gray-600 leading-relaxed">
+                    Verify trips, approve transactions, oversee the carbon credit marketplace, and ensure the integrity of the entire system.
+                </p>
+            </div>
+            <div class="modern-card bg-white p-8">
+                <h3 class="text-xl font-bold text-gray-800 mb-4">System Admins</h3>
+                <p class="text-gray-600 leading-relaxed">
+                    Manage the entire platform, including users, settings, and system configurations to keep everything running smoothly.
+                </p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- CTA Section -->
+<section class="py-20 px-4 bg-gradient-to-r from-green-600 to-green-700 text-white">
+    <div class="max-w-5xl mx-auto text-center">
+        <h2 class="text-4xl font-bold mb-6">Ready to reduce your carbon footprint?</h2>
+        <p class="text-xl mb-12 max-w-3xl mx-auto">
+            Join thousands of individuals and businesses making a positive impact on the environment.
+        </p>
+        <div class="flex flex-col sm:flex-row justify-center gap-4">
+            <a href="{% url 'register' %}" class="bg-white text-green-700 px-10 py-4 rounded-lg font-bold text-lg transition-all hover:bg-green-50 hover:transform hover:-translate-y-1 hover:shadow-lg">
+                Create Your Account
+            </a>
+            <a href="{% url 'login' %}" class="bg-transparent border-2 border-white text-white px-10 py-4 rounded-lg font-bold text-lg transition-all hover:bg-white hover:bg-opacity-10 hover:transform hover:-translate-y-1">
+                Log In
+            </a>
+        </div>
+    </div>
+</section>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Add smooth scrolling for anchor links
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener('click', function (e) {
+            e.preventDefault();
+            
+            document.querySelector(this.getAttribute('href')).scrollIntoView({
+                behavior: 'smooth'
+            });
+        });
+    });
+</script>
+{% endblock %} 

@@ -1,0 +1,743 @@
+{% extends 'base.html' %}
+
+{% block title %}Manage Locations - Carbon Credits Platform{% endblock %}
+
+{% block extra_css %}
+<style>
+    .locations-container {
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+    
+    .location-card {
+        transition: all 0.3s ease;
+    }
+    
+    .location-card:hover {
+        transform: translateY(-5px);
+    }
+    
+    .map-container {
+        height: 400px;
+        width: 100%;
+        background-color: #f3f4f6;
+        border-radius: 0.5rem;
+        overflow: hidden;
+        position: relative;
+    }
+    
+    /* Ensure the map takes full height of its container */
+    #locations-map {
+        height: 100%;
+        width: 100%;
+    }
+    
+    /* Add loading indicator for map */
+    .map-loading {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: rgba(255, 255, 255, 0.7);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 5;
+    }
+    
+    /* Add search box on map */
+    .map-search-container {
+        position: absolute;
+        top: 10px;
+        left: 10px;
+        right: 10px;
+        z-index: 10;
+        background: white;
+        padding: 10px;
+        border-radius: 4px;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+    }
+    
+    #map-search-input {
+        width: 100%;
+        padding: 8px 12px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+    }
+    
+    .modal {
+        display: none;
+        position: fixed;
+        z-index: 9999;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        overflow: auto;
+        background-color: rgba(0, 0, 0, 0.5);
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .modal-content {
+        background-color: #fefefe;
+        margin: 5% auto;
+        padding: 20px;
+        border: 1px solid #ddd;
+        width: 90%;
+        max-width: 600px;
+        border-radius: 0.5rem;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        position: relative;
+    }
+    
+    .modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-bottom: 1px solid #ddd;
+        padding-bottom: 10px;
+        margin-bottom: 20px;
+    }
+    
+    .close {
+        color: #aaa;
+        font-size: 28px;
+        font-weight: bold;
+        cursor: pointer;
+    }
+    
+    .close:hover {
+        color: black;
+    }
+    
+    .location-type-tag {
+        display: inline-block;
+        padding: 0.25rem 0.75rem;
+        border-radius: 9999px;
+        font-size: 0.75rem;
+        font-weight: 600;
+    }
+    
+    .type-office {
+        background-color: #E1F0FF;
+        color: #1E88E5;
+    }
+    
+    .type-home {
+        background-color: #E8F5E9;
+        color: #43A047;
+    }
+    
+    .type-other {
+        background-color: #F5F5F5;
+        color: #757575;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="locations-container px-4 py-6">
+    <div class="relative mb-8">
+        <div class="bg-pattern"></div>
+        <div class="relative z-10 flex justify-between items-start">
+            <div>
+                <h1 class="section-headline text-3xl md:text-4xl font-bold mb-6">Office Locations</h1>
+                <p class="text-gray-600 max-w-3xl">
+                    Manage your organization's office locations. These locations will be available for your employees to select when logging trips.
+                </p>
+            </div>
+            <button id="add-location-btn" class="btn-primary flex items-center" onclick="openLocationModal()">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                </svg>
+                Add Location
+            </button>
+        </div>
+    </div>
+
+    <!-- Display flash messages if any -->
+    {% if messages %}
+    <div class="mb-6">
+        {% for message in messages %}
+        <div class="p-4 rounded-lg {% if message.tags == 'success' %}bg-green-100 text-green-800{% elif message.tags == 'error' %}bg-red-100 text-red-800{% else %}bg-blue-100 text-blue-800{% endif %}">
+            {{ message }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Location Statistics -->
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
+        <div class="modern-card p-5">
+            <h3 class="text-lg font-medium text-gray-500">Total Locations</h3>
+            <p class="text-3xl font-bold text-gray-800">{{ locations.count }}</p>
+        </div>
+        
+        <div class="modern-card p-5">
+            <h3 class="text-lg font-medium text-gray-500">Primary Office</h3>
+            <p class="text-3xl font-bold text-green-600">{{ primary_location.name|default:"Not Set" }}</p>
+        </div>
+        
+        <div class="modern-card p-5">
+            <h3 class="text-lg font-medium text-gray-500">Cities</h3>
+            <p class="text-3xl font-bold text-blue-600">{{ city_count|default:"0" }}</p>
+        </div>
+    </div>
+
+    <!-- Map View -->
+    <div class="modern-card p-6 mb-8">
+        <h2 class="text-xl font-semibold mb-4">All Locations</h2>
+        <div id="map-error-log" class="hidden bg-red-100 text-red-700 p-4 mb-4 rounded-lg"></div>
+        <div class="map-container">
+            <div class="map-loading" id="map-loading">
+                <div class="spinner">
+                    <svg class="animate-spin h-8 w-8 text-green-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                </div>
+                <span class="ml-2 text-gray-600">Loading map...</span>
+            </div>
+            <div class="map-search-container">
+                <input id="map-search-input" type="text" placeholder="Search for a location">
+            </div>
+            <div id="locations-map" class="h-full w-full"></div>
+        </div>
+    </div>
+
+    <!-- Locations List -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {% if locations %}
+            {% for location in locations %}
+                <div class="modern-card p-5 location-card">
+                    <div class="flex justify-between mb-4">
+                        <div>
+                            <h3 class="text-lg font-medium text-gray-800">{{ location.name }}</h3>
+                            <span class="location-type-tag type-{{ location.location_type }}">
+                                {{ location.get_location_type_display }}
+                            </span>
+                        </div>
+                        {% if location.is_primary %}
+                        <span class="px-2 py-1 bg-green-100 text-green-800 text-xs font-semibold rounded-full">Primary</span>
+                        {% endif %}
+                    </div>
+                    
+                    <p class="text-gray-600 mb-3">{{ location.address }}</p>
+                    
+                    <div class="flex justify-between items-center mt-4">
+                        <div class="text-sm text-gray-500">
+                            <span>{{ location.latitude|floatformat:4 }}, {{ location.longitude|floatformat:4 }}</span>
+                        </div>
+                        
+                        <div class="flex space-x-2">
+                            <button class="edit-location-btn text-blue-600 hover:text-blue-900" 
+                                data-id="{{ location.id }}" 
+                                data-name="{{ location.name }}" 
+                                data-address="{{ location.address }}" 
+                                data-lat="{{ location.latitude }}" 
+                                data-lng="{{ location.longitude }}" 
+                                data-type="{{ location.location_type }}"
+                                onclick="editLocation(this)">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 0L11.828 15H9v-2.828l8.586-8.586z" />
+                                </svg>
+                            </button>
+                            
+                            {% if not location.is_primary %}
+                            <form method="post" action="{% url 'employer:location_delete' location.id %}" class="inline">
+                                {% csrf_token %}
+                                <button type="submit" class="text-red-600 hover:text-red-900" onclick="return confirm('Are you sure you want to delete this location?')">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                    </svg>
+                                </button>
+                            </form>
+                            {% endif %}
+                            
+                            {% if not location.is_primary %}
+                            <form method="post" action="{% url 'employer:location_set_primary' location.id %}" class="inline">
+                                {% csrf_token %}
+                                <button type="submit" class="text-yellow-600 hover:text-yellow-900" title="Set as Primary">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
+                                    </svg>
+                                </button>
+                            </form>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        {% else %}
+            <div class="col-span-3 text-center py-10">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 text-gray-400 mx-auto mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+                <p class="text-gray-500">No locations found</p>
+                <button id="no-locations-add-btn" class="mt-4 inline-block btn-primary" onclick="openLocationModal()">Add Location</button>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Add/Edit Location Modal -->
+<div id="location-modal" class="modal" style="display: none;">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2 id="modal-title">Add New Location</h2>
+            <span class="close" style="cursor: pointer; font-size: 24px;" onclick="document.getElementById('location-modal').style.display='none';">&times;</span>
+        </div>
+        
+        <form id="location-form" method="post" action="{% url 'employer:location_add' %}">
+            {% csrf_token %}
+            <input type="hidden" id="location-id" name="location_id">
+            
+            <div class="mb-4">
+                <label for="location-name" class="block text-sm font-medium text-gray-700 mb-1">Location Name</label>
+                <input type="text" id="location-name" name="name" required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500">
+            </div>
+            
+            <div class="mb-4">
+                <label for="location-type" class="block text-sm font-medium text-gray-700 mb-1">Location Type</label>
+                <select id="location-type" name="location_type" required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500">
+                    <option value="office">Office</option>
+                    <option value="other">Other</option>
+                </select>
+            </div>
+            
+            <div class="mb-4">
+                <label for="location-address" class="block text-sm font-medium text-gray-700 mb-1">Address</label>
+                <input type="text" id="location-address" name="address" required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500">
+            </div>
+            
+            <div class="mb-4">
+                <p class="block text-sm font-medium text-gray-700 mb-1">Select on Map</p>
+                <div class="relative">
+                    <input type="text" id="modal-search-input" placeholder="Search for address" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 mb-2">
+                    <div id="modal-map" class="h-64 w-full bg-gray-100 rounded-md" style="min-height: 250px; position: relative;"></div>
+                    <div id="map-instructions" class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white bg-opacity-80 p-2 rounded text-center max-w-xs">
+                        <p>Click on the map to place a pin or search for a location above</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="grid grid-cols-2 gap-4 mb-4">
+                <div>
+                    <label for="location-latitude" class="block text-sm font-medium text-gray-700 mb-1">Latitude</label>
+                    <input type="text" id="location-latitude" name="latitude" required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500">
+                </div>
+                
+                <div>
+                    <label for="location-longitude" class="block text-sm font-medium text-gray-700 mb-1">Longitude</label>
+                    <input type="text" id="location-longitude" name="longitude" required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500">
+                </div>
+            </div>
+            
+            <div class="flex justify-end">
+                <button type="button" class="btn-secondary mr-3" id="cancel-btn" onclick="document.getElementById('location-modal').style.display='none';">Cancel</button>
+                <button type="submit" class="btn-primary">Save Location</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<!-- Load Google Maps API directly in the page with a working API key -->
+<script src="https://maps.googleapis.com/maps/api/js?key={{ google_maps_api_key }}&libraries=places"></script>
+
+<script>
+// Hide loading indicator 
+function hideLoading() {
+    const loadingIndicator = document.getElementById('map-loading');
+    if (loadingIndicator) {
+        loadingIndicator.style.display = 'none';
+    }
+}
+
+// Function to show error messages
+function showMapError(message) {
+    const mapContainer = document.getElementById('locations-map');
+    const loadingIndicator = document.getElementById('map-loading');
+    const errorLog = document.getElementById('map-error-log');
+    
+    if (loadingIndicator) {
+        loadingIndicator.style.display = 'none';
+    }
+    
+    // Show error in the error log div
+    if (errorLog) {
+        errorLog.textContent = message;
+        errorLog.classList.remove('hidden');
+    }
+    
+    if (mapContainer) {
+        mapContainer.innerHTML = `
+            <div class="flex flex-col items-center justify-center h-full p-6 text-center">
+                <svg class="w-12 h-12 text-red-500 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                </svg>
+                <h3 class="text-lg font-medium text-gray-900 mb-2">Map Error</h3>
+                <p class="text-gray-600">${message}</p>
+                <button onclick="location.reload()" class="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">Retry</button>
+            </div>
+        `;
+    }
+}
+
+// Initialize maps when document is ready
+document.addEventListener('DOMContentLoaded', initMaps);
+
+function initMaps() {
+    try {
+        initializeMapFunctionality();
+    } catch(e) {
+        console.error("Map initialization error:", e);
+        showMapError("Failed to initialize map: " + e.message);
+    }
+}
+
+function initializeMapFunctionality() {
+    // Get location data from template
+    var locations = [];
+    {% for location in locations %}
+    locations.push({
+        id: {{ location.id }},
+        name: "{{ location.name|escapejs }}",
+        lat: parseFloat("{{ location.latitude }}"),
+        lng: parseFloat("{{ location.longitude }}"),
+        address: "{{ location.address|escapejs }}",
+        isPrimary: {% if location.is_primary %}true{% else %}false{% endif %}
+    });
+    {% endfor %}
+    
+    // Default center (Thane, Maharashtra, India)
+    var defaultCenter = { lat: 19.2183, lng: 72.9781 };
+    
+    // Initialize the main map
+    var map = new google.maps.Map(document.getElementById('locations-map'), {
+        zoom: 4,
+        center: defaultCenter,
+        mapTypeControl: true,
+        streetViewControl: false,
+        fullscreenControl: true
+    });
+    
+    // Create search box
+    var searchInput = document.getElementById('map-search-input');
+    var searchBox = new google.maps.places.SearchBox(searchInput);
+    
+    // Bias the search box results towards current map's viewport
+    map.addListener('bounds_changed', function() {
+        searchBox.setBounds(map.getBounds());
+    });
+    
+    // Listen for search box selections
+    searchBox.addListener('places_changed', function() {
+        var places = searchBox.getPlaces();
+        
+        if (places.length === 0) {
+            return;
+        }
+        
+        var bounds = new google.maps.LatLngBounds();
+        
+        places.forEach(function(place) {
+            if (!place.geometry || !place.geometry.location) {
+                console.log("Returned place contains no geometry");
+                return;
+            }
+            
+            // Create a marker for the search result
+            new google.maps.Marker({
+                map: map,
+                title: place.name,
+                position: place.geometry.location,
+                icon: {
+                    url: 'https://maps.google.com/mapfiles/ms/icons/green-dot.png',
+                    scaledSize: new google.maps.Size(30, 30)
+                }
+            });
+            
+            if (place.geometry.viewport) {
+                bounds.union(place.geometry.viewport);
+            } else {
+                bounds.extend(place.geometry.location);
+            }
+        });
+        
+        map.fitBounds(bounds);
+    });
+    
+    // Add markers for all locations
+    var bounds = new google.maps.LatLngBounds();
+    
+    if (locations.length > 0) {
+        locations.forEach(function(location) {
+            const position = { lat: location.lat, lng: location.lng };
+            const icon = {
+                url: location.isPrimary ? 
+                    'https://maps.google.com/mapfiles/ms/icons/blue-dot.png' : 
+                    'https://maps.google.com/mapfiles/ms/icons/red-dot.png',
+                scaledSize: new google.maps.Size(30, 30)
+            };
+            
+            const marker = new google.maps.Marker({
+                position: position,
+                map: map,
+                title: location.name,
+                icon: icon
+            });
+            
+            // Create info window for each marker
+            const infoWindow = new google.maps.InfoWindow({
+                content: `
+                    <div>
+                        <h3 style="font-weight: bold; margin-bottom: 5px;">${location.name}</h3>
+                        <p style="margin-bottom: 5px;">${location.address}</p>
+                        <p style="color: #888; font-size: 0.8rem;">
+                            ${location.isPrimary ? '• Primary Office' : ''}
+                        </p>
+                        <div style="display: flex; margin-top: 10px; gap: 5px;">
+                            <a href="#" onclick="editLocation(${location.id})" style="padding: 4px 8px; background-color: #3498db; color: white; border-radius: 4px; text-decoration: none; font-size: 12px;">Edit</a>
+                            ${!location.isPrimary ? `<a href="{% url 'employer:location_set_primary' 0 %}".replace('0', location.id) style="padding: 4px 8px; background-color: #f1c40f; color: white; border-radius: 4px; text-decoration: none; font-size: 12px;">Set Primary</a>` : ''}
+                        </div>
+                    </div>
+                `
+            });
+            
+            marker.addListener('click', function() {
+                infoWindow.open(map, marker);
+            });
+            
+            bounds.extend(position);
+        });
+        
+        // Fit map to show all markers
+        map.fitBounds(bounds);
+        
+        // Don't zoom in too far
+        google.maps.event.addListenerOnce(map, 'idle', function() {
+            if (map.getZoom() > 15) {
+                map.setZoom(15);
+            }
+            hideLoading();
+        });
+    } else {
+        // If no locations, try to get user's current location
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(function(position) {
+                var userLocation = {
+                    lat: position.coords.latitude,
+                    lng: position.coords.longitude
+                };
+                
+                map.setCenter(userLocation);
+                map.setZoom(13);
+                
+                // Add a marker at user's location
+                new google.maps.Marker({
+                    position: userLocation,
+                    map: map,
+                    icon: {
+                        url: 'https://maps.google.com/mapfiles/ms/icons/blue-dot.png',
+                        scaledSize: new google.maps.Size(30, 30)
+                    },
+                    title: 'Your Current Location'
+                });
+                
+                hideLoading();
+            }, function() {
+                // Geolocation failed, use default location
+                map.setCenter(defaultCenter);
+                map.setZoom(13);
+                hideLoading();
+            });
+        } else {
+            // Geolocation not supported
+            map.setCenter(defaultCenter);
+            map.setZoom(13);
+            hideLoading();
+        }
+    }
+    
+    // Initialize the modal map
+    initializeModalMap();
+}
+
+function initializeModalMap() {
+    console.log("Initializing modal map");
+    
+    // Default to Thane, Maharashtra, India
+    var defaultLocation = { lat: 19.2183, lng: 72.9781 };
+    
+    // Make sure modal map is visible before initializing
+    document.getElementById('modal-map').style.height = '250px';
+    
+    var modalMap = new google.maps.Map(document.getElementById('modal-map'), {
+        zoom: 12,
+        center: defaultLocation,
+        mapTypeControl: true,
+        streetViewControl: true,
+        fullscreenControl: true
+    });
+    
+    // Clearly visible marker with red pin
+    var marker = new google.maps.Marker({
+        position: defaultLocation,
+        map: modalMap,
+        draggable: true,
+        animation: google.maps.Animation.DROP,
+        icon: {
+            url: 'https://maps.google.com/mapfiles/ms/icons/red-dot.png',
+            scaledSize: new google.maps.Size(40, 40)
+        }
+    });
+    
+    // Update coordinates when marker is moved
+    google.maps.event.addListener(marker, 'dragend', function() {
+        var position = marker.getPosition();
+        updateCoordinates(position);
+        
+        // Reverse geocode to get address
+        var geocoder = new google.maps.Geocoder();
+        geocoder.geocode({'location': position}, function(results, status) {
+            if (status === 'OK' && results[0]) {
+                document.getElementById('location-address').value = results[0].formatted_address;
+            }
+        });
+    });
+    
+    // Set up search for the modal
+    var searchInput = document.getElementById('modal-search-input');
+    var searchBox = new google.maps.places.SearchBox(searchInput);
+    
+    // Listen for search box selections
+    searchBox.addListener('places_changed', function() {
+        var places = searchBox.getPlaces();
+        if (!places || places.length === 0) return;
+        
+        var place = places[0];
+        if (!place.geometry || !place.geometry.location) return;
+        
+        // Update map and marker
+        modalMap.setCenter(place.geometry.location);
+        modalMap.setZoom(15);
+        marker.setPosition(place.geometry.location);
+        
+        // Update form fields
+        document.getElementById('location-address').value = place.formatted_address || place.name;
+        updateCoordinates(place.geometry.location);
+    });
+    
+    // Allow clicking on map to move marker
+    google.maps.event.addListener(modalMap, 'click', function(event) {
+        marker.setPosition(event.latLng);
+        updateCoordinates(event.latLng);
+        
+        // Reverse geocode to get address
+        var geocoder = new google.maps.Geocoder();
+        geocoder.geocode({'location': event.latLng}, function(results, status) {
+            if (status === 'OK' && results[0]) {
+                document.getElementById('location-address').value = results[0].formatted_address;
+            }
+        });
+    });
+    
+    // Store in window object for access elsewhere
+    window.modalMap = modalMap;
+    window.modalMarker = marker;
+    
+    // Make modal map visible after 500ms to ensure proper display
+    setTimeout(function() {
+        google.maps.event.trigger(modalMap, 'resize');
+        modalMap.setCenter(defaultLocation);
+    }, 500);
+}
+
+function updateCoordinates(position) {
+    document.getElementById('location-latitude').value = position.lat().toFixed(7);
+    document.getElementById('location-longitude').value = position.lng().toFixed(7);
+}
+
+function editLocation(button) {
+    var id, name, address, lat, lng, type;
+    
+    // Check if argument is a button or a location ID
+    if (typeof button === 'object') {
+        id = button.getAttribute('data-id');
+        name = button.getAttribute('data-name');
+        address = button.getAttribute('data-address');
+        lat = parseFloat(button.getAttribute('data-lat'));
+        lng = parseFloat(button.getAttribute('data-lng'));
+        type = button.getAttribute('data-type');
+    } else {
+        // Find location data by ID
+        {% for location in locations %}
+        if ({{ location.id }} === button) {
+            id = {{ location.id }};
+            name = "{{ location.name|escapejs }}";
+            address = "{{ location.address|escapejs }}";
+            lat = parseFloat("{{ location.latitude }}");
+            lng = parseFloat("{{ location.longitude }}");
+            type = "{{ location.location_type }}";
+        }
+        {% endfor %}
+    }
+    
+    if (!id) return;
+    
+    // Hide map instructions since we're editing an existing location
+    const instructionsEl = document.getElementById('map-instructions');
+    if (instructionsEl) instructionsEl.style.display = 'none';
+    
+    // Set form values
+    document.getElementById('modal-title').textContent = 'Edit Location';
+    document.getElementById('location-id').value = id;
+    document.getElementById('location-name').value = name;
+    document.getElementById('location-address').value = address;
+    document.getElementById('location-latitude').value = lat;
+    document.getElementById('location-longitude').value = lng;
+    document.getElementById('location-type').value = type;
+    
+    // Update form action
+    var form = document.getElementById('location-form');
+    form.action = "{% url 'employer:location_edit' 0 %}".replace('0', id);
+    
+    // Show the modal
+    document.getElementById('location-modal').style.display = 'block';
+    
+    // Initialize the map after modal is visible with exact location
+    setTimeout(function() {
+        // Initialize map if not already initialized
+        initializeModalMap();
+        
+        // Set center to the location's coordinates
+        if (window.modalMap && window.modalMarker) {
+            var position = new google.maps.LatLng(lat, lng);
+            window.modalMap.setCenter(position);
+            window.modalMap.setZoom(15);
+            window.modalMarker.setPosition(position);
+        }
+    }, 100);
+}
+
+function openLocationModal() {
+    // Reset form values for a new location
+    document.getElementById('modal-title').textContent = 'Add New Location';
+    document.getElementById('location-form').reset();
+    document.getElementById('location-form').action = "{% url 'employer:location_add' %}";
+    
+    // Show the modal
+    document.getElementById('location-modal').style.display = 'block';
+    
+    // Force reinitialize the map after modal is visible
+    setTimeout(function() {
+        initializeModalMap();
+    }, 100);
+}
+</script>
+{% endblock %} 
