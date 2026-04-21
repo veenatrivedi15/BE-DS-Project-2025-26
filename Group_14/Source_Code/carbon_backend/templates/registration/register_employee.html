@@ -1,0 +1,192 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Register as Employee - Carbon Credits Platform{% endblock %}
+
+{% block extra_css %}
+<style>
+    .register-container {
+        max-width: 800px;
+        margin: 0 auto;
+    }
+    
+    .form-section {
+        margin-bottom: 2rem;
+    }
+    
+    .form-section h2 {
+        margin-bottom: 1rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 1px solid #eaeaea;
+    }
+    
+    .form-control {
+        width: 100%;
+        padding: 0.75rem;
+        border: 1px solid #e2e8f0;
+        border-radius: 0.5rem;
+        transition: all 0.3s;
+    }
+    
+    .form-control:focus {
+        border-color: #2B9348;
+        box-shadow: 0 0 0 2px rgba(43, 147, 72, 0.2);
+        outline: none;
+    }
+    
+    .form-group {
+        margin-bottom: 1rem;
+    }
+    
+    .error-message {
+        color: #e53e3e;
+        font-size: 0.875rem;
+        margin-top: 0.25rem;
+    }
+    
+    .required-field::after {
+        content: '*';
+        color: #e53e3e;
+        margin-left: 0.25rem;
+    }
+    
+    .invalid-feedback {
+        display: block;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="register-container px-4 py-6">
+    <div class="relative mb-8">
+        <div class="bg-pattern"></div>
+        <div class="relative z-10">
+            <h1 class="section-headline text-3xl md:text-4xl font-bold mb-6">Register as an Employee</h1>
+            <p class="text-gray-600 max-w-3xl">
+                Join our carbon credits platform and start earning rewards for your sustainable commutes.
+                Fill out the form below to create your account.
+            </p>
+        </div>
+    </div>
+
+    <!-- Display flash messages if any -->
+    {% if messages %}
+    <div class="mb-6">
+        {% for message in messages %}
+        <div class="p-4 rounded-lg {% if message.tags == 'success' %}bg-green-100 text-green-800{% elif message.tags == 'error' %}bg-red-100 text-red-800{% else %}bg-blue-100 text-blue-800{% endif %}">
+            {{ message }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Registration Form -->
+    <div class="modern-card p-6 mb-8">
+        <form id="employeeRegistrationForm" method="post" action="{% url 'register_employee' %}">
+            {% csrf_token %}
+            
+            <!-- Account Information Section -->
+            <div class="form-section">
+                <h2 class="text-xl font-semibold mb-4">Account Information</h2>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="form-group">
+                        <label for="id_email" class="block text-sm font-medium text-gray-700 mb-1 required-field">Email Address</label>
+                        {{ form.email }}
+                        <div class="invalid-feedback">Please enter a valid email address.</div>
+                        {% if form.email.errors %}
+                        <p class="error-message">{{ form.email.errors|join:", " }}</p>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="id_username" class="block text-sm font-medium text-gray-700 mb-1 required-field">Username</label>
+                        {{ form.username }}
+                        <div class="invalid-feedback">Please choose a username.</div>
+                        {% if form.username.errors %}
+                        <p class="error-message">{{ form.username.errors|join:", " }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="form-group">
+                        <label for="id_password" class="block text-sm font-medium text-gray-700 mb-1 required-field">Password</label>
+                        {{ form.password }}
+                        <div class="invalid-feedback">Please enter a password.</div>
+                        {% if form.password.errors %}
+                        <p class="error-message">{{ form.password.errors|join:", " }}</p>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="id_first_name" class="block text-sm font-medium text-gray-700 mb-1 required-field">First Name</label>
+                        {{ form.first_name }}
+                        <div class="invalid-feedback">Please enter your first name.</div>
+                        {% if form.first_name.errors %}
+                        <p class="error-message">{{ form.first_name.errors|join:", " }}</p>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="id_last_name" class="block text-sm font-medium text-gray-700 mb-1 required-field">Last Name</label>
+                        {{ form.last_name }}
+                        <div class="invalid-feedback">Please enter your last name.</div>
+                        {% if form.last_name.errors %}
+                        <p class="error-message">{{ form.last_name.errors|join:", " }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Employer Selection Section -->
+            <div class="form-section">
+                <h2 class="text-xl font-semibold mb-4">Employer Information</h2>
+                
+                <div class="form-group">
+                    <label for="id_employer" class="block text-sm font-medium text-gray-700 mb-1 required-field">Select Your Employer</label>
+                    {{ form.employer }}
+                    <div class="invalid-feedback">Please select your employer.</div>
+                    {% if form.employer.errors %}
+                    <p class="error-message">{{ form.employer.errors|join:", " }}</p>
+                    {% endif %}
+                    
+                    <p class="text-sm text-gray-500 mt-2">
+                        If your employer is not listed, they may need to register first.
+                        <a href="{% url 'contact' %}" class="text-green-600 hover:text-green-700">Contact us</a> for assistance.
+                    </p>
+                </div>
+                
+                <div class="form-group mt-4">
+                    <label for="id_employee_id" class="block text-sm font-medium text-gray-700 mb-1">Employee ID (Optional)</label>
+                    {{ form.employee_id }}
+                    <p class="text-sm text-gray-500 mt-1">If your employer requires an employee ID for verification.</p>
+                </div>
+            </div>
+            
+            <!-- Terms and Conditions -->
+            <div class="form-section">
+                <div class="flex items-start">
+                    <div class="flex items-center h-5">
+                        {{ form.terms }}
+                    </div>
+                    <div class="ml-3 text-sm">
+                        <label for="id_terms" class="font-medium text-gray-700">I agree to the <a href="{% url 'terms' %}" class="text-green-600 hover:text-green-700">Terms and Conditions</a> and <a href="{% url 'privacy' %}" class="text-green-600 hover:text-green-700">Privacy Policy</a></label>
+                        <p class="text-gray-500 mt-1">By registering, you agree to our terms and privacy policy, including our use of your location data for carbon credit calculations.</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Submit Section -->
+            <div class="flex justify-end space-x-3 mt-8">
+                <a href="{% url 'login' %}" class="px-6 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50">I already have an account</a>
+                <button type="submit" class="px-6 py-2 bg-green-600 text-white rounded-md hover:bg-green-700">Register</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/employee-registration.js' %}"></script>
+{% endblock %} 

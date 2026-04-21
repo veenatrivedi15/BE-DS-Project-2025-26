@@ -1,0 +1,167 @@
+{% extends 'base.html' %}
+
+{% block title %}Pending Trip Approvals - Carbon Credits Platform{% endblock %}
+
+{% block extra_css %}
+<style>
+    .dashboard-container {
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+    
+    .trip-card {
+        transition: all 0.3s ease;
+        background-color: white;
+        border-radius: 0.5rem;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    }
+    
+    .trip-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+    }
+    
+    .transport-mode-icon {
+        width: 2.5rem;
+        height: 2.5rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        background-color: #EBF8FF;
+        color: #4299E1;
+    }
+    
+    .bicycle-icon { background-color: #F0FFF4; color: #48BB78; }
+    .walking-icon { background-color: #FFFAF0; color: #ED8936; }
+    .public-transport-icon { background-color: #EBF8FF; color: #4299E1; }
+    .carpool-icon { background-color: #FAF5FF; color: #805AD5; }
+    .work-from-home-icon { background-color: #E6FFFA; color: #38B2AC; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-container px-4 py-6">
+    <div class="relative mb-8">
+        <div class="bg-pattern"></div>
+        <div class="relative z-10">
+            <h1 class="section-headline text-3xl md:text-4xl font-bold mb-6">Pending Trip Approvals</h1>
+            <p class="text-gray-600 max-w-3xl">
+                Review and approve trips logged by your employees.
+            </p>
+        </div>
+    </div>
+
+    <!-- Pending Trips List -->
+    <div class="mb-8">
+        {% if pending_trips %}
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {% for trip in pending_trips %}
+                <div class="trip-card overflow-hidden">
+                    <div class="p-6 border-b border-gray-100 flex justify-between items-center">
+                        <div class="flex items-center">
+                            <div class="transport-mode-icon {% if trip.transport_mode == 'bicycle' %}bicycle-icon{% elif trip.transport_mode == 'walking' %}walking-icon{% elif trip.transport_mode == 'public_transport' %}public-transport-icon{% elif trip.transport_mode == 'carpool' %}carpool-icon{% elif trip.transport_mode == 'work_from_home' %}work-from-home-icon{% endif %}">
+                                {% if trip.transport_mode == 'bicycle' %}
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16a5 5 0 01-5-5c0-2.364-1.79-5-4-5h-3.93L8.1 13H12l-1.5 2M17 16a3 3 0 100 6 3 3 0 000-6zM7 16a3 3 0 100 6 3 3 0 000-6z" />
+                                </svg>
+                                {% elif trip.transport_mode == 'walking' %}
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 5l7 7-7 7M5 5l7 7-7 7" />
+                                </svg>
+                                {% elif trip.transport_mode == 'public_transport' %}
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                                </svg>
+                                {% elif trip.transport_mode == 'carpool' %}
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14" />
+                                </svg>
+                                {% elif trip.transport_mode == 'work_from_home' %}
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                                </svg>
+                                {% else %}
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+                                </svg>
+                                {% endif %}
+                            </div>
+                            <div class="ml-3">
+                                <p class="text-lg font-medium text-gray-900">{{ trip.get_transport_mode_display }}</p>
+                                <p class="text-sm text-gray-500">{{ trip.start_time|date:"M d, Y" }}</p>
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <p class="text-sm font-medium text-gray-900">{{ trip.distance_km|floatformat:1 }} km</p>
+                            <p class="text-xs text-green-600">{{ trip.credits_earned|floatformat:2 }} credits</p>
+                        </div>
+                    </div>
+                    
+                    <div class="p-6">
+                        <div class="mb-4">
+                            <p class="text-sm font-medium text-gray-500 mb-1">Employee</p>
+                            <p class="text-base text-gray-900">{{ trip.employee.user.get_full_name }}</p>
+                        </div>
+                        
+                        <div class="mb-4 grid grid-cols-2 gap-4">
+                            <div>
+                                <p class="text-sm font-medium text-gray-500 mb-1">From</p>
+                                <p class="text-base text-gray-900">{{ trip.start_location.name }}</p>
+                            </div>
+                            <div>
+                                <p class="text-sm font-medium text-gray-500 mb-1">To</p>
+                                <p class="text-base text-gray-900">{{ trip.end_location.name }}</p>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-4 grid grid-cols-2 gap-4">
+                            <div>
+                                <p class="text-sm font-medium text-gray-500 mb-1">Start Time</p>
+                                <p class="text-base text-gray-900">{{ trip.start_time|time:"g:i A" }}</p>
+                            </div>
+                            <div>
+                                <p class="text-sm font-medium text-gray-500 mb-1">End Time</p>
+                                <p class="text-base text-gray-900">{{ trip.end_time|time:"g:i A" }}</p>
+                            </div>
+                        </div>
+                        
+                        {% if trip.proof_image %}
+                        <div class="mb-4">
+                            <p class="text-sm font-medium text-gray-500 mb-1">Proof</p>
+                            <a href="{{ trip.proof_image.url }}" target="_blank" class="text-blue-600 hover:underline text-sm">View Uploaded Proof</a>
+                        </div>
+                        {% endif %}
+                        
+                        <div class="mt-6 flex justify-end space-x-3">
+                            <form method="post" action="{% url 'employer:trip_approval' trip.id %}" class="inline-block">
+                                {% csrf_token %}
+                                <input type="hidden" name="action" value="reject">
+                                <button type="submit" class="px-4 py-2 border border-red-300 text-red-700 rounded-md hover:bg-red-50 text-sm font-medium">
+                                    Reject
+                                </button>
+                            </form>
+                            <form method="post" action="{% url 'employer:trip_approval' trip.id %}" class="inline-block">
+                                {% csrf_token %}
+                                <input type="hidden" name="action" value="approve">
+                                <button type="submit" class="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 text-sm font-medium">
+                                    Approve
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="text-center py-12 bg-white rounded-lg shadow-sm">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 mx-auto text-gray-400 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <h3 class="text-xl font-medium text-gray-900 mb-2">No Pending Trips</h3>
+                <p class="text-gray-600">All employee trips have been reviewed.</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %} 

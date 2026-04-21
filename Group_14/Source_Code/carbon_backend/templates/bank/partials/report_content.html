@@ -1,0 +1,359 @@
+{% if report_type == 'summary' %}
+    <!-- Summary Report -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-header">
+            <h4 class="card-title mb-0">Trading Summary</h4>
+            <p class="text-muted mb-0">Overview of carbon credit trading activity</p>
+        </div>
+        <div class="card-body">
+            <div class="row mb-4">
+                <div class="col-md-4">
+                    <div class="card bg-light">
+                        <div class="card-body text-center">
+                            <h6 class="text-muted">Total Transactions</h6>
+                            <h2 class="mb-0">{{ total_transactions|default:"0" }}</h2>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card bg-light">
+                        <div class="card-body text-center">
+                            <h6 class="text-muted">Total Volume</h6>
+                            <h2 class="mb-0">{{ total_volume|floatformat:2 }}</h2>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card bg-light">
+                        <div class="card-body text-center">
+                            <h6 class="text-muted">Total Value</h6>
+                            <h2 class="mb-0">${{ total_value|floatformat:2 }}</h2>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="row">
+                <div class="col-md-4">
+                    <div class="card bg-light">
+                        <div class="card-body text-center">
+                            <h6 class="text-muted">Avg. Price</h6>
+                            <h2 class="mb-0">${{ avg_price|default:"0.00" }}</h2>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card bg-light">
+                        <div class="card-body text-center">
+                            <h6 class="text-muted">Buy Transactions</h6>
+                            <h2 class="mb-0">{{ buy_count|default:"0" }}</h2>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card bg-light">
+                        <div class="card-body text-center">
+                            <h6 class="text-muted">Sell Transactions</h6>
+                            <h2 class="mb-0">{{ sell_count|default:"0" }}</h2>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card shadow-sm mb-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Trading Volume Over Time</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="volume-chart" height="250"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card shadow-sm mb-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Price Trends</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="price-chart" height="250"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+{% elif report_type == 'transactions' %}
+    <!-- Transaction Report -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-header">
+            <h4 class="card-title mb-0">Transaction Report</h4>
+            <p class="text-muted mb-0">Detailed analysis of carbon credit transactions</p>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Transaction ID</th>
+                            <th>Type</th>
+                            <th>Buyer</th>
+                            <th>Seller</th>
+                            <th>Volume</th>
+                            <th>Price</th>
+                            <th>Total</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% if transactions %}
+                            {% for transaction in transactions %}
+                                <tr>
+                                    <td>{{ transaction.timestamp|date:"Y-m-d H:i" }}</td>
+                                    <td>{{ transaction.id }}</td>
+                                    <td>
+                                        {% if transaction.transaction_type == 'buy' %}
+                                            <span class="badge bg-success">Buy</span>
+                                        {% else %}
+                                            <span class="badge bg-danger">Sell</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ transaction.buyer }}</td>
+                                    <td>{{ transaction.seller }}</td>
+                                    <td>{{ transaction.volume|floatformat:2 }}</td>
+                                    <td>${{ transaction.price|floatformat:2 }}</td>
+                                    <td>${{ transaction.total_value|floatformat:2 }}</td>
+                                </tr>
+                            {% endfor %}
+                        {% else %}
+                            <tr>
+                                <td colspan="8" class="text-center">No transaction data available for the selected period.</td>
+                            </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    
+    <div class="card shadow-sm mb-4">
+        <div class="card-header">
+            <h5 class="card-title mb-0">Transaction Breakdown</h5>
+        </div>
+        <div class="card-body">
+            <canvas id="transaction-chart" height="300"></canvas>
+        </div>
+    </div>
+
+{% elif report_type == 'price' %}
+    <!-- Price Report -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-header">
+            <h4 class="card-title mb-0">Price Analytics</h4>
+            <p class="text-muted mb-0">Analysis of carbon credit price trends</p>
+        </div>
+        <div class="card-body">
+            <div class="row mb-4">
+                <div class="col-md-3">
+                    <div class="card bg-light">
+                        <div class="card-body text-center">
+                            <h6 class="text-muted">Current Price</h6>
+                            <h2 class="mb-0">${{ current_price|default:"0.00" }}</h2>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card bg-light">
+                        <div class="card-body text-center">
+                            <h6 class="text-muted">Average Price</h6>
+                            <h2 class="mb-0">${{ avg_price|default:"0.00" }}</h2>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card bg-light">
+                        <div class="card-body text-center">
+                            <h6 class="text-muted">Highest Price</h6>
+                            <h2 class="mb-0">${{ highest_price|default:"0.00" }}</h2>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card bg-light">
+                        <div class="card-body text-center">
+                            <h6 class="text-muted">Lowest Price</h6>
+                            <h2 class="mb-0">${{ lowest_price|default:"0.00" }}</h2>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card shadow-sm mb-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Price History</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="price-history-chart" height="300"></canvas>
+                </div>
+            </div>
+            
+            <div class="card shadow-sm">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Daily Price Changes</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Open Price</th>
+                                    <th>Close Price</th>
+                                    <th>Change</th>
+                                    <th>% Change</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% if price_changes %}
+                                    {% for change in price_changes %}
+                                        <tr>
+                                            <td>{{ change.date|date:"Y-m-d" }}</td>
+                                            <td>${{ change.open_price|floatformat:2 }}</td>
+                                            <td>${{ change.close_price|floatformat:2 }}</td>
+                                            <td>
+                                                {% if change.price_change >= 0 %}
+                                                    <span class="text-success">+${{ change.price_change|floatformat:2 }}</span>
+                                                {% else %}
+                                                    <span class="text-danger">-${{ change.price_change|floatformat:2|abs }}</span>
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                {% if change.percent_change >= 0 %}
+                                                    <span class="text-success">+{{ change.percent_change|floatformat:2 }}%</span>
+                                                {% else %}
+                                                    <span class="text-danger">-{{ change.percent_change|floatformat:2|abs }}%</span>
+                                                {% endif %}
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                {% else %}
+                                    <tr>
+                                        <td colspan="5" class="text-center">No price data available for the selected period.</td>
+                                    </tr>
+                                {% endif %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+{% elif report_type == 'employer_activity' %}
+    <!-- Employer Activity Report -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-header">
+            <h4 class="card-title mb-0">Employer Activity Report</h4>
+            <p class="text-muted mb-0">Analysis of employer participation in carbon credit market</p>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="card shadow-sm mb-4">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">Top Buyers</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-striped">
+                                    <thead>
+                                        <tr>
+                                            <th>Employer</th>
+                                            <th>Transactions</th>
+                                            <th>Volume</th>
+                                            <th>Total Spent</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% if top_buyers %}
+                                            {% for buyer in top_buyers %}
+                                                <tr>
+                                                    <td>{{ buyer.employer_name }}</td>
+                                                    <td>{{ buyer.transaction_count }}</td>
+                                                    <td>{{ buyer.volume|floatformat:2 }}</td>
+                                                    <td>${{ buyer.total_value|floatformat:2 }}</td>
+                                                </tr>
+                                            {% endfor %}
+                                        {% else %}
+                                            <tr>
+                                                <td colspan="4" class="text-center">No buyer data available for the selected period.</td>
+                                            </tr>
+                                        {% endif %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card shadow-sm mb-4">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">Top Sellers</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-striped">
+                                    <thead>
+                                        <tr>
+                                            <th>Employer</th>
+                                            <th>Transactions</th>
+                                            <th>Volume</th>
+                                            <th>Total Earned</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% if top_sellers %}
+                                            {% for seller in top_sellers %}
+                                                <tr>
+                                                    <td>{{ seller.employer_name }}</td>
+                                                    <td>{{ seller.transaction_count }}</td>
+                                                    <td>{{ seller.volume|floatformat:2 }}</td>
+                                                    <td>${{ seller.total_value|floatformat:2 }}</td>
+                                                </tr>
+                                            {% endfor %}
+                                        {% else %}
+                                            <tr>
+                                                <td colspan="4" class="text-center">No seller data available for the selected period.</td>
+                                            </tr>
+                                        {% endif %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card shadow-sm">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Employer Trading Volume</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="employer-volume-chart" height="300"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+{% else %}
+    <!-- Default - No Report Selected -->
+    <div class="card shadow-sm">
+        <div class="card-body text-center py-5">
+            <i class="fas fa-chart-line fa-4x text-muted mb-3"></i>
+            <h4>Select a Report Type</h4>
+            <p class="text-muted">Choose a report type and date range from the controls on the left, then click "Generate Report".</p>
+        </div>
+    </div>
+{% endif %} 

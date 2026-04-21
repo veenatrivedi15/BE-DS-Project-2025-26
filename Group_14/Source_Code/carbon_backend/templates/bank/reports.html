@@ -1,0 +1,475 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Reports - Carbon Credits Platform{% endblock %}
+
+{% block extra_css %}
+<style>
+    body {
+        background-color: #f9fafb;
+    }
+    
+    .container-wrapper {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 1rem;
+    }
+    
+    .page-header {
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 1.5rem;
+    }
+    
+    .page-title {
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: #0f172a;
+        margin: 0 0 1rem 0;
+    }
+    
+    .date-selector {
+        display: flex;
+        align-items: center;
+        width: 100%;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+    
+    .date-selector select {
+        flex: 1;
+        min-width: 150px;
+    }
+    
+    .export-btn {
+        background-color: white;
+        border: 1px solid #e5e7eb;
+        border-radius: 0.375rem;
+        padding: 0.5rem 1rem;
+        font-size: 0.875rem;
+        font-weight: 500;
+        color: #374151;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        transition: all 0.2s;
+        white-space: nowrap;
+    }
+    
+    .export-btn:hover {
+        background-color: #f9fafb;
+        border-color: #d1d5db;
+    }
+    
+    .export-btn i {
+        margin-right: 0.5rem;
+    }
+    
+    .main-content {
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+    }
+    
+    .sidebar {
+        width: 100%;
+    }
+    
+    .content {
+        width: 100%;
+    }
+    
+    .tab-list {
+        background-color: white;
+        border-radius: 0.5rem;
+        overflow: hidden;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        display: flex;
+        flex-wrap: wrap;
+    }
+    
+    .tab {
+        padding: 0.75rem 1rem;
+        font-size: 0.9rem;
+        color: #4b5563;
+        cursor: pointer;
+        border-left: 3px solid transparent;
+        transition: background-color 0.2s;
+        flex: 1;
+        text-align: center;
+        min-width: 80px;
+    }
+    
+    .tab.active {
+        background-color: #f0f9ff;
+        border-left-color: #0ea5e9;
+        color: #0ea5e9;
+        font-weight: 500;
+    }
+    
+    .tab:not(.active):hover {
+        background-color: #f9fafb;
+    }
+    
+    .generate-btn {
+        margin-top: 1rem;
+        width: 100%;
+        background-color: #10b981;
+        color: white;
+        border: none;
+        border-radius: 0.375rem;
+        padding: 0.75rem 1rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: background-color 0.2s;
+    }
+    
+    .generate-btn:hover {
+        background-color: #059669;
+    }
+    
+    .metrics-grid {
+        display: grid;
+        grid-template-columns: repeat(1, 1fr);
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+    }
+    
+    .metric-card {
+        background-color: white;
+        border-radius: 0.5rem;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        padding: 1rem;
+    }
+    
+    .metric-label {
+        font-size: 0.875rem;
+        color: #6b7280;
+        margin-bottom: 0.5rem;
+    }
+    
+    .metric-value {
+        font-size: 1.75rem;
+        font-weight: 600;
+        color: #111827;
+        margin-bottom: 0.25rem;
+        word-break: break-word;
+    }
+    
+    .metric-subtext {
+        font-size: 0.75rem;
+        color: #9ca3af;
+    }
+    
+    .metric-trend {
+        display: flex;
+        align-items: center;
+        font-size: 0.75rem;
+        margin-top: 0.5rem;
+    }
+    
+    .trend-up {
+        color: #10b981;
+    }
+    
+    .trend-down {
+        color: #ef4444;
+    }
+    
+    .icon-square {
+        width: 2.5rem;
+        height: 2.5rem;
+        border-radius: 0.375rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 0.75rem;
+    }
+    
+    .icon-blue {
+        background-color: #e0f2fe;
+    }
+    
+    .icon-purple {
+        background-color: #f3e8ff;
+    }
+    
+    .icon-green {
+        background-color: #dcfce7;
+    }
+    
+    .icon-amber {
+        background-color: #fef3c7;
+    }
+    
+    .chart-container {
+        background-color: white;
+        border-radius: 0.5rem;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        padding: 1rem;
+        margin-bottom: 1.5rem;
+        overflow-x: auto;
+    }
+    
+    .chart-title {
+        font-size: 1rem;
+        font-weight: 600;
+        color: #111827;
+        margin-bottom: 1rem;
+    }
+    
+    .chart-area {
+        height: 250px;
+        min-height: 200px;
+    }
+    
+    .loading-indicator {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 2rem 0;
+    }
+    
+    .spinner {
+        width: 2rem;
+        height: 2rem;
+        border: 3px solid rgba(14, 165, 233, 0.1);
+        border-top-color: #0ea5e9;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        margin-bottom: 1rem;
+    }
+    
+    .table-responsive {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+    
+    .table {
+        min-width: 500px;
+    }
+    
+    @keyframes spin {
+        to { transform: rotate(360deg); }
+    }
+    
+    @media (min-width: 640px) {
+        .container-wrapper {
+            padding: 1.5rem;
+        }
+        
+        .page-header {
+            flex-direction: row;
+            align-items: center;
+        }
+        
+        .page-title {
+            margin: 0;
+            font-size: 1.75rem;
+        }
+        
+        .date-selector {
+            width: auto;
+        }
+        
+        .metrics-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+        
+        .metric-card {
+            padding: 1.25rem;
+        }
+    }
+    
+    @media (min-width: 768px) {
+        .main-content {
+            flex-direction: row;
+        }
+        
+        .sidebar {
+            width: 220px;
+            flex-shrink: 0;
+        }
+        
+        .content {
+            flex: 1;
+        }
+        
+        .tab-list {
+            flex-direction: column;
+        }
+        
+        .tab {
+            text-align: left;
+        }
+        
+        .chart-container {
+            padding: 1.5rem;
+        }
+        
+        .chart-area {
+            height: 300px;
+        }
+    }
+    
+    @media (min-width: 1024px) {
+        .metrics-grid {
+            grid-template-columns: repeat(4, 1fr);
+        }
+        
+        .metric-value {
+            font-size: 2rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-wrapper">
+    <div class="page-header">
+        <h1 class="page-title">Analytics & Reports</h1>
+        <div class="date-selector">
+            <select class="form-select" id="date_range" name="date_range">
+                <option value="7d">Last 7 Days</option>
+                <option value="30d" selected>Last 30 Days</option>
+                <option value="90d">Last 90 Days</option>
+                <option value="1y">Last Year</option>
+            </select>
+            <button id="csvExport" class="export-btn">
+                Export
+            </button>
+        </div>
+    </div>
+
+    <div class="main-content">
+        <div class="sidebar">
+            <div class="tab-list">
+                <div class="tab active" data-report-type="summary">Summary</div>
+                <div class="tab" data-report-type="transactions">Transactions</div>
+                <div class="tab" data-report-type="price">Price Analysis</div>
+                <div class="tab" data-report-type="employer">Client Activity</div>
+            </div>
+            <button type="button" id="generateReportBtn" class="generate-btn">Generate Report</button>
+        </div>
+
+        <div class="content">
+            <!-- Key Metrics -->
+            <div class="metrics-grid">
+                <div class="metric-card">
+                    <div class="icon-square icon-blue">
+                        <i class="bi bi-building"></i>
+                    </div>
+                    <div class="metric-label">Client Employers</div>
+                    <div class="metric-value" id="total-users">16</div>
+                    <div class="metric-subtext">Total companies</div>
+                </div>
+                
+                <div class="metric-card">
+                    <div class="icon-square icon-purple">
+                        <i class="bi bi-arrow-left-right"></i>
+                    </div>
+                    <div class="metric-label">Total Transactions</div>
+                    <div class="metric-value" id="total-trips">25</div>
+                    <div class="metric-trend trend-up">↑ 12.7% from last period</div>
+                </div>
+                
+                <div class="metric-card">
+                    <div class="icon-square icon-green">
+                        <i class="bi bi-coin"></i>
+                    </div>
+                    <div class="metric-label">Credits Managed</div>
+                    <div class="metric-value" id="total-credits">2,725.85</div>
+                    <div class="metric-trend trend-up">↑ 1,482.15 in last 30 days</div>
+                </div>
+                
+                <div class="metric-card">
+                    <div class="icon-square icon-amber">
+                        <i class="bi bi-tree"></i>
+                    </div>
+                    <div class="metric-label">Carbon Saved (tons)</div>
+                    <div class="metric-value" id="carbon-saved">312.36</div>
+                    <div class="metric-subtext">Total environmental impact</div>
+                </div>
+            </div>
+
+            <!-- Charts -->
+            <div class="chart-container">
+                <h2 class="chart-title">Credits Trend</h2>
+                <div class="chart-area">
+                    <canvas id="creditsTrendChart"></canvas>
+                </div>
+            </div>
+            
+            <div class="chart-container">
+                <h2 class="chart-title">Transport Modes</h2>
+                <div class="chart-area">
+                    <canvas id="transportModeChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Loading Indicator -->
+            <div id="loadingIndicator" class="loading-indicator d-none">
+                <div class="spinner"></div>
+                <p class="text-gray-500">Generating report...</p>
+            </div>
+
+            <!-- Report Content -->
+            <div id="reportContent" class="chart-container">
+                <h2 class="chart-title">Report Details</h2>
+                <div class="table-responsive">
+                    <!-- Report will be loaded here -->
+                    <div class="text-center py-5 text-muted">
+                        <i class="bi bi-file-earmark-text display-4"></i>
+                        <p class="mt-2">Select a report type and date range, then click "Generate Report"</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Hidden form for report generation -->
+<form id="reportForm" class="d-none">
+    {% csrf_token %}
+    <input type="hidden" id="selected-report-type" name="selected_report_type" value="summary">
+    <input type="hidden" id="selected-date-range" name="selected_date_range" value="30d">
+</form>
+{% endblock %}
+
+{% block extra_js %}
+<!-- Include Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<!-- Include Bank Reports JS -->
+<script src="{% static 'js/bank-reports.js' %}"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Tab switching
+        const tabs = document.querySelectorAll('.tab');
+        tabs.forEach(tab => {
+            tab.addEventListener('click', function() {
+                tabs.forEach(t => t.classList.remove('active'));
+                this.classList.add('active');
+                document.getElementById('selected-report-type').value = this.dataset.reportType;
+            });
+        });
+        
+        // Generate report button
+        const generateReportBtn = document.getElementById('generateReportBtn');
+        const reportForm = document.getElementById('reportForm');
+        
+        generateReportBtn.addEventListener('click', function() {
+            const evt = new Event('submit', {bubbles: true, cancelable: true});
+            reportForm.dispatchEvent(evt);
+        });
+        
+        // Update date range in hidden form field
+        const dateRangeSelect = document.getElementById('date_range');
+        dateRangeSelect.addEventListener('change', function() {
+            document.getElementById('selected-date-range').value = this.value;
+        });
+    });
+</script>
+{% endblock %} 

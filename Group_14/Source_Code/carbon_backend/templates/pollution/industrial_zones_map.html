@@ -1,0 +1,370 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ page_title }}{% endblock %}
+
+{% block extra_css %}
+<style>
+.map-container {
+    background: white;
+    border-radius: 16px;
+    padding: 2rem;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+    margin-bottom: 2rem;
+}
+
+.map-wrapper {
+    position: relative;
+    height: 500px;
+    border-radius: 12px;
+    overflow: hidden;
+    border: 2px solid #e5e7eb;
+}
+
+#industrial-zones-map {
+    width: 100%;
+    height: 100%;
+}
+
+.zones-list {
+    background: white;
+    border-radius: 16px;
+    padding: 2rem;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+}
+
+.zone-item {
+    display: flex;
+    align-items: center;
+    padding: 1.5rem;
+    border-radius: 12px;
+    margin-bottom: 1rem;
+    background: #f9fafb;
+    border-left: 4px solid #ef4444;
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.zone-item:hover {
+    background: #f3f4f6;
+    transform: translateX(4px);
+}
+
+.zone-item.low-risk {
+    border-left-color: #10b981;
+}
+
+.zone-item.medium-risk {
+    border-left-color: #f59e0b;
+}
+
+.zone-item.high-risk {
+    border-left-color: #ef4444;
+}
+
+.zone-item.critical-risk {
+    border-left-color: #dc2626;
+}
+
+.zone-info {
+    flex: 1;
+}
+
+.zone-name {
+    font-weight: 600;
+    color: #1f2937;
+    margin-bottom: 0.5rem;
+}
+
+.zone-details {
+    font-size: 0.875rem;
+    color: #6b7280;
+    margin-bottom: 0.5rem;
+}
+
+.zone-risk {
+    display: inline-block;
+    padding: 0.25rem 0.75rem;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.risk-low { background: #dcfce7; color: #166534; }
+.risk-medium { background: #fef3c7; color: #d97706; }
+.risk-high { background: #fee2e2; color: #dc2626; }
+.risk-critical { background: #fecaca; color: #b91c1c; }
+
+.zone-distance {
+    font-size: 0.875rem;
+    color: #6b7280;
+    margin-top: 0.5rem;
+}
+
+.map-controls {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    background: white;
+    border-radius: 8px;
+    padding: 0.5rem;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    z-index: 1000;
+}
+
+.control-button {
+    display: block;
+    width: 40px;
+    height: 40px;
+    border: none;
+    background: white;
+    border-radius: 6px;
+    margin-bottom: 0.5rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.control-button:hover {
+    background: #f3f4f6;
+}
+
+.control-button:last-child {
+    margin-bottom: 0;
+}
+
+.stats-overview {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.stat-card {
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+    color: white;
+    border-radius: 12px;
+    padding: 1.5rem;
+    text-align: center;
+}
+
+.stat-card.safe {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+}
+
+.stat-card.warning {
+    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+}
+
+.stat-value {
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+}
+
+.stat-label {
+    font-size: 0.875rem;
+    opacity: 0.9;
+}
+
+.empty-state {
+    text-align: center;
+    padding: 3rem;
+    color: #6b7280;
+}
+
+.empty-state-icon {
+    font-size: 4rem;
+    margin-bottom: 1rem;
+    opacity: 0.5;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+    <!-- Header -->
+    <div class="bg-gradient-to-r from-red-50 to-orange-50 rounded-lg p-6 mb-8">
+        <div class="flex items-center">
+            <div class="flex-shrink-0">
+                <span class="text-4xl">🏭</span>
+            </div>
+            <div class="ml-4">
+                <h1 class="text-3xl font-bold text-gray-800">Industrial Zones Map</h1>
+                <p class="text-gray-600">View industrial zones and their environmental impact</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Statistics Overview -->
+    <div class="stats-overview">
+        <div class="stat-card">
+            <div class="stat-value">{{ total_zones }}</div>
+            <div class="stat-label">Total Zones</div>
+        </div>
+        <div class="stat-card safe">
+            <div class="stat-value">{{ safe_zones }}</div>
+            <div class="stat-label">Safe Zones</div>
+        </div>
+        <div class="stat-card warning">
+            <div class="stat-value">{{ warning_zones }}</div>
+            <div class="stat-label">Warning Zones</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value">{{ high_risk_zones }}</div>
+            <div class="stat-label">High Risk Zones</div>
+        </div>
+    </div>
+
+    <!-- Map Container -->
+    <div class="map-container">
+        <div class="map-wrapper">
+            <div id="industrial-zones-map"></div>
+            <div class="map-controls">
+                <button class="control-button" onclick="zoomIn()" title="Zoom In">+</button>
+                <button class="control-button" onclick="zoomOut()" title="Zoom Out">-</button>
+                <button class="control-button" onclick="resetMap()" title="Reset View">⟲</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Zones List -->
+    <div class="zones-list">
+        <h2 class="text-2xl font-semibold text-gray-800 mb-6">Industrial Zones</h2>
+        
+        {% if industrial_zones %}
+            {% for zone in industrial_zones %}
+            <div class="zone-item {{ zone.get_risk_level|lower }}-risk" onclick="focusZone({{ zone.latitude }}, {{ zone.longitude }}, '{{ zone.name }}')">
+                <div class="zone-info">
+                    <h3 class="zone-name">{{ zone.name }}</h3>
+                    <p class="zone-details">{{ zone.description|truncatewords:15 }}</p>
+                    <div class="zone-risk risk-{{ zone.get_risk_level|lower }}">
+                        {{ zone.get_risk_level }}
+                    </div>
+                    <div class="zone-distance">
+                        {% if zone.distance_km %}
+                            📍 {{ zone.distance_km|floatformat:1 }} km from your location
+                        {% else %}
+                            📍 Location unknown
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="empty-state">
+                <div class="empty-state-icon">🏭</div>
+                <h3 class="text-xl font-semibold text-gray-800 mb-2">No Industrial Zones Found</h3>
+                <p class="text-gray-600">No industrial zones are available in your area.</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Leaflet CSS -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+let map;
+let zones = [];
+let markers = [];
+
+document.addEventListener('DOMContentLoaded', function() {
+    initializeMap();
+    loadIndustrialZones();
+});
+
+function initializeMap() {
+    // Initialize map centered on India
+    map = L.map('industrial-zones-map').setView([20.5937, 78.9629], 5);
+    
+    // Add tile layer
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap contributors'
+    }).addTo(map);
+}
+
+function loadIndustrialZones() {
+    // Load zones data from template context
+    {% for zone in industrial_zones %}
+    zones.push({
+        id: {{ zone.id }},
+        name: '{{ zone.name|escapejs }}',
+        latitude: {{ zone.latitude }},
+        longitude: {{ zone.longitude }},
+        description: '{{ zone.description|escapejs }}',
+        risk_level: '{{ zone.get_risk_level|escapejs }}',
+        emission_level: {{ zone.emission_level|default:0 }},
+        distance_km: {{ zone.distance_km|default:0 }}
+    });
+    {% endfor %}
+    
+    // Add markers for each zone
+    zones.forEach(zone => {
+        const color = getRiskColor(zone.risk_level);
+        
+        const marker = L.circleMarker([zone.latitude, zone.longitude], {
+            radius: 10,
+            fillColor: color,
+            color: '#fff',
+            weight: 2,
+            opacity: 1,
+            fillOpacity: 0.8
+        }).addTo(map);
+        
+        marker.bindPopup(`
+            <div style="min-width: 200px;">
+                <h4 style="margin: 0 0 10px 0; font-weight: bold;">${zone.name}</h4>
+                <p style="margin: 5px 0;"><strong>Risk Level:</strong> ${zone.risk_level}</p>
+                <p style="margin: 5px 0;"><strong>Emission Level:</strong> ${zone.emission_level}</p>
+                <p style="margin: 5px 0;"><strong>Distance:</strong> ${zone.distance_km.toFixed(1)} km</p>
+                <p style="margin: 5px 0;">${zone.description}</p>
+            </div>
+        `);
+        
+        markers.push(marker);
+    });
+    
+    // Fit map to show all markers
+    if (markers.length > 0) {
+        const group = new L.featureGroup(markers);
+        map.fitBounds(group.getBounds().pad(0.1));
+    }
+}
+
+function getRiskColor(riskLevel) {
+    const colors = {
+        'Low': '#10b981',
+        'Medium': '#f59e0b',
+        'High': '#ef4444',
+        'Critical': '#dc2626'
+    };
+    return colors[riskLevel] || '#6b7280';
+}
+
+function focusZone(lat, lng, name) {
+    map.setView([lat, lng], 12);
+    
+    // Find and open the popup for this zone
+    markers.forEach(marker => {
+        const popup = marker.getPopup();
+        if (popup && popup.getContent().includes(name)) {
+            marker.openPopup();
+        }
+    });
+}
+
+function zoomIn() {
+    map.zoomIn();
+}
+
+function zoomOut() {
+    map.zoomOut();
+}
+
+function resetMap() {
+    map.setView([20.5937, 78.9629], 5);
+}
+</script>
+{% endblock %}

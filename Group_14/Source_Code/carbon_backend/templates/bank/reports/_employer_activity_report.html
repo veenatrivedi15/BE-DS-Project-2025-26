@@ -1,0 +1,183 @@
+<div id="employer-activity-report" class="report-section">
+    <div class="row">
+        <div class="col-md-6 mb-4">
+            <div class="card shadow h-100">
+                <div class="card-header bg-light py-3 d-flex justify-content-between align-items-center">
+                    <h6 class="m-0 font-weight-bold">Top Employers by Volume</h6>
+                    <div>
+                        <span class="text-muted">{{ start_date|date:"M d, Y" }} - {{ end_date|date:"M d, Y" }}</span>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <canvas id="employer-volume-chart" height="300"></canvas>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6 mb-4">
+            <div class="card shadow h-100">
+                <div class="card-header bg-light py-3">
+                    <h6 class="m-0 font-weight-bold">Employer Growth Trends</h6>
+                </div>
+                <div class="card-body">
+                    <canvas id="employer-growth-chart" height="300"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="card shadow mb-4">
+        <div class="card-header bg-light py-3">
+            <h6 class="m-0 font-weight-bold">Employer Activity Table</h6>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Employer</th>
+                            <th>Industry</th>
+                            <th>Employees</th>
+                            <th>Credits Purchased</th>
+                            <th>Credits Used</th>
+                            <th>Current Balance</th>
+                            <th>30d Change</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>EcoTech Inc.</td>
+                            <td>Technology</td>
+                            <td>245</td>
+                            <td>5,250</td>
+                            <td>4,780</td>
+                            <td>470</td>
+                            <td class="text-success">+12.5%</td>
+                        </tr>
+                        <tr>
+                            <td>GreenLife Co.</td>
+                            <td>Retail</td>
+                            <td>189</td>
+                            <td>4,100</td>
+                            <td>3,650</td>
+                            <td>450</td>
+                            <td class="text-success">+8.3%</td>
+                        </tr>
+                        <tr>
+                            <td>SustainCorp</td>
+                            <td>Manufacturing</td>
+                            <td>312</td>
+                            <td>6,800</td>
+                            <td>6,400</td>
+                            <td>400</td>
+                            <td class="text-danger">-2.1%</td>
+                        </tr>
+                        <tr>
+                            <td>EcoEnergy Ltd.</td>
+                            <td>Energy</td>
+                            <td>156</td>
+                            <td>3,250</td>
+                            <td>2,900</td>
+                            <td>350</td>
+                            <td class="text-success">+5.2%</td>
+                        </tr>
+                        <tr>
+                            <td>CarboZero Inc.</td>
+                            <td>Logistics</td>
+                            <td>203</td>
+                            <td>4,500</td>
+                            <td>4,200</td>
+                            <td>300</td>
+                            <td class="text-success">+3.8%</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize employer charts
+    const employerVolumeData = {
+        labels: ['EcoTech Inc.', 'GreenLife Co.', 'SustainCorp', 'EcoEnergy Ltd.', 'CarboZero Inc.'],
+        datasets: [{
+            label: 'Credits Purchased',
+            data: [5250, 4100, 6800, 3250, 4500],
+            backgroundColor: [
+                'rgba(54, 162, 235, 0.7)',
+                'rgba(75, 192, 192, 0.7)',
+                'rgba(255, 206, 86, 0.7)',
+                'rgba(153, 102, 255, 0.7)',
+                'rgba(255, 99, 132, 0.7)'
+            ],
+            borderWidth: 1
+        }]
+    };
+    
+    const employerGrowthData = {
+        labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May'],
+        datasets: [
+            {
+                label: 'EcoTech Inc.',
+                data: [380, 390, 420, 450, 470],
+                borderColor: 'rgb(54, 162, 235)',
+                backgroundColor: 'rgba(54, 162, 235, 0.1)',
+                tension: 0.4
+            },
+            {
+                label: 'GreenLife Co.',
+                data: [410, 425, 415, 430, 450],
+                borderColor: 'rgb(75, 192, 192)',
+                backgroundColor: 'rgba(75, 192, 192, 0.1)',
+                tension: 0.4
+            },
+            {
+                label: 'SustainCorp',
+                data: [450, 430, 420, 410, 400],
+                borderColor: 'rgb(255, 206, 86)',
+                backgroundColor: 'rgba(255, 206, 86, 0.1)',
+                tension: 0.4
+            }
+        ]
+    };
+    
+    const employerVolumeCtx = document.getElementById('employer-volume-chart').getContext('2d');
+    new Chart(employerVolumeCtx, {
+        type: 'bar',
+        data: employerVolumeData,
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    title: {
+                        display: true,
+                        text: 'Credits Purchased'
+                    }
+                }
+            }
+        }
+    });
+    
+    const employerGrowthCtx = document.getElementById('employer-growth-chart').getContext('2d');
+    new Chart(employerGrowthCtx, {
+        type: 'line',
+        data: employerGrowthData,
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    title: {
+                        display: true,
+                        text: 'Credit Balance'
+                    }
+                }
+            }
+        }
+    });
+});
+</script> 

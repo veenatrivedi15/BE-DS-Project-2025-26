@@ -1,0 +1,69 @@
+<nav class="sidebar bg-light">
+    <div class="pt-3">
+        <h5 class="sidebar-heading px-3 mt-4 mb-1 text-muted">
+            <span>Employer Menu</span>
+        </h5>
+        <ul class="nav flex-column">
+            <li class="nav-item">
+                <a class="nav-link {% if request.path == '/employer/dashboard/' %}active{% endif %}" href="{% url 'employer:employer_dashboard' %}">
+                    <i class="bi bi-speedometer2 me-2"></i>
+                    Dashboard
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {% if request.path == '/employer/employees/' %}active{% endif %}" href="{% url 'employer:employees' %}">
+                    <i class="bi bi-people me-2"></i>
+                    Employees
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {% if request.path == '/employer/locations/' %}active{% endif %}" href="{% url 'employer:locations' %}">
+                    <i class="bi bi-geo-alt me-2"></i>
+                    Locations
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {% if request.path == '/employer/trips/pending/' %}active{% endif %}" href="{% url 'employer:pending_trips' %}">
+                    <i class="bi bi-clock-history me-2"></i>
+                    Pending Trips
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {% if request.path == '/employer/trading/' %}active{% endif %}" href="{% url 'employer:trading' %}">
+                    <i class="bi bi-graph-up me-2"></i>
+                    Trading
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {% if request.path == '/employer/employee-marketplace/' %}active{% endif %}" href="{% url 'employer:employee_marketplace' %}">
+                    <i class="bi bi-currency-exchange me-2"></i>
+                    Employee Marketplace
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {% if request.path == '/employer/redemption-requests/' %}active{% endif %}" href="{% url 'employer:redemption_requests' %}">
+                    <i class="bi bi-wallet2 me-2"></i>
+                    Redemption Requests
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {% if request.path == '/employer/profile/' %}active{% endif %}" href="{% url 'employer:profile' %}">
+                    <i class="bi bi-person-circle me-2"></i>
+                    Profile
+                </a>
+            </li>
+        </ul>
+
+        <h5 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted">
+            <span>Settings</span>
+        </h5>
+        <ul class="nav flex-column mb-2">
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'logout' %}">
+                    <i class="bi bi-box-arrow-right me-2"></i>
+                    Sign Out
+                </a>
+            </li>
+        </ul>
+    </div>
+</nav> 

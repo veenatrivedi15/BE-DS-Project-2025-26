@@ -1,0 +1,80 @@
+<div id="transaction-report" class="report-section">
+    <div class="card shadow mb-4">
+        <div class="card-header bg-light py-3 d-flex justify-content-between align-items-center">
+            <h6 class="m-0 font-weight-bold">Transaction History</h6>
+            <div>
+                <span class="text-muted">{{ start_date|date:"M d, Y" }} - {{ end_date|date:"M d, Y" }}</span>
+            </div>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Transaction ID</th>
+                            <th>Type</th>
+                            <th>Counterparty</th>
+                            <th>Credits</th>
+                            <th>Price</th>
+                            <th>Total Value</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>2023-05-10</td>
+                            <td>TX-1025478</td>
+                            <td>Purchase</td>
+                            <td>EcoTech Inc.</td>
+                            <td>500</td>
+                            <td>$62.50</td>
+                            <td>$31,250</td>
+                            <td><span class="badge bg-success">Completed</span></td>
+                        </tr>
+                        <tr>
+                            <td>2023-05-08</td>
+                            <td>TX-1025477</td>
+                            <td>Sale</td>
+                            <td>GreenLife Co.</td>
+                            <td>750</td>
+                            <td>$63.25</td>
+                            <td>$47,437.50</td>
+                            <td><span class="badge bg-success">Completed</span></td>
+                        </tr>
+                        <tr>
+                            <td>2023-05-05</td>
+                            <td>TX-1025476</td>
+                            <td>Purchase</td>
+                            <td>SustainCorp</td>
+                            <td>300</td>
+                            <td>$64.00</td>
+                            <td>$19,200</td>
+                            <td><span class="badge bg-success">Completed</span></td>
+                        </tr>
+                        <tr>
+                            <td>2023-05-03</td>
+                            <td>TX-1025475</td>
+                            <td>Sale</td>
+                            <td>EcoTech Inc.</td>
+                            <td>400</td>
+                            <td>$65.75</td>
+                            <td>$26,300</td>
+                            <td><span class="badge bg-success">Completed</span></td>
+                        </tr>
+                        <tr>
+                            <td>2023-05-01</td>
+                            <td>TX-1025474</td>
+                            <td>Purchase</td>
+                            <td>GreenLife Co.</td>
+                            <td>600</td>
+                            <td>$65.50</td>
+                            <td>$39,300</td>
+                            <td><span class="badge bg-success">Completed</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div> 

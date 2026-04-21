@@ -1,0 +1,324 @@
+{% extends 'base.html' %}
+
+{% block title %}Redeem Credits - VayuNetra{% endblock %}
+
+{% block extra_css %}
+<style>
+    .redemption-card {
+        transition: all 0.3s ease;
+        cursor: pointer;
+    }
+    
+    .redemption-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0px 12px 30px rgba(0, 0, 0, 0.15);
+    }
+    
+    .redemption-card.selected {
+        border: 2px solid #10B981;
+        background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+    }
+    
+    .value-display {
+        font-size: 2rem;
+        font-weight: bold;
+        color: #10B981;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto px-4 py-6">
+    <div class="relative mb-8">
+        <div class="bg-pattern"></div>
+        <div class="relative z-10">
+            <h1 class="section-headline text-3xl md:text-4xl font-bold mb-6">Redeem Your Credits</h1>
+            <p class="text-gray-600 max-w-3xl">
+                Convert your earned carbon credits into cash, coupons, vouchers, or donate to charity.
+            </p>
+        </div>
+    </div>
+
+    <!-- Available Credits Summary -->
+    <div class="modern-card p-6 mb-8">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="text-center">
+                <p class="text-sm text-gray-500 mb-2">Available Credits</p>
+                <p class="text-3xl font-bold text-gray-800">{{ available_credits|floatformat:2 }}</p>
+            </div>
+            <div class="text-center">
+                <p class="text-sm text-gray-500 mb-2">Current Market Rate</p>
+                <p class="text-3xl font-bold text-green-600">${{ market_rate|floatformat:2 }}</p>
+                <p class="text-xs text-gray-400 mt-1">per credit</p>
+            </div>
+            <div class="text-center">
+                <p class="text-sm text-gray-500 mb-2">Total Value</p>
+                <p class="text-3xl font-bold text-blue-600">${{ total_value|floatformat:2 }}</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Redemption Form -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <!-- Redemption Options -->
+        <div class="modern-card p-6">
+            <h2 class="text-2xl font-semibold text-gray-800 mb-6">Choose Redemption Type</h2>
+            
+            <form method="post" id="redemption-form">
+                {% csrf_token %}
+                
+                <div class="space-y-4 mb-6">
+                    {% for option in redemption_options %}
+                    <label class="redemption-card block p-4 border-2 border-gray-200 rounded-lg cursor-pointer">
+                        <input type="radio" name="redemption_type" value="{{ option.id }}" class="hidden redemption-option" required>
+                        <div class="flex items-start">
+                            <span class="text-3xl mr-4">{{ option.icon }}</span>
+                            <div class="flex-1">
+                                <h3 class="text-lg font-semibold text-gray-800">{{ option.name }}</h3>
+                                <p class="text-sm text-gray-600 mt-1">{{ option.description }}</p>
+                                <p class="text-xs text-gray-500 mt-2">
+                                    Min: {{ option.min_credits }} credits | 
+                                    Rate: ${{ option.rate|floatformat:2 }}/credit
+                                </p>
+                            </div>
+                        </div>
+                    </label>
+                    {% endfor %}
+                </div>
+                
+                <div class="mb-4">
+                    <label for="credit_amount" class="block text-sm font-medium text-gray-700 mb-2">
+                        Credit Amount
+                    </label>
+                    <input 
+                        type="number" 
+                        id="credit_amount" 
+                        name="credit_amount" 
+                        step="0.01" 
+                        {% if available_credits > 0 %}
+                        min="1" 
+                        max="{{ available_credits }}" 
+                        {% else %}
+                        min="0"
+                        max="0"
+                        disabled
+                        {% endif %}
+                        required
+                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                        placeholder="Enter credit amount"
+                        value=""
+                    >
+                    <p class="text-xs text-gray-500 mt-1">Available: {{ available_credits|floatformat:2 }} credits</p>
+                    <div id="credit-amount-errors"></div>
+                </div>
+                
+                <div class="mb-4">
+                    <label for="additional_info" class="block text-sm font-medium text-gray-700 mb-2">
+                        Additional Information (Optional)
+                    </label>
+                    <textarea 
+                        id="additional_info" 
+                        name="additional_info" 
+                        rows="3"
+                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                        placeholder="Any additional details for your employer..."
+                    ></textarea>
+                </div>
+                
+                <div class="mb-4 p-4 bg-green-50 rounded-lg">
+                    <p class="text-sm text-gray-600 mb-2">Estimated Value:</p>
+                    <p class="value-display" id="estimated-value">$0.00</p>
+                </div>
+                
+                <button 
+                    type="submit" 
+                    class="w-full py-3 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 transition-colors"
+                >
+                    Submit Redemption Request
+                </button>
+            </form>
+        </div>
+        
+        <!-- Redemption History -->
+        <div class="modern-card p-6">
+            <h2 class="text-2xl font-semibold text-gray-800 mb-6">Redemption History</h2>
+            
+            {% if redemption_history %}
+            <div class="space-y-4">
+                {% for redemption in redemption_history %}
+                <div class="p-4 border border-gray-200 rounded-lg">
+                    <div class="flex justify-between items-start mb-2">
+                        <div>
+                            <p class="font-semibold text-gray-800">
+                                {% if redemption.offer_type == 'redeem' %}
+                                    Redemption Request
+                                {% else %}
+                                    {{ redemption.get_offer_type_display }}
+                                {% endif %}
+                            </p>
+                            <p class="text-sm text-gray-500">{{ redemption.created_at|date:"M d, Y H:i" }}</p>
+                        </div>
+                        <span class="px-3 py-1 rounded-full text-xs font-semibold
+                            {% if redemption.status == 'approved' %}bg-green-100 text-green-800
+                            {% elif redemption.status == 'pending' %}bg-yellow-100 text-yellow-800
+                            {% elif redemption.status == 'rejected' %}bg-red-100 text-red-800
+                            {% else %}bg-gray-100 text-gray-800{% endif %}">
+                            {{ redemption.get_status_display }}
+                        </span>
+                    </div>
+                    <div class="mt-2">
+                        <p class="text-sm text-gray-600">
+                            <span class="font-semibold">{{ redemption.credit_amount|floatformat:2 }}</span> credits 
+                            = <span class="font-semibold text-green-600">${{ redemption.total_amount|floatformat:2 }}</span>
+                        </p>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="text-center py-8 text-gray-500">
+                <p>No redemption history yet.</p>
+                <p class="text-sm mt-2">Start redeeming your credits above!</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const form = document.getElementById('redemption-form');
+        const creditAmountInput = document.getElementById('credit_amount');
+        const redemptionOptions = document.querySelectorAll('.redemption-option');
+        const estimatedValueDisplay = document.getElementById('estimated-value');
+        
+        // Handle option selection
+        redemptionOptions.forEach(option => {
+            option.addEventListener('change', function() {
+                // Update visual selection
+                document.querySelectorAll('.redemption-card').forEach(card => {
+                    card.classList.remove('selected');
+                });
+                if (this.checked) {
+                    this.closest('.redemption-card').classList.add('selected');
+                }
+                updateEstimatedValue();
+            });
+        });
+        
+        // Update estimated value when amount changes
+        creditAmountInput.addEventListener('input', updateEstimatedValue);
+        
+        // Update when option changes
+        redemptionOptions.forEach(option => {
+            option.addEventListener('change', function() {
+                updateEstimatedValue();
+            });
+        });
+        
+        function updateEstimatedValue() {
+            const selectedOption = document.querySelector('.redemption-option:checked');
+            const creditAmount = parseFloat(creditAmountInput.value) || 0;
+            const availableCredits = {{ available_credits }};
+            const errorContainer = document.getElementById('credit-amount-errors');
+            
+            // Clear previous errors
+            if (errorContainer) {
+                errorContainer.innerHTML = '';
+            }
+            
+            if (selectedOption && creditAmount > 0) {
+                const optionId = selectedOption.value;
+                const options = {
+                    {% for option in redemption_options %}
+                    '{{ option.id }}': { rate: {{ option.rate }}, min: {{ option.min_credits }} },
+                    {% endfor %}
+                };
+                
+                const option = options[optionId];
+                if (option) {
+                    // Update min attribute based on selected option (but don't exceed available credits)
+                    const minValue = Math.max(1, Math.min(option.min, availableCredits));
+                    if (availableCredits > 0) {
+                        creditAmountInput.setAttribute('min', minValue);
+                    }
+                    
+                    // Validate minimum requirement
+                    if (creditAmount < option.min) {
+                        if (errorContainer) {
+                            const errorDiv = document.createElement('p');
+                            errorDiv.className = 'text-xs text-orange-600 mt-1';
+                            errorDiv.textContent = `Minimum ${option.min} credits required for this option`;
+                            errorContainer.appendChild(errorDiv);
+                        }
+                        estimatedValueDisplay.textContent = '$0.00';
+                        return;
+                    }
+                    
+                    // Validate maximum
+                    if (creditAmount > availableCredits) {
+                        if (errorContainer) {
+                            const errorDiv = document.createElement('p');
+                            errorDiv.className = 'text-xs text-red-600 mt-1';
+                            errorDiv.textContent = `Maximum ${availableCredits} credits available`;
+                            errorContainer.appendChild(errorDiv);
+                        }
+                        estimatedValueDisplay.textContent = '$0.00';
+                        return;
+                    }
+                    
+                    // Calculate estimated value
+                    const rate = option.rate || 0;
+                    const estimatedValue = creditAmount * rate;
+                    estimatedValueDisplay.textContent = '$' + estimatedValue.toFixed(2);
+                }
+            } else {
+                estimatedValueDisplay.textContent = '$0.00';
+            }
+        }
+        
+        // Form validation
+        form.addEventListener('submit', function(e) {
+            const selectedOption = document.querySelector('.redemption-option:checked');
+            const creditAmount = parseFloat(creditAmountInput.value);
+            const availableCredits = {{ available_credits }};
+            
+            if (!selectedOption) {
+                e.preventDefault();
+                alert('Please select a redemption type');
+                return false;
+            }
+            
+            if (!creditAmount || creditAmount <= 0) {
+                e.preventDefault();
+                alert('Please enter a valid credit amount');
+                return false;
+            }
+            
+            // Check minimum for selected option
+            const optionId = selectedOption.value;
+            const options = {
+                {% for option in redemption_options %}
+                '{{ option.id }}': { rate: {{ option.rate }}, min: {{ option.min_credits }} },
+                {% endfor %}
+            };
+            const option = options[optionId];
+            
+            if (option && creditAmount < option.min) {
+                e.preventDefault();
+                alert(`Minimum ${option.min} credits required for this redemption type`);
+                return false;
+            }
+            
+            if (creditAmount > availableCredits) {
+                e.preventDefault();
+                alert('You don\'t have enough credits. Available: ' + availableCredits);
+                return false;
+            }
+        });
+    });
+</script>
+{% endblock %}
+

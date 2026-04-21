@@ -1,0 +1,191 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Create User | Admin Dashboard{% endblock %}
+
+{% block content %}
+<div class="bg-gray-50 min-h-screen">
+  <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+    <div class="mb-6 flex justify-between items-center">
+      <div>
+        <h1 class="text-3xl font-bold text-gray-900">Create User</h1>
+        <p class="mt-2 text-sm text-gray-600">Add a new user to the platform.</p>
+      </div>
+      <div>
+        <a href="{% url 'admin_users' %}" class="btn btn-secondary">Back to Users</a>
+      </div>
+    </div>
+    
+    {% if messages %}
+      <div class="mb-6">
+        {% for message in messages %}
+          <div class="p-4 rounded-lg mb-4 {% if message.tags == 'error' %}bg-red-100 text-red-800{% elif message.tags == 'success' %}bg-green-100 text-green-800{% else %}bg-blue-100 text-blue-800{% endif %}">
+            {{ message }}
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
+    
+    <div class="bg-white shadow overflow-hidden sm:rounded-lg">
+      <div class="px-4 py-5 border-b sm:px-6 bg-gray-50">
+        <h3 class="text-lg leading-6 font-medium text-gray-900">User Information</h3>
+        <p class="mt-1 max-w-2xl text-sm text-gray-500">Fill in the details for the new user.</p>
+      </div>
+      
+      <div class="px-4 py-5 sm:p-6">
+        <form method="post" action="{% url 'admin_create_user' %}">
+          {% csrf_token %}
+          <div class="space-y-6">
+            <!-- Basic Info Section -->
+            <div>
+              <h4 class="text-base font-medium text-gray-900">Basic Information</h4>
+              <div class="mt-4 grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-6">
+                <div class="sm:col-span-3">
+                  <label for="email" class="block text-sm font-medium text-gray-700">Email address</label>
+                  <div class="mt-1">
+                    <input type="email" name="email" id="email" autocomplete="email" required class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md">
+                  </div>
+                </div>
+                
+                <div class="sm:col-span-3">
+                  <label for="role" class="block text-sm font-medium text-gray-700">Role</label>
+                  <div class="mt-1">
+                    <select id="role" name="role" required class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md">
+                      <option value="">Select a role</option>
+                      <option value="super_admin">Super Admin</option>
+                      <option value="bank_admin">Bank Admin</option>
+                      <option value="employer">Employer</option>
+                      <option value="employee">Employee</option>
+                    </select>
+                  </div>
+                </div>
+                
+                <div class="sm:col-span-3">
+                  <label for="first_name" class="block text-sm font-medium text-gray-700">First name</label>
+                  <div class="mt-1">
+                    <input type="text" name="first_name" id="first_name" autocomplete="given-name" class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md">
+                  </div>
+                </div>
+                
+                <div class="sm:col-span-3">
+                  <label for="last_name" class="block text-sm font-medium text-gray-700">Last name</label>
+                  <div class="mt-1">
+                    <input type="text" name="last_name" id="last_name" autocomplete="family-name" class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md">
+                  </div>
+                </div>
+                
+                <div class="sm:col-span-3">
+                  <label for="password" class="block text-sm font-medium text-gray-700">Password</label>
+                  <div class="mt-1">
+                    <input type="password" name="password" id="password" required class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md">
+                  </div>
+                </div>
+                
+                <div class="sm:col-span-3">
+                  <label for="password_confirm" class="block text-sm font-medium text-gray-700">Confirm password</label>
+                  <div class="mt-1">
+                    <input type="password" name="password_confirm" id="password_confirm" required class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md">
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Employer-specific fields -->
+            <div id="employer-fields" class="hidden">
+              <h4 class="text-base font-medium text-gray-900">Employer Details</h4>
+              <div class="mt-4 grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-6">
+                <div class="sm:col-span-3">
+                  <label for="company_name" class="block text-sm font-medium text-gray-700">Company name</label>
+                  <div class="mt-1">
+                    <input type="text" name="company_name" id="company_name" class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md">
+                  </div>
+                </div>
+                
+                <div class="sm:col-span-3">
+                  <label for="registration_number" class="block text-sm font-medium text-gray-700">Registration number</label>
+                  <div class="mt-1">
+                    <input type="text" name="registration_number" id="registration_number" class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md">
+                  </div>
+                </div>
+                
+                <div class="sm:col-span-6">
+                  <label for="industry" class="block text-sm font-medium text-gray-700">Industry</label>
+                  <div class="mt-1">
+                    <input type="text" name="industry" id="industry" class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md">
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Employee-specific fields -->
+            <div id="employee-fields" class="hidden">
+              <h4 class="text-base font-medium text-gray-900">Employee Details</h4>
+              <div class="mt-4 grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-6">
+                <div class="sm:col-span-6">
+                  <label for="employer_id" class="block text-sm font-medium text-gray-700">Employer</label>
+                  <div class="mt-1">
+                    <select id="employer_id" name="employer_id" class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md">
+                      <option value="">Select an employer</option>
+                      {% for employer in employers %}
+                        <option value="{{ employer.id }}">{{ employer.company_name }}</option>
+                      {% endfor %}
+                    </select>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <div class="pt-5">
+              <div class="flex justify-end">
+                <a href="{% url 'admin_users' %}" class="py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                  Cancel
+                </a>
+                <button type="submit" class="ml-3 inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                  Create User
+                </button>
+              </div>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Toggle role-specific fields based on role selection
+    const roleSelect = document.getElementById('role');
+    const employerFields = document.getElementById('employer-fields');
+    const employeeFields = document.getElementById('employee-fields');
+    
+    roleSelect.addEventListener('change', function() {
+      const selectedRole = this.value;
+      
+      // Hide all role-specific fields first
+      employerFields.classList.add('hidden');
+      employeeFields.classList.add('hidden');
+      
+      // Show fields based on selected role
+      if (selectedRole === 'employer') {
+        employerFields.classList.remove('hidden');
+      } else if (selectedRole === 'employee') {
+        employeeFields.classList.remove('hidden');
+      }
+    });
+    
+    // Password validation
+    const form = document.querySelector('form');
+    const password = document.getElementById('password');
+    const passwordConfirm = document.getElementById('password_confirm');
+    
+    form.addEventListener('submit', function(e) {
+      if (password.value !== passwordConfirm.value) {
+        e.preventDefault();
+        alert('Passwords do not match!');
+        passwordConfirm.focus();
+      }
+    });
+  });
+</script>
+{% endblock %}

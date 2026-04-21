@@ -1,0 +1,141 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Employee Marketplace - Carbon Credits Platform{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <!-- Sidebar -->
+        <div class="col-md-3 col-lg-2 d-md-block sidebar">
+            {% include 'employer/sidebar.html' %}
+        </div>
+
+        <!-- Main Content -->
+        <div class="col-md-9 ms-sm-auto col-lg-10 px-md-4 mt-4">
+            <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pb-2 mb-3 border-bottom">
+                <h1 class="h2">Employee Credit Marketplace</h1>
+                <div>
+                    <span class="badge bg-info p-2 me-2">Your Credits: {{ employer_credits }}</span>
+                    <span class="badge bg-secondary p-2">Current Market Rate: ${{ market_rate }}/credit</span>
+                </div>
+            </div>
+
+            <!-- Pending Offers -->
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Pending Credit Offers</h5>
+                </div>
+                <div class="card-body">
+                    {% if pending_offers %}
+                        <div class="table-responsive">
+                            <table class="table table-striped table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Employee</th>
+                                        <th>Date</th>
+                                        <th>Type</th>
+                                        <th>Credits</th>
+                                        <th>Rate</th>
+                                        <th>Total Value</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for offer in pending_offers %}
+                                    <tr>
+                                        <td>{{ offer.employee.user.get_full_name }}</td>
+                                        <td>{{ offer.created_at|date:"M d, Y" }}</td>
+                                        <td>
+                                            {% if offer.is_selling %}
+                                            <span class="badge bg-success">Selling</span>
+                                            {% else %}
+                                            <span class="badge bg-warning">Buying</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>{{ offer.credit_amount }}</td>
+                                        <td>${{ offer.price_per_credit }}</td>
+                                        <td>${{ offer.total_value }}</td>
+                                        <td>
+                                            <form method="post" action="{% url 'process_employee_offer' offer.id %}">
+                                                {% csrf_token %}
+                                                <input type="hidden" name="action" value="approve">
+                                                <button type="submit" class="btn btn-sm btn-success me-1">Approve</button>
+                                            </form>
+                                            <form method="post" action="{% url 'process_employee_offer' offer.id %}" class="d-inline">
+                                                {% csrf_token %}
+                                                <input type="hidden" name="action" value="reject">
+                                                <button type="submit" class="btn btn-sm btn-danger">Reject</button>
+                                            </form>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <p class="text-center mb-0">No pending offers from employees at this time.</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Completed Transactions -->
+            <div class="card">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0">Completed Transactions</h5>
+                </div>
+                <div class="card-body">
+                    {% if completed_offers %}
+                        <div class="table-responsive">
+                            <table class="table table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>Employee</th>
+                                        <th>Date</th>
+                                        <th>Type</th>
+                                        <th>Credits</th>
+                                        <th>Rate</th>
+                                        <th>Total Value</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for offer in completed_offers %}
+                                    <tr>
+                                        <td>{{ offer.employee.user.get_full_name }}</td>
+                                        <td>{{ offer.updated_at|date:"M d, Y" }}</td>
+                                        <td>
+                                            {% if offer.is_selling %}
+                                            <span class="badge bg-success">Sold</span>
+                                            {% else %}
+                                            <span class="badge bg-warning">Bought</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>{{ offer.credit_amount }}</td>
+                                        <td>${{ offer.price_per_credit }}</td>
+                                        <td>${{ offer.total_value }}</td>
+                                        <td>
+                                            {% if offer.status == 'approved' %}
+                                            <span class="badge bg-success">Approved</span>
+                                            {% elif offer.status == 'rejected' %}
+                                            <span class="badge bg-danger">Rejected</span>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <p class="text-center mb-0">No completed transactions with employees yet.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{% static 'js/employer-marketplace.js' %}"></script>
+{% endblock %} 

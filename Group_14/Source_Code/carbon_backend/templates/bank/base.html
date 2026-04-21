@@ -1,0 +1,187 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ page_title }} - Carbon Credits Platform{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <!-- Mobile navbar -->
+        <nav class="navbar navbar-expand-md navbar-dark bg-dark d-md-none">
+            <div class="container-fluid">
+                <a class="navbar-brand" href="{% url 'bank:bank_dashboard' %}">Carbon Bank</a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mobileSidebar" aria-controls="mobileSidebar" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="mobileSidebar">
+                    <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                        <li class="nav-item {% if active_page == 'dashboard' %}active{% endif %}">
+                            <a class="nav-link" href="{% url 'bank:bank_dashboard' %}"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
+                        </li>
+                        <li class="nav-item {% if active_page == 'approvals' %}active{% endif %}">
+                            <a class="nav-link" href="{% url 'bank:bank_approvals' %}"><i class="fas fa-check-circle"></i> Approvals</a>
+                        </li>
+                        <li class="nav-item {% if active_page == 'reports' %}active{% endif %}">
+                            <a class="nav-link" href="{% url 'bank:bank_reports' %}"><i class="fas fa-chart-line"></i> Reports</a>
+                        </li>
+                        <li class="nav-item {% if active_page == 'employers' %}active{% endif %}">
+                            <a class="nav-link" href="{% url 'bank:bank_employers' %}"><i class="fas fa-building"></i> Employers</a>
+                        </li>
+                        <li class="nav-item {% if active_page == 'profile' %}active{% endif %}">
+                            <a class="nav-link" href="{% url 'bank:profile' %}"><i class="fas fa-user"></i> Profile</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'logout' %}"><i class="fas fa-sign-out-alt"></i> Logout</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Sidebar - hidden on mobile -->
+        <div class="col-md-3 col-lg-2 d-none d-md-block sidebar" id="sidebarMenu">
+            <div class="sidebar bg-dark text-white h-100">
+                <div class="sidebar-header">
+                    <h3>Carbon Bank</h3>
+                </div>
+                <ul class="list-unstyled components">
+                    <li {% if active_page == 'dashboard' %}class="active"{% endif %}>
+                        <a href="{% url 'bank:bank_dashboard' %}"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
+                    </li>
+                    <li {% if active_page == 'approvals' %}class="active"{% endif %}>
+                        <a href="{% url 'bank:bank_approvals' %}"><i class="fas fa-check-circle"></i> Approvals</a>
+                    </li>
+                    <li {% if active_page == 'reports' %}class="active"{% endif %}>
+                        <a href="{% url 'bank:bank_reports' %}"><i class="fas fa-chart-line"></i> Reports</a>
+                    </li>
+                    <li {% if active_page == 'employers' %}class="active"{% endif %}>
+                        <a href="{% url 'bank:bank_employers' %}"><i class="fas fa-building"></i> Employers</a>
+                    </li>
+                    <li {% if active_page == 'profile' %}class="active"{% endif %}>
+                        <a href="{% url 'bank:profile' %}"><i class="fas fa-user"></i> Profile</a>
+                    </li>
+                    <li>
+                        <a href="{% url 'logout' %}"><i class="fas fa-sign-out-alt"></i> Logout</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Main content -->
+        <main class="col-12 col-md-9 col-lg-10 ms-sm-auto px-md-4">
+            <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                <h1 class="h2">{{ page_title }}</h1>
+                <div class="btn-toolbar mb-2 mb-md-0">
+                    <div class="btn-group me-2">
+                        {% block header_buttons %}{% endblock %}
+                    </div>
+                </div>
+            </div>
+            
+            {% if messages %}
+            <div class="messages">
+                {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+            
+            {% block bank_content %}
+            {% endblock %}
+        </main>
+    </div>
+</div>
+
+<style>
+/* Add responsive styles for the sidebar */
+@media (max-width: 767.98px) {
+    .sidebar {
+        position: static;
+        height: auto;
+    }
+    
+    main {
+        padding-top: 60px; /* Space for mobile navbar */
+    }
+    
+    .navbar {
+        position: fixed;
+        top: 0;
+        width: 100%;
+        z-index: 1030;
+    }
+}
+
+/* Sidebar styles */
+.sidebar {
+    min-height: 100vh;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+}
+
+.sidebar-header {
+    padding: 20px;
+    background: #343a40;
+}
+
+.sidebar ul li {
+    padding: 10px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+}
+
+.sidebar ul li a {
+    padding: 10px 15px;
+    display: block;
+    color: rgba(255,255,255,0.8);
+    text-decoration: none;
+    transition: all 0.3s;
+}
+
+.sidebar ul li a:hover, 
+.sidebar ul li.active a {
+    color: #fff;
+    background: rgba(255,255,255,0.1);
+}
+
+.sidebar ul li a i {
+    margin-right: 10px;
+}
+
+/* Mobile navigation styles */
+.navbar-toggler {
+    border: none;
+    padding: 10px;
+}
+
+.navbar-dark .navbar-nav .nav-link {
+    color: rgba(255,255,255,0.8);
+    padding: 10px 15px;
+}
+
+.navbar-dark .navbar-nav .nav-link:hover,
+.navbar-dark .navbar-nav .active .nav-link {
+    color: #fff;
+    background: rgba(255,255,255,0.1);
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Initialize Bootstrap components
+    document.addEventListener('DOMContentLoaded', function() {
+        // For handling sidebar toggling on mobile
+        var navbarToggler = document.querySelector('.navbar-toggler');
+        if (navbarToggler) {
+            navbarToggler.addEventListener('click', function() {
+                var target = document.querySelector('#mobileSidebar');
+                if (target) {
+                    target.classList.toggle('show');
+                }
+            });
+        }
+    });
+</script>
+{% endblock %} 

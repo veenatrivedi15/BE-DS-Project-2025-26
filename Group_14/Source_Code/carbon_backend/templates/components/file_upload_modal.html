@@ -1,0 +1,46 @@
+<!-- File Upload Modal Component -->
+<div id="file-upload-modal" class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center hidden">
+    <div class="bg-white rounded-lg shadow-xl w-full max-w-xl mx-4 overflow-hidden">
+        <!-- Modal Header -->
+        <div class="flex justify-between items-center px-6 py-4 border-b">
+            <h3 class="text-xl font-semibold text-gray-900">Upload Files</h3>
+            <button id="close-modal-btn" class="text-gray-400 hover:text-gray-500">
+                <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+            </button>
+        </div>
+        
+        <!-- Modal Body -->
+        <div class="p-6">
+            <!-- Drop Area -->
+            <div id="file-drop-area" class="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center mb-6">
+                <div class="mx-auto mb-4">
+                    <svg class="mx-auto h-12 w-12 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                    </svg>
+                </div>
+                <p class="text-base text-gray-700 mb-1">Drag files to upload</p>
+                <p class="text-sm text-gray-500 mb-3">or</p>
+                <button id="browse-files-btn" class="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50">
+                    Browse Files
+                </button>
+                <input type="file" id="file-input" class="hidden" multiple>
+                <p class="mt-4 text-xs text-gray-500">Max file size: 20MB</p>
+                <p class="text-xs text-gray-500">Supported file types: JPG, PNG, GIF, PDF, SVG</p>
+            </div>
+            
+            <!-- File List -->
+            <div id="uploads-list" class="max-h-64 overflow-y-auto">
+                <!-- File items will be inserted here dynamically -->
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Open Style -->
+<style>
+    body.modal-open {
+        overflow: hidden;
+    }
+</style> 
