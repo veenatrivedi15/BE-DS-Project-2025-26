@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Google Maps API Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        #map { height: 400px; width: 100%; border: 1px solid #ccc; }
+        .info { background: #f0f0f0; padding: 10px; margin: 10px 0; }
+        .error { background: #ffcccc; padding: 10px; margin: 10px 0; }
+        .success { background: #ccffcc; padding: 10px; margin: 10px 0; }
+    </style>
+</head>
+<body>
+    <h1>Google Maps API Test Page</h1>
+    
+    <div class="info">
+        <p><strong>Instructions:</strong></p>
+        <ol>
+            <li>Replace YOUR_API_KEY below with your actual Google Maps API key</li>
+            <li>Open this file in your browser</li>
+            <li>Check the console (F12) for any errors</li>
+        </ol>
+    </div>
+    
+    <div id="status"></div>
+    <div id="map"></div>
+    
+    <script>
+        // REPLACE THIS WITH YOUR ACTUAL API KEY
+        const API_KEY = 'YOUR_API_KEY_HERE';
+        
+        const statusDiv = document.getElementById('status');
+        
+        if (API_KEY === 'YOUR_API_KEY_HERE' || API_KEY.length < 20) {
+            statusDiv.innerHTML = '<div class="error"><strong>Error:</strong> Please replace YOUR_API_KEY_HERE with your actual API key</div>';
+        } else {
+            statusDiv.innerHTML = '<div class="info">Loading Google Maps API...</div>';
+            
+            // Load Google Maps API
+            const script = document.createElement('script');
+            script.src = `https://maps.googleapis.com/maps/api/js?key=${API_KEY}&libraries=places,geometry&callback=initMap`;
+            script.async = true;
+            script.defer = true;
+            
+            script.onerror = function() {
+                statusDiv.innerHTML = '<div class="error"><strong>Error:</strong> Failed to load Google Maps API script. Check your API key and network connection.</div>';
+            };
+            
+            // Error handler for authentication failures
+            window.gm_authFailure = function() {
+                statusDiv.innerHTML = '<div class="error"><strong>Authentication Error:</strong> Your API key is invalid or restricted. Check:<ul><li>API key is correct</li><li>Maps JavaScript API is enabled</li><li>Billing is enabled</li><li>API key restrictions allow this domain</li></ul></div>';
+            };
+            
+            document.head.appendChild(script);
+        }
+        
+        function initMap() {
+            console.log('initMap called');
+            
+            try {
+                if (typeof google === 'undefined' || typeof google.maps === 'undefined') {
+                    throw new Error('Google Maps API not loaded');
+                }
+                
+                statusDiv.innerHTML = '<div class="success"><strong>Success!</strong> Google Maps API loaded. Map should appear below.</div>';
+                
+                // Create map centered on Thane, India
+                const map = new google.maps.Map(document.getElementById('map'), {
+                    zoom: 13,
+                    center: { lat: 19.2183, lng: 72.9781 }, // Thane, India
+                    mapTypeControl: true
+                });
+                
+                // Add marker
+                new google.maps.Marker({
+                    position: { lat: 19.2183, lng: 72.9781 },
+                    map: map,
+                    title: 'Thane, Maharashtra, India'
+                });
+                
+                console.log('Map created successfully');
+            } catch (error) {
+                statusDiv.innerHTML = `<div class="error"><strong>Error:</strong> ${error.message}</div>`;
+                console.error('Error:', error);
+            }
+        }
+        
+        // Make initMap globally available
+        window.initMap = initMap;
+    </script>
+</body>
+</html>
+
+

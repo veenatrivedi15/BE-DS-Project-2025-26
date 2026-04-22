@@ -1,0 +1,382 @@
+<div id="summary-report" class="report-section">
+    <!-- Key Metrics Row -->
+    <div class="row">
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-primary shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Total Credits Issued</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800" id="total-credits-issued">24,500</div>
+                            <div class="text-xs text-muted mt-1"><span class="text-success">↑ 5.2%</span> from previous period</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-certificate fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-success shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Total Transaction Volume</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800" id="total-transaction-volume">$1,648,500</div>
+                            <div class="text-xs text-muted mt-1"><span class="text-success">↑ 8.7%</span> from previous period</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-dollar-sign fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-info shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">Active Employers</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800" id="active-employers">42</div>
+                            <div class="text-xs text-muted mt-1"><span class="text-success">↑ 3</span> new this period</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-building fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-warning shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">Carbon Saved (tons)</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800" id="carbon-saved">3,250</div>
+                            <div class="text-xs text-muted mt-1"><span class="text-success">↑ 12.4%</span> from previous period</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-leaf fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts Row -->
+    <div class="row">
+        <div class="col-md-8 mb-4">
+            <div class="card shadow h-100">
+                <div class="card-header bg-light py-3 d-flex justify-content-between align-items-center">
+                    <h6 class="m-0 font-weight-bold">Credit Volume & Price Trends</h6>
+                    <div>
+                        <span class="text-muted">{{ start_date|date:"M d, Y" }} - {{ end_date|date:"M d, Y" }}</span>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <canvas id="credit-volume-price-chart" height="300"></canvas>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4 mb-4">
+            <div class="card shadow h-100">
+                <div class="card-header bg-light py-3">
+                    <h6 class="m-0 font-weight-bold">Credit Distribution</h6>
+                </div>
+                <div class="card-body">
+                    <canvas id="credit-distribution-chart" height="300"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Platform Growth Row -->
+    <div class="row">
+        <div class="col-md-6 mb-4">
+            <div class="card shadow h-100">
+                <div class="card-header bg-light py-3">
+                    <h6 class="m-0 font-weight-bold">Monthly Registration Growth</h6>
+                </div>
+                <div class="card-body">
+                    <canvas id="registration-growth-chart" height="250"></canvas>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6 mb-4">
+            <div class="card shadow h-100">
+                <div class="card-header bg-light py-3">
+                    <h6 class="m-0 font-weight-bold">Transportation Mode Breakdown</h6>
+                </div>
+                <div class="card-body">
+                    <canvas id="transport-mode-chart" height="250"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Summary Table -->
+    <div class="card shadow mb-4">
+        <div class="card-header bg-light py-3">
+            <h6 class="m-0 font-weight-bold">Top Performing Routes</h6>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Route</th>
+                            <th>Origin</th>
+                            <th>Destination</th>
+                            <th>Trips</th>
+                            <th>Credits Generated</th>
+                            <th>Avg. Carbon Saved</th>
+                            <th>Popularity</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Route #128</td>
+                            <td>Downtown</td>
+                            <td>Tech District</td>
+                            <td>1,245</td>
+                            <td>3,735</td>
+                            <td>2.4 tons</td>
+                            <td>
+                                <div class="progress">
+                                    <div class="progress-bar bg-success" role="progressbar" style="width: 85%"></div>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Route #103</td>
+                            <td>Central Station</td>
+                            <td>University</td>
+                            <td>980</td>
+                            <td>2,940</td>
+                            <td>1.9 tons</td>
+                            <td>
+                                <div class="progress">
+                                    <div class="progress-bar bg-success" role="progressbar" style="width: 72%"></div>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Route #215</td>
+                            <td>Suburbs</td>
+                            <td>Business Park</td>
+                            <td>750</td>
+                            <td>2,250</td>
+                            <td>1.6 tons</td>
+                            <td>
+                                <div class="progress">
+                                    <div class="progress-bar bg-info" role="progressbar" style="width: 65%"></div>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Route #317</td>
+                            <td>Riverside</td>
+                            <td>Shopping District</td>
+                            <td>620</td>
+                            <td>1,860</td>
+                            <td>1.2 tons</td>
+                            <td>
+                                <div class="progress">
+                                    <div class="progress-bar bg-info" role="progressbar" style="width: 58%"></div>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Route #422</td>
+                            <td>Airport</td>
+                            <td>City Center</td>
+                            <td>580</td>
+                            <td>1,740</td>
+                            <td>1.1 tons</td>
+                            <td>
+                                <div class="progress">
+                                    <div class="progress-bar bg-warning" role="progressbar" style="width: 45%"></div>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Credit Volume & Price Chart
+    const creditVolumeCtx = document.getElementById('credit-volume-price-chart').getContext('2d');
+    const creditVolumeChart = new Chart(creditVolumeCtx, {
+        type: 'line',
+        data: {
+            labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+            datasets: [
+                {
+                    label: 'Credit Volume',
+                    data: [1800, 2200, 1900, 2400, 2800, 3200],
+                    backgroundColor: 'rgba(78, 115, 223, 0.05)',
+                    borderColor: 'rgba(78, 115, 223, 1)',
+                    pointBackgroundColor: 'rgba(78, 115, 223, 1)',
+                    pointBorderColor: '#fff',
+                    pointRadius: 3,
+                    pointHoverRadius: 5,
+                    borderWidth: 2,
+                    fill: true,
+                    tension: 0.4,
+                    yAxisID: 'y'
+                },
+                {
+                    label: 'Average Price',
+                    data: [60.5, 62.3, 64.1, 63.8, 65.2, 67.5],
+                    backgroundColor: 'rgba(28, 200, 138, 0)',
+                    borderColor: 'rgba(28, 200, 138, 1)',
+                    pointBackgroundColor: 'rgba(28, 200, 138, 1)',
+                    pointBorderColor: '#fff',
+                    pointRadius: 3,
+                    pointHoverRadius: 5,
+                    borderWidth: 2,
+                    fill: false,
+                    tension: 0.4,
+                    yAxisID: 'y1'
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                x: {
+                    grid: {
+                        display: false
+                    }
+                },
+                y: {
+                    title: {
+                        display: true,
+                        text: 'Credit Volume'
+                    },
+                    position: 'left'
+                },
+                y1: {
+                    title: {
+                        display: true,
+                        text: 'Price ($)'
+                    },
+                    position: 'right',
+                    grid: {
+                        drawOnChartArea: false
+                    }
+                }
+            }
+        }
+    });
+    
+    // Credit Distribution Chart
+    const creditDistributionCtx = document.getElementById('credit-distribution-chart').getContext('2d');
+    const creditDistributionChart = new Chart(creditDistributionCtx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Active', 'Pending', 'Redeemed', 'Expired'],
+            datasets: [{
+                data: [60, 15, 20, 5],
+                backgroundColor: [
+                    'rgba(28, 200, 138, 0.8)',
+                    'rgba(246, 194, 62, 0.8)',
+                    'rgba(78, 115, 223, 0.8)',
+                    'rgba(231, 74, 59, 0.8)'
+                ],
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom'
+                }
+            },
+            cutout: '70%'
+        }
+    });
+    
+    // Registration Growth Chart
+    const registrationGrowthCtx = document.getElementById('registration-growth-chart').getContext('2d');
+    const registrationGrowthChart = new Chart(registrationGrowthCtx, {
+        type: 'bar',
+        data: {
+            labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+            datasets: [
+                {
+                    label: 'Employers',
+                    data: [3, 5, 4, 7, 8, 6],
+                    backgroundColor: 'rgba(78, 115, 223, 0.8)'
+                },
+                {
+                    label: 'Employees',
+                    data: [45, 60, 55, 75, 85, 95],
+                    backgroundColor: 'rgba(54, 185, 204, 0.8)'
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                x: {
+                    stacked: true
+                },
+                y: {
+                    stacked: true,
+                    title: {
+                        display: true,
+                        text: 'New Registrations'
+                    }
+                }
+            }
+        }
+    });
+    
+    // Transport Mode Chart
+    const transportModeCtx = document.getElementById('transport-mode-chart').getContext('2d');
+    const transportModeChart = new Chart(transportModeCtx, {
+        type: 'pie',
+        data: {
+            labels: ['Bus', 'Train', 'Bicycle', 'Carpool', 'Walk'],
+            datasets: [{
+                data: [35, 25, 20, 15, 5],
+                backgroundColor: [
+                    'rgba(78, 115, 223, 0.8)',
+                    'rgba(28, 200, 138, 0.8)',
+                    'rgba(54, 185, 204, 0.8)',
+                    'rgba(246, 194, 62, 0.8)',
+                    'rgba(231, 74, 59, 0.8)'
+                ],
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom'
+                }
+            }
+        }
+    });
+});
+</script> 

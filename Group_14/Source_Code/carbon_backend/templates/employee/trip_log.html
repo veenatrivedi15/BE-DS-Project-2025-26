@@ -1,0 +1,1097 @@
+{% extends 'base.html' %}
+
+{% block title %}Log a Trip - Carbon Credits Platform{% endblock %}
+
+{% block extra_css %}
+<style>
+    .trip-log-container {
+        max-width: 1000px;
+        margin: 0 auto;
+    }
+    
+    .map-container {
+        height: 400px;
+        width: 100%;
+        background-color: #f3f4f6;
+        border-radius: 0.5rem;
+        overflow: hidden;
+        position: relative;
+    }
+    
+    #trip-map {
+        height: 100%;
+        width: 100%;
+    }
+    
+    .map-loading {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: rgba(255, 255, 255, 0.7);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 5;
+    }
+    
+    .map-search-container {
+        position: absolute;
+        top: 10px;
+        left: 10px;
+        right: 10px;
+        z-index: 10;
+        background: white;
+        padding: 10px;
+        border-radius: 4px;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+    }
+    
+    #map-search-input {
+        width: 100%;
+        padding: 8px 12px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+    }
+    
+    .transport-option {
+        cursor: pointer;
+        transition: all 0.3s ease;
+        border: 2px solid transparent;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .transport-option:hover {
+        background-color: #f0fdf4;
+        border-color: #34d399;
+        transform: translateY(-2px);
+    }
+    
+    .transport-option.selected {
+        background-color: #dcfce7;
+        border-color: #10b981;
+        box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.3);
+        transform: translateY(-2px);
+    }
+    
+    .transport-option.selected::after {
+        content: '✓';
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        background-color: #10b981;
+        color: white;
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 14px;
+        font-weight: bold;
+    }
+    
+    .transport-option.selected .text-3xl {
+        color: #10b981;
+    }
+    
+    .transport-option.selected .font-semibold {
+        color: #047857;
+    }
+    
+    .transport-icon {
+        font-size: 1.75rem;
+        margin-bottom: 0.5rem;
+        color: #6B7280;
+    }
+    
+    .file-upload-container {
+        border: 2px dashed #E5E7EB;
+        border-radius: 8px;
+        padding: 2rem;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+    
+    .file-upload-container:hover {
+        border-color: #D1D5DB;
+        background-color: #F9FAFB;
+    }
+    
+    .file-preview {
+        max-width: 100%;
+        max-height: 200px;
+        border-radius: 4px;
+        margin-top: 1rem;
+    }
+    
+    .google-map {
+        height: 400px;
+        width: 100%;
+        border-radius: 0.5rem;
+    }
+    
+    .progress-bar {
+        transition: width 0.3s ease-in-out;
+    }
+    
+    .modal-open {
+        overflow: hidden;
+    }
+    
+    #file-drop-area {
+        transition: all 0.2s ease-in-out;
+    }
+    
+    #file-drop-area.border-blue-500 {
+        background-color: rgba(59, 130, 246, 0.05);
+    }
+    
+    .file-upload-trigger {
+        transition: all 0.2s ease-in-out;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="trip-log-container px-4 py-6">
+    <div class="relative mb-8">
+        <div class="bg-pattern"></div>
+        <div class="relative z-10">
+            <h1 class="section-headline text-3xl md:text-4xl font-bold mb-6">Log a Trip</h1>
+            <p class="text-gray-600 max-w-3xl">
+                Record your sustainable commute to earn carbon credits. The more eco-friendly your transport mode, the more credits you earn!
+            </p>
+        </div>
+    </div>
+
+    <!-- Display flash messages if any -->
+    {% if messages %}
+    <div class="mb-6">
+        {% for message in messages %}
+        <div class="p-4 rounded-lg {% if message.tags == 'success' %}bg-green-100 text-green-800{% elif message.tags == 'error' %}bg-red-100 text-red-800{% else %}bg-blue-100 text-blue-800{% endif %}">
+            {{ message }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <div class="modern-card p-6 mb-8">
+        <form id="trip-form" method="post" action="{% url 'employee_trip_log' %}" enctype="multipart/form-data">
+            {% csrf_token %}
+            
+            <!-- Home Location Registration (if not already set) -->
+            {% if not has_home_location %}
+            <div class="mb-8 p-4 bg-yellow-50 border border-yellow-200 rounded-lg" style="display: none;">
+                <h2 class="text-xl font-semibold mb-2">First Time Setup: Register Home Location</h2>
+                <p class="text-sm text-gray-600 mb-4">
+                    Before logging trips, we need your home location. This will be saved for future trips.
+                </p>
+                
+                <div class="map-container mb-4">
+                    <div class="map-loading" id="map-loading">
+                        <div class="spinner">
+                            <svg class="animate-spin h-8 w-8 text-green-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="map-search-container">
+                        <input id="map-search-input" type="text" placeholder="Search for your home address" class="w-full px-3 py-2 border border-gray-300 rounded">
+                    </div>
+                    <div id="home-map"></div>
+                </div>
+                
+                <form method="post" action="{% url 'employee_trip_log' %}" id="home-location-form">
+                    {% csrf_token %}
+                    <input type="hidden" name="register_home" value="true">
+                    <input type="hidden" name="home_latitude" id="home_latitude">
+                    <input type="hidden" name="home_longitude" id="home_longitude">
+                    <input type="hidden" name="home_address" id="home_address">
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                        <div>
+                            <label for="home_latitude_display" class="block text-sm font-medium text-gray-700 mb-1">Latitude</label>
+                            <input type="text" id="home_latitude_display" class="w-full px-3 py-2 border border-gray-300 rounded bg-gray-100" readonly>
+                        </div>
+                        <div>
+                            <label for="home_longitude_display" class="block text-sm font-medium text-gray-700 mb-1">Longitude</label>
+                            <input type="text" id="home_longitude_display" class="w-full px-3 py-2 border border-gray-300 rounded bg-gray-100" readonly>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label for="home_address_display" class="block text-sm font-medium text-gray-700 mb-1">Address</label>
+                        <input type="text" id="home_address_display" class="w-full px-3 py-2 border border-gray-300 rounded bg-gray-100" readonly>
+                    </div>
+                    
+                    <div class="flex justify-end">
+                        <button type="submit" id="save-home-location-btn" class="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700" disabled>Save Home Location</button>
+                    </div>
+                </form>
+                
+                <p class="text-xs text-gray-500 mt-4">
+                    Your home location is securely stored and only used for carbon credit calculations. 
+                    You can update this information in your profile settings at any time.
+                </p>
+            </div>
+            {% endif %}
+            
+            <!-- Trip Details Section -->
+            <div class="mb-8 {% if not has_home_location %}hidden{% endif %}">
+                <h2 class="text-xl font-semibold mb-6">Trip Details</h2>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                    <div>
+                        <label for="start-location" class="block text-sm font-medium text-gray-700 mb-1">Start Location</label>
+                        <select id="start-location" name="start_location" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500" required>
+                            <option value="">Select a location</option>
+                            <!-- List employee home and employer locations -->
+                            {% if has_home_location %}
+                            <option value="home" data-lat="{{ home_location.latitude }}" data-lng="{{ home_location.longitude }}">My Home</option>
+                            {% else %}
+                            <option value="home" disabled>My Home (Not Set)</option>
+                            {% endif %}
+                            {% for location in employer_locations %}
+                                <option value="{{ location.id }}" data-lat="{{ location.latitude }}" data-lng="{{ location.longitude }}">{{ location.name }}</option>
+                            {% endfor %}
+                            <option value="other">Other (Select on Map)</option>
+                        </select>
+                    </div>
+                    
+                    <div>
+                        <label for="end-location" class="block text-sm font-medium text-gray-700 mb-1">End Location</label>
+                        <select id="end-location" name="end_location" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500" required>
+                            <option value="">Select a location</option>
+                            <!-- List employee home and employer locations -->
+                            {% if has_home_location %}
+                            <option value="home" data-lat="{{ home_location.latitude }}" data-lng="{{ home_location.longitude }}">My Home</option>
+                            {% else %}
+                            <option value="home" disabled>My Home (Not Set)</option>
+                            {% endif %}
+                            {% for location in employer_locations %}
+                                <option value="{{ location.id }}" data-lat="{{ location.latitude }}" data-lng="{{ location.longitude }}">{{ location.name }}</option>
+                            {% endfor %}
+                            <option value="other">Other (Select on Map)</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <!-- Custom Location Map -->
+                <div id="map-section" class="mb-6">
+                    <h3 class="text-lg font-medium mb-2">Trip Route</h3>
+                    <p class="text-sm text-gray-600 mb-3">
+                        The map shows the route between your selected locations. Distance and travel time will be calculated based on your transport mode.
+                    </p>
+                    
+                    <div class="map-container">
+                        <div class="map-loading" id="map-loading">
+                            <div class="spinner">
+                                <svg class="animate-spin h-8 w-8 text-green-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                </svg>
+                            </div>
+                            <span class="ml-2 text-gray-600">Loading map...</span>
+                        </div>
+                        <div class="map-search-container">
+                            <input id="map-search-input" type="text" placeholder="Search for a location (select 'Other' in dropdown first)" autocomplete="off">
+                            <div class="text-xs text-gray-500 mt-1 ml-2">
+                                💡 Tip: Select "Other (Select on Map)" from dropdown, then search here
+                            </div>
+                        </div>
+                        <div id="trip-map" class="h-full w-full"></div>
+                    </div>
+                    
+                    <!-- Hidden fields for location data -->
+                    <div class="hidden">
+                        <input type="hidden" id="office-lat" name="office_latitude">
+                        <input type="hidden" id="office-lng" name="office_longitude">
+                        <input type="hidden" id="office-address" name="office_address">
+                        
+                        <input type="hidden" id="custom-lat" name="custom_latitude">
+                        <input type="hidden" id="custom-lng" name="custom_longitude">
+                        <input type="hidden" id="custom-address" name="custom_address">
+                        
+                        <input type="hidden" id="distance-km" name="distance_km" value="0">
+                        <!-- Display distance for user -->
+                        <div id="distance-display" class="mt-2 text-sm text-gray-600 hidden">
+                            <span class="font-medium">Distance: </span>
+                            <span id="distance-value">0 km</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div>
+                    <label for="trip-date" class="block text-sm font-medium text-gray-700 mb-1">Trip Date</label>
+                    <input type="date" id="trip-date" name="trip_date" value="{{ today|date:'Y-m-d' }}" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500" required>
+                </div>
+            </div>
+            
+            <!-- Transport Mode Section -->
+            <div class="mb-8 {% if not has_home_location %}hidden{% endif %}" id="transport-section">
+                <h2 class="text-xl font-semibold mb-6">Transport Mode</h2>
+                <p class="text-sm text-gray-600 mb-4">Select how you commuted. Credits calculated using WRI 2015 + IPCC 2006 scientific formulas.</p>
+                
+                <div class="grid grid-cols-2 sm:grid-cols-3 gap-4 mb-6" id="transport-options-container">
+                    <div class="transport-option p-4 border border-gray-300 rounded-lg text-center cursor-pointer transition-all duration-300 hover:bg-green-50" 
+                         data-mode="two_wheeler_single" tabindex="0" role="button"
+                         onclick="selectTransportMode('two_wheeler_single');">
+                        <div class="text-3xl mb-2">🏍️</div>
+                        <div class="font-semibold">Two Wheeler (Solo)</div>
+                        <div class="text-sm text-green-600" id="credits-two_wheeler_single">Calculating...</div>
+                    </div>
+
+                    <div class="transport-option p-4 border border-gray-300 rounded-lg text-center cursor-pointer transition-all duration-300 hover:bg-green-50" 
+                         data-mode="two_wheeler_double" tabindex="0" role="button"
+                         onclick="selectTransportMode('two_wheeler_double');">
+                        <div class="text-3xl mb-2">🏍️</div>
+                        <div class="font-semibold">Two Wheeler (Carpool)</div>
+                        <div class="text-sm text-green-600" id="credits-two_wheeler_double">Calculating...</div>
+                    </div>
+                    <div class="transport-option p-4 border border-gray-300 rounded-lg text-center cursor-pointer transition-all duration-300 hover:bg-green-50" 
+                         data-mode="public_transport" tabindex="0" role="button"
+                         onclick="selectTransportMode('public_transport');">
+                        <div class="text-3xl mb-2">🚆</div>
+                        <div class="font-semibold">Public Transport</div>
+                        <div class="text-sm text-green-600" id="credits-public_transport">Calculating...</div>
+                    </div>
+                    
+                    <div class="transport-option p-4 border border-gray-300 rounded-lg text-center cursor-pointer transition-all duration-300 hover:bg-green-50" 
+                         data-mode="bicycle" tabindex="0" role="button"
+                         onclick="selectTransportMode('bicycle');">
+                        <div class="text-3xl mb-2">🚲</div>
+                        <div class="font-semibold">Bicycle</div>
+                        <div class="text-sm text-green-600" id="credits-bicycle">Calculating...</div>
+                    </div>
+                    
+                    <div class="transport-option p-4 border border-gray-300 rounded-lg text-center cursor-pointer transition-all duration-300 hover:bg-green-50" 
+                         data-mode="walking" tabindex="0" role="button"
+                         onclick="selectTransportMode('walking');">
+                        <div class="text-3xl mb-2">🚶</div>
+                        <div class="font-semibold">Walking</div>
+                        <div class="text-sm text-green-600" id="credits-walking">Calculating...</div>
+                    </div>
+                    
+                    <div class="transport-option p-4 border border-gray-300 rounded-lg text-center cursor-pointer transition-all duration-300 hover:bg-green-50" 
+                         data-mode="carpool" tabindex="0" role="button"
+                         onclick="selectTransportMode('carpool');">
+                        <div class="text-3xl mb-2">🚗</div>
+                        <div class="font-semibold">Carpool</div>
+                        <div class="text-sm text-green-600" id="credits-carpool">Calculating...</div>
+                    </div>
+                    
+                    <div class="transport-option p-4 border border-gray-300 rounded-lg text-center cursor-pointer transition-all duration-300 hover:bg-green-50" 
+                         data-mode="car" tabindex="0" role="button"
+                         onclick="selectTransportMode('car');">
+                        <div class="text-3xl mb-2">🚙</div>
+                        <div class="font-semibold">Car (Single)</div>
+                        <div class="text-sm text-green-600" id="credits-car">Calculating...</div>
+                    </div>
+                    
+                    <div class="transport-option p-4 border border-gray-300 rounded-lg text-center cursor-pointer transition-all duration-300 hover:bg-green-50" 
+                         data-mode="work_from_home" tabindex="0" role="button"
+                         onclick="selectTransportMode('work_from_home');">
+                        <div class="text-3xl mb-2">🏠</div>
+                        <div class="font-semibold">Work from Home</div>
+                        <div class="text-sm text-green-600" id="credits-work_from_home">+10 credits</div>
+                    </div>
+                </div>
+                
+                <input type="hidden" id="transport-mode" name="transport_mode" required>
+                
+                <!-- Enhanced Calculation Parameters (shown when transport mode is selected) -->
+                <div id="calculation-params" class="hidden mt-6 p-6 bg-gray-50 rounded-lg border border-gray-200">
+                    <div class="flex items-center justify-between mb-4">
+                        <div>
+                            <h3 class="text-lg font-semibold text-gray-800">Calculation Parameters</h3>
+                            <p class="text-xs text-gray-600 mt-1">These factors affect your carbon credit calculation based on WRI 2015 + IPCC 2006 standards.</p>
+                        </div>
+                        <button type="button" id="auto-detect-btn" onclick="autoDetectEnvironmentData()" 
+                                class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors flex items-center gap-2 disabled:bg-gray-400 disabled:cursor-not-allowed">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                            </svg>
+                            <span>Auto-Detect All</span>
+                        </button>
+                    </div>
+                    <div id="auto-detect-status" class="mb-4 hidden"></div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        <div id="occupancy-wrapper" class="hidden">
+                            <label for="occupancy" class="block text-sm font-medium text-gray-700 mb-1">Occupancy</label>
+                            <input type="number" id="occupancy" name="occupancy" min="2" max="2" value="2" readonly
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-100" />
+                            <p class="text-xs text-gray-500 mt-1">Two Wheeler Carpool requires 2 passengers.</p>
+                        </div>
+                        <!-- Time Period -->
+                        <div>
+                            <label for="time_period" class="block text-sm font-medium text-gray-700 mb-1">
+                                <span class="flex items-center">
+                                    🕐 Time Period
+                                    <span class="ml-1 text-xs text-gray-500">(Peak hours earn more)</span>
+                                </span>
+                            </label>
+                            <select id="time_period" name="time_period" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500" onchange="updateCreditPreview()">
+                                <option value="off_peak">Off-Peak</option>
+                                <option value="peak_morning" selected>Peak Morning (7-10 AM)</option>
+                                <option value="peak_evening">Peak Evening (6-9 PM)</option>
+                                <option value="late_night">Late Night (11 PM - 5 AM)</option>
+                            </select>
+                        </div>
+                        
+                        <!-- Traffic Condition -->
+                        <div>
+                            <label for="traffic_condition" class="block text-sm font-medium text-gray-700 mb-1">
+                                <span class="flex items-center">
+                                    🚦 Traffic Condition
+                                    <span class="ml-1 text-xs text-gray-500">(Heavy traffic = more credits)</span>
+                                </span>
+                            </label>
+                            <select id="traffic_condition" name="traffic_condition" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500" onchange="updateCreditPreview()">
+                                <option value="light">Light</option>
+                                <option value="moderate" selected>Moderate</option>
+                                <option value="heavy">Heavy</option>
+                            </select>
+                        </div>
+                        
+                        <!-- Weather Condition -->
+                        <div>
+                            <label for="weather_condition" class="block text-sm font-medium text-gray-700 mb-1">
+                                <span class="flex items-center">
+                                    🌤️ Weather
+                                    <span class="ml-1 text-xs text-gray-500">(Rain increases difficulty)</span>
+                                </span>
+                            </label>
+                            <select id="weather_condition" name="weather_condition" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500" onchange="updateCreditPreview()">
+                                <option value="favorable">Favorable</option>
+                                <option value="normal" selected>Normal</option>
+                                <option value="light_rain">Light Rain</option>
+                                <option value="heavy_rain">Heavy Rain</option>
+                            </select>
+                        </div>
+                        
+                        <!-- Route Type -->
+                        <div>
+                            <label for="route_type" class="block text-sm font-medium text-gray-700 mb-1">
+                                <span class="flex items-center">
+                                    🛣️ Route Type
+                                    <span class="ml-1 text-xs text-gray-500">(Terrain affects emissions)</span>
+                                </span>
+                            </label>
+                            <select id="route_type" name="route_type" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500" onchange="updateCreditPreview()">
+                                <option value="highway">Highway</option>
+                                <option value="suburban" selected>Suburban</option>
+                                <option value="city_center">City Center</option>
+                                <option value="hilly">Hilly/Uphill</option>
+                            </select>
+                        </div>
+                        
+                        <!-- AQI Level -->
+                        <div>
+                            <label for="aqi_level" class="block text-sm font-medium text-gray-700 mb-1">
+                                <span class="flex items-center">
+                                    🌬️ Air Quality (AQI)
+                                    <span class="ml-1 text-xs text-gray-500">(Poor air = more impact)</span>
+                                </span>
+                            </label>
+                            <select id="aqi_level" name="aqi_level" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500" onchange="updateCreditPreview()">
+                                <option value="good">Good (&lt;100)</option>
+                                <option value="moderate" selected>Moderate (101-200)</option>
+                                <option value="very_poor">Very Poor (201-300)</option>
+                                <option value="hazardous">Hazardous (&gt;300)</option>
+                            </select>
+                        </div>
+                        
+                        <!-- Season -->
+                        <div>
+                            <label for="season" class="block text-sm font-medium text-gray-700 mb-1">
+                                <span class="flex items-center">
+                                    🍂 Season
+                                    <span class="ml-1 text-xs text-gray-500">(Climate impact)</span>
+                                </span>
+                            </label>
+                            <select id="season" name="season" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500" onchange="updateCreditPreview()">
+                                <option value="winter">Winter</option>
+                                <option value="summer">Summer</option>
+                                <option value="monsoon">Monsoon</option>
+                                <option value="post_monsoon" selected>Post-Monsoon</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <!-- Real-time Credit Preview -->
+                    <div id="credit-preview" class="mt-6 p-4 bg-white rounded-lg border-2 border-green-200">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm font-medium text-gray-700">Estimated Carbon Credits</p>
+                                <p class="text-xs text-gray-500">Based on current selections</p>
+                            </div>
+                            <div class="text-right">
+                                <p class="text-2xl font-bold text-green-600" id="preview-credits">0.00</p>
+                                <p class="text-xs text-gray-500">kg CO₂</p>
+                            </div>
+                        </div>
+                        <div class="mt-3 pt-3 border-t border-gray-200">
+                            <div class="grid grid-cols-2 gap-2 text-xs">
+                                <div>
+                                    <span class="text-gray-600">Emission Savings:</span>
+                                    <span class="font-medium text-gray-800" id="preview-savings">0.00 kg/km</span>
+                                </div>
+                                <div>
+                                    <span class="text-gray-600">Time Weight:</span>
+                                    <span class="font-medium text-gray-800" id="preview-time-weight">1.0x</span>
+                                </div>
+                                <div>
+                                    <span class="text-gray-600">Context Factor:</span>
+                                    <span class="font-medium text-gray-800" id="preview-context">1.0x</span>
+                                </div>
+                                <div>
+                                    <span class="text-gray-600">Distance:</span>
+                                    <span class="font-medium text-gray-800" id="preview-distance">0 km</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Trip Proof Section -->
+            <div class="mb-8 {% if not has_home_location %}hidden{% endif %}">
+                <h2 class="text-xl font-semibold mb-4">Trip Proof</h2>
+                <p class="text-sm text-gray-600 mb-4">Upload an image of your ticket, receipt, or any proof of your commute.</p>
+                
+                <div class="flex space-x-4 mb-4">
+                    <!-- Advanced upload button -->
+                    <button type="button" class="file-upload-trigger flex-1 px-4 py-3 border border-gray-300 rounded-lg text-left hover:bg-gray-50 transition-colors flex justify-between items-center">
+                        <div class="flex items-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-green-500 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                            </svg>
+                            <span class="text-gray-700">Advanced Upload</span>
+                        </div>
+                        <span class="text-sm text-gray-500">With Preview</span>
+                    </button>
+                    
+                    <!-- Quick upload option -->
+                    <div class="flex-1 relative">
+                        <input type="file" id="direct-file-input" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" accept="image/*,application/pdf">
+                        <div class="w-full h-full px-4 py-3 border border-gray-300 rounded-lg text-left hover:bg-gray-50 transition-colors flex justify-between items-center">
+                            <div class="flex items-center">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-green-500 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0l-4 4m4-4v12" />
+                                </svg>
+                                <span class="text-gray-700">Quick Upload</span>
+                            </div>
+                            <span class="text-sm text-gray-500">Choose File</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="text-xs text-gray-500 mb-4">Accepted file types: JPG, PNG, PDF (Max 10MB)</div>
+                
+                <!-- Hidden inputs for file handling -->
+                <input type="hidden" id="proof-upload" name="proof_image" value="">
+                <input type="hidden" id="proof-file-path" name="proof_file_path" value="">
+                
+                <!-- Preview list -->
+                <div id="file-preview-list" class="bg-gray-50 p-3 rounded-lg border border-gray-200 mt-4 hidden"></div>
+            </div>
+            
+            <!-- Trip Preview Section -->
+            <div class="mb-8 p-6 bg-gray-50 rounded-lg border border-gray-200 hidden" id="trip-preview">
+                <h2 class="text-lg font-semibold mb-4">Trip Summary</h2>
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                    <div>
+                        <span class="text-sm text-gray-500 block mb-1">Transport Mode:</span>
+                        <p class="text-lg font-medium" id="trip-preview-transport">-</p>
+                    </div>
+                    <div>
+                        <span class="text-sm text-gray-500 block mb-1">Distance:</span>
+                        <p class="text-lg font-medium" id="trip-preview-distance">0 km</p>
+                    </div>
+                    <div>
+                        <span class="text-sm text-gray-500 block mb-1">Estimated Duration:</span>
+                        <p class="text-lg font-medium" id="trip-preview-duration">0 min</p>
+                    </div>
+                    <div>
+                        <span class="text-sm text-gray-500 block mb-1">Carbon Credits:</span>
+                        <p class="text-lg font-medium text-green-600" id="trip-preview-credits">0 credits</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Submit Section -->
+            <div class="flex justify-end space-x-3 {% if not has_home_location %}hidden{% endif %}">
+                <a href="{% url 'employee_dashboard' %}" class="px-6 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50">Cancel</a>
+                <button type="submit" class="px-6 py-2 bg-green-600 text-white rounded-md hover:bg-green-700">Log Trip</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<!-- Load our JavaScript files FIRST (before Google Maps) -->
+<script src="/static/js/carbon-calculation.js"></script>
+<script src="/static/js/trip-log.js"></script>
+<script src="/static/js/file-upload.js"></script>
+
+<!-- Make sure initMap is available globally BEFORE Google Maps loads -->
+<script>
+    // Ensure initMap is defined globally before Google Maps API loads
+    if (typeof window.initMap === 'undefined') {
+        // This will be overridden by trip-log.js, but ensures it exists
+        window.initMap = function() {
+            console.log('Waiting for trip-log.js initMap...');
+            // If trip-log.js hasn't loaded yet, wait a bit
+            setTimeout(function() {
+                if (typeof initMap === 'function' && initMap !== window.initMap) {
+                    initMap();
+                } else {
+                    console.error('initMap function not found in trip-log.js');
+                    document.querySelectorAll('.map-loading').forEach(loading => {
+                        loading.innerHTML = '<div class="p-4 bg-red-100 text-red-800 rounded">Error: Map initialization function not found. Please refresh the page.</div>';
+                    });
+                }
+            }, 100);
+        };
+    }
+    
+    // Check if the map script is loaded
+    function checkMapScriptLoaded() {
+        if (typeof google === 'undefined' || typeof google.maps === 'undefined') {
+            console.error('Google Maps API not loaded correctly!');
+            document.querySelectorAll('.map-loading').forEach(loading => {
+                loading.innerHTML = '<div class="p-4 bg-yellow-100 text-yellow-800 rounded">Loading Google Maps...</div>';
+            });
+        } else {
+            console.log('Google Maps API loaded successfully');
+        }
+    }
+    
+    // Add event listener to check after page load
+    window.addEventListener('load', function() {
+        setTimeout(checkMapScriptLoaded, 2000);
+    });
+</script>
+
+<!-- Load Google Maps API with the provided API key and callback -->
+{% if google_maps_api_key and google_maps_api_key != 'AIzaSyA-test-key-for-development-only' and google_maps_api_key|length > 20 %}
+<script>
+    // Debug: Log API key status (first 15 chars only for security)
+    console.log('Google Maps API Key configured:', '{{ google_maps_api_key|slice:":15" }}...');
+    console.log('API Key length:', {{ google_maps_api_key|length }});
+    
+    // Define error handler for Google Maps
+    window.gm_authFailure = function() {
+        console.error('Google Maps authentication failed - RefererNotAllowedMapError');
+        document.querySelectorAll('.map-loading').forEach(loading => {
+            loading.innerHTML = '<div class="p-4 bg-red-100 text-red-800 rounded">' +
+                '<strong>Google Maps API Key Restriction Error</strong><br>' +
+                '<p class="mt-2 text-sm">Your API key has HTTP referrer restrictions that are blocking this domain.</p>' +
+                '<p class="mt-2 text-sm font-semibold">To fix this:</p>' +
+                '<ol class="list-decimal list-inside mt-2 text-sm space-y-1">' +
+                '<li>Go to <a href="https://console.cloud.google.com/" target="_blank" class="text-blue-600 underline">Google Cloud Console</a></li>' +
+                '<li>Navigate to: APIs & Services → Credentials</li>' +
+                '<li>Click on your API key</li>' +
+                '<li>Under "Application restrictions", select "HTTP referrers"</li>' +
+                '<li>Add these referrers:<br>' +
+                '&nbsp;&nbsp;&nbsp;&nbsp;<code class="bg-gray-200 px-1">http://localhost:8000/*</code><br>' +
+                '&nbsp;&nbsp;&nbsp;&nbsp;<code class="bg-gray-200 px-1">http://127.0.0.1:8000/*</code></li>' +
+                '<li>Click "SAVE" and wait 1-2 minutes</li>' +
+                '<li>Refresh this page</li>' +
+                '</ol>' +
+                '</div>';
+        });
+    };
+    
+    // Load Google Maps API with proper error handling
+    (function() {
+        var script = document.createElement('script');
+        script.type = 'text/javascript';
+        var apiKey = '{{ google_maps_api_key }}';
+        script.src = 'https://maps.googleapis.com/maps/api/js?key=' + apiKey + '&libraries=places,geometry&callback=initMap';
+        script.async = true;
+        script.defer = true;
+        
+        script.onerror = function() {
+            console.error('Failed to load Google Maps API script');
+            document.querySelectorAll('.map-loading').forEach(loading => {
+                loading.innerHTML = `
+                    <div class="p-4 bg-red-100 text-red-800 rounded">
+                        <strong>Failed to Load Google Maps</strong><br>
+                        <p class="mt-2 text-sm">The Google Maps script failed to load. Possible causes:</p>
+                        <ul class="list-disc list-inside mt-2 text-sm">
+                            <li>Invalid API key</li>
+                            <li>Network connectivity issues</li>
+                            <li>API key restrictions blocking this domain</li>
+                            <li>Required APIs not enabled</li>
+                        </ul>
+                        <p class="mt-2 text-xs">Check browser console (F12) for more details.</p>
+                    </div>
+                `;
+            });
+        };
+        
+        // Add timeout check
+        var timeout = setTimeout(function() {
+            if (typeof google === 'undefined' || typeof google.maps === 'undefined') {
+                console.error('Google Maps API did not load within timeout period');
+                document.querySelectorAll('.map-loading').forEach(loading => {
+                    if (loading.innerHTML.includes('Loading map')) {
+                        loading.innerHTML = `
+                            <div class="p-4 bg-yellow-100 text-yellow-800 rounded">
+                                <strong>Google Maps Taking Too Long</strong><br>
+                                <p class="mt-2 text-sm">The map is taking longer than expected to load. Please:</p>
+                                <ul class="list-disc list-inside mt-2 text-sm">
+                                    <li>Check your internet connection</li>
+                                    <li>Refresh the page</li>
+                                    <li>Check browser console for errors</li>
+                                </ul>
+                            </div>
+                        `;
+                    }
+                });
+            }
+        }, 10000); // 10 second timeout
+        
+        // Clear timeout if maps load successfully
+        var originalInitMap = window.initMap;
+        window.initMap = function() {
+            clearTimeout(timeout);
+            if (originalInitMap && typeof originalInitMap === 'function') {
+                originalInitMap();
+            }
+        };
+        
+        document.head.appendChild(script);
+    })();
+</script>
+
+<!-- Handle billing and API errors -->
+<script>
+    // Handle billing errors
+    window.gm_authFailure = function() {
+        var errorType = 'unknown';
+        if (typeof google !== 'undefined' && google.maps) {
+            // Check for specific error types
+            console.error('Google Maps authentication/billing error');
+        }
+    };
+    
+    // Enhanced error handler
+    if (typeof window.gm_authFailure === 'undefined') {
+        window.gm_authFailure = function() {
+            console.error('Google Maps authentication failed');
+        };
+    }
+</script>
+{% else %}
+<script>
+    console.error('Google Maps API key not configured or invalid');
+    console.log('API Key value:', '{{ google_maps_api_key }}');
+    console.log('API Key length:', '{{ google_maps_api_key|length }}');
+    
+    function initMap() {
+        console.error('Google Maps API key not available');
+        var errorMsg = '';
+        if (!'{{ google_maps_api_key }}' || '{{ google_maps_api_key }}' === 'AIzaSyA-test-key-for-development-only') {
+            errorMsg = `
+                <div class="p-4 bg-red-100 text-red-800 rounded">
+                    <strong>Google Maps API Key Not Configured</strong><br>
+                    <p class="mt-2 text-sm">Please set GOOGLE_MAPS_API_KEY in your environment variables or Django settings.</p>
+                    <p class="mt-2 text-xs">Current value: {{ google_maps_api_key|default:"Not set" }}</p>
+                </div>
+            `;
+        } else {
+            errorMsg = `
+                <div class="p-4 bg-red-100 text-red-800 rounded">
+                    <strong>Invalid Google Maps API Key</strong><br>
+                    <p class="mt-2 text-sm">The API key appears to be invalid or too short.</p>
+                </div>
+            `;
+        }
+        document.querySelectorAll('.map-loading').forEach(loading => {
+            loading.innerHTML = errorMsg;
+        });
+    }
+    window.initMap = initMap;
+</script>
+{% endif %}
+
+<!-- Include the file upload modal component -->
+{% include 'components/file_upload_modal.html' %}
+
+<!-- Enhanced Calculation JavaScript -->
+<script>
+    // Emission factors (WRI India 2015)
+    const EMISSION_FACTORS = {
+        'car': { baseline: 0.130, actual: 0.130 },
+        'carpool': { baseline: 0.130, actual: 0.071 },
+        'two_wheeler_single': { baseline: 0.130, actual: 0.029 },
+        'two_wheeler_double': { baseline: 0.130, actual: 0.0145 },
+        'public_transport': { baseline: 0.130, actual: 0.015161 },
+        'bicycle': { baseline: 0.120, actual: 0.000 },
+        'walking': { baseline: 0.150, actual: 0.000 },
+        'work_from_home': { baseline: 0.130, actual: 0.000 }
+    };
+    
+    // Peak factors
+    const PEAK_FACTORS = {
+        'peak_morning': 1.2,
+        'peak_evening': 1.2,
+        'off_peak': 1.0,
+        'late_night': 0.8
+    };
+    
+    // Traffic multipliers
+    const TRAFFIC_MULTIPLIERS = {
+        'heavy': 1.3,
+        'moderate': 1.1,
+        'light': 1.0
+    };
+    
+    // Weather factors
+    const WEATHER_FACTORS = {
+        'heavy_rain': 1.2,
+        'light_rain': 1.1,
+        'normal': 1.0,
+        'favorable': 0.95
+    };
+    
+    // Route factors
+    const ROUTE_FACTORS = {
+        'hilly': 1.3,
+        'city_center': 1.2,
+        'suburban': 1.0,
+        'highway': 0.9
+    };
+    
+    // AQI factors
+    const AQI_FACTORS = {
+        'hazardous': 1.2,
+        'very_poor': 1.1,
+        'moderate': 1.0,
+        'good': 0.95
+    };
+    
+    // Seasonal factors
+    const SEASONAL_FACTORS = {
+        'winter': 0.95,
+        'summer': 1.1,
+        'monsoon': 1.2,
+        'post_monsoon': 1.0
+    };
+    
+    function selectTransportMode(mode) {
+        // Remove selected class from all options
+        document.querySelectorAll('.transport-option').forEach(opt => {
+            opt.classList.remove('selected');
+        });
+        
+        // Add selected class to clicked option
+        const selectedOption = document.querySelector(`[data-mode="${mode}"]`);
+        if (selectedOption) {
+            selectedOption.classList.add('selected');
+        }
+        
+        // Set transport mode value
+        const transportInput = document.getElementById('transport-mode');
+        if (transportInput) {
+            transportInput.value = mode;
+        }
+        
+        // Show/hide calculation parameters
+        const paramsSection = document.getElementById('calculation-params');
+        const occupancyWrapper = document.getElementById('occupancy-wrapper');
+        if (occupancyWrapper) {
+            occupancyWrapper.classList.toggle('hidden', mode !== 'two_wheeler_double');
+        }
+
+        if (mode === 'work_from_home') {
+            if (paramsSection) paramsSection.classList.add('hidden');
+            const mapSection = document.getElementById('map-section');
+            if (mapSection) mapSection.style.display = 'none';
+            const distanceInput = document.getElementById('distance-km');
+            if (distanceInput) distanceInput.value = '0';
+        } else {
+            if (paramsSection) paramsSection.classList.remove('hidden');
+            const mapSection = document.getElementById('map-section');
+            if (mapSection) mapSection.style.display = 'block';
+        }
+        
+        // Update credit preview
+        updateCreditPreview();
+        
+        // Update credit display for each mode
+        updateModeCredits();
+    }
+    
+    function calculateTimeWeight(timePeriod, trafficCondition) {
+        const peakFactor = PEAK_FACTORS[timePeriod] || 1.0;
+        const trafficMultiplier = TRAFFIC_MULTIPLIERS[trafficCondition] || 1.0;
+        return peakFactor * trafficMultiplier;
+    }
+    
+    function calculateContextFactor(weather, routeType, aqiLevel, season, mode) {
+        const weatherFactor = WEATHER_FACTORS[weather] || 1.0;
+        const routeFactor = ROUTE_FACTORS[routeType] || 1.0;
+        const aqiFactor = AQI_FACTORS[aqiLevel] || 1.0;
+        const seasonalFactor = SEASONAL_FACTORS[season] || 1.0;
+        const loadFactor = mode === 'two_wheeler_double' ? 1.02 : (mode === 'two_wheeler_single' ? 0.95 : 1.0);
+        return weatherFactor * routeFactor * aqiFactor * seasonalFactor * loadFactor;
+    }
+    
+    function calculateCredits(mode, distance, timePeriod, trafficCondition, weather, routeType, aqiLevel, season) {
+        if (mode === 'work_from_home') {
+            return 10.0; // Fixed credits for WFH
+        }
+        
+        const factors = EMISSION_FACTORS[mode] || { baseline: 0.130, actual: 0.130 };
+        const emissionDiff = factors.baseline - factors.actual;
+        const timeWeight = calculateTimeWeight(timePeriod, trafficCondition);
+        const contextFactor = calculateContextFactor(weather, routeType, aqiLevel, season, mode);
+        
+        const credits = emissionDiff * distance * timeWeight * contextFactor;
+        return Math.max(0, credits);
+    }
+    
+    function updateCreditPreview() {
+        const mode = document.getElementById('transport-mode')?.value;
+        const distanceInput = document.getElementById('distance-km');
+        const distance = distanceInput ? parseFloat(distanceInput.value) || 0 : 0;
+        
+        if (!mode || mode === 'work_from_home') {
+            if (mode === 'work_from_home') {
+                document.getElementById('preview-credits').textContent = '10.00';
+                document.getElementById('preview-savings').textContent = 'N/A';
+                document.getElementById('preview-time-weight').textContent = '1.0x';
+                document.getElementById('preview-context').textContent = '1.0x';
+                document.getElementById('preview-distance').textContent = '0 km';
+            }
+            return;
+        }
+        
+        const timePeriod = document.getElementById('time_period')?.value || 'off_peak';
+        const trafficCondition = document.getElementById('traffic_condition')?.value || 'moderate';
+        const weather = document.getElementById('weather_condition')?.value || 'normal';
+        const routeType = document.getElementById('route_type')?.value || 'suburban';
+        const aqiLevel = document.getElementById('aqi_level')?.value || 'moderate';
+        const season = document.getElementById('season')?.value || 'normal';
+        
+        const factors = EMISSION_FACTORS[mode] || { baseline: 0.130, actual: 0.130 };
+        const emissionDiff = factors.baseline - factors.actual;
+        const timeWeight = calculateTimeWeight(timePeriod, trafficCondition);
+        const contextFactor = calculateContextFactor(weather, routeType, aqiLevel, season, mode);
+        const credits = calculateCredits(mode, distance, timePeriod, trafficCondition, weather, routeType, aqiLevel, season);
+        
+        // Update preview
+        document.getElementById('preview-credits').textContent = credits.toFixed(2);
+        document.getElementById('preview-savings').textContent = emissionDiff.toFixed(4) + ' kg/km';
+        document.getElementById('preview-time-weight').textContent = timeWeight.toFixed(2) + 'x';
+        document.getElementById('preview-context').textContent = contextFactor.toFixed(2) + 'x';
+        document.getElementById('preview-distance').textContent = distance.toFixed(1) + ' km';
+    }
+    
+    function updateModeCredits() {
+        // Update credit display for each transport mode (for 1 km example)
+        Object.keys(EMISSION_FACTORS).forEach(mode => {
+            const creditElement = document.getElementById(`credits-${mode}`);
+            if (creditElement && mode !== 'work_from_home') {
+                const defaultTimePeriod = 'off_peak';
+                const defaultTraffic = 'moderate';
+                const defaultWeather = 'normal';
+                const defaultRoute = 'suburban';
+                const defaultAQI = 'moderate';
+                const defaultSeason = 'normal';
+                const exampleDistance = 1.0; // 1 km example
+                
+                const credits = calculateCredits(mode, exampleDistance, defaultTimePeriod, defaultTraffic, defaultWeather, defaultRoute, defaultAQI, defaultSeason);
+                creditElement.textContent = `~${credits.toFixed(2)} kg CO₂/km`;
+            }
+        });
+    }
+    
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log('Trip log page loaded - initializing calculation engine');
+        
+        // Initialize credit displays
+        updateModeCredits();
+        
+        // Add event listeners for distance changes
+        const distanceInput = document.getElementById('distance-km');
+        if (distanceInput) {
+            distanceInput.addEventListener('input', updateCreditPreview);
+            distanceInput.addEventListener('change', updateCreditPreview);
+        }
+        
+        // Backup click handlers
+        document.querySelectorAll('.transport-option').forEach(option => {
+            option.addEventListener('click', function() {
+                const mode = this.getAttribute('data-mode');
+                selectTransportMode(mode);
+            });
+        });
+    });
+</script>
+
+<!-- Thane, India initialization script -->
+<script>
+    // Ensure map is properly initialized with Thane, India coordinates
+    window.addEventListener('load', function() {
+        // Wait a bit for map to initialize
+        setTimeout(function() {
+            // Check if Google Maps is loaded
+            if (typeof google !== 'undefined' && typeof google.maps !== 'undefined') {
+                // Define Thane, Maharashtra, India coordinates
+                var thaneLocation = { lat: 19.2183, lng: 72.9781 }; // Thane, India
+                var thaneEndLocation = { lat: 19.2300, lng: 72.9900 }; // Thane East, India
+                
+                // If the map exists, update its center
+                if (typeof map !== 'undefined' && map) {
+                    map.setCenter(thaneLocation);
+                    
+                    // Update marker positions if they exist
+                    if (typeof startMarker !== 'undefined' && startMarker) {
+                        startMarker.setPosition(thaneLocation);
+                    }
+                    
+                    if (typeof endMarker !== 'undefined' && endMarker) {
+                        endMarker.setPosition(thaneEndLocation);
+                    }
+                }
+                
+                // Pre-select home in the dropdowns
+                const startSelect = document.getElementById('start-location');
+                const endSelect = document.getElementById('end-location');
+                
+                if (startSelect && !startSelect.value) {
+                    startSelect.value = 'home';
+                    // Trigger change event
+                    const event = new Event('change');
+                    startSelect.dispatchEvent(event);
+                }
+                
+                if (endSelect && !endSelect.value) {
+                    // Find the first employer location option
+                    const options = endSelect.querySelectorAll('option');
+                    for (let i = 0; i < options.length; i++) {
+                        if (options[i].value && options[i].value !== 'home' && options[i].value !== 'other' && options[i].value !== '') {
+                            endSelect.value = options[i].value;
+                            // Trigger change event
+                            const event = new Event('change');
+                            endSelect.dispatchEvent(event);
+                            break;
+                        }
+                    }
+                }
+            }
+        }, 500);
+    });
+</script>
+{% endblock %} 

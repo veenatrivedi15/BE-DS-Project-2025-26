@@ -1,0 +1,552 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Achievements Dashboard - VayuNetra{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/design-system.css' %}">
+<style>
+    .dashboard-grid {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 2rem;
+    }
+    
+    @media (min-width: 1024px) {
+        .dashboard-grid {
+            grid-template-columns: 2fr 1fr;
+        }
+    }
+    
+    .achievements-section {
+        margin-bottom: 2rem;
+    }
+    
+    .achievements-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 1.5rem;
+    }
+    
+    .achievement-card {
+        background: white;
+        border-radius: 16px;
+        padding: 1.5rem;
+        text-align: center;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        border: 2px solid transparent;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .achievement-card:hover {
+        transform: translateY(-8px) scale(1.02);
+        box-shadow: 0px 20px 40px rgba(0, 0, 0, 0.15);
+    }
+    
+    .achievement-card.earned {
+        border-color: #10b981;
+        background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+    }
+    
+    .achievement-card.progress {
+        border-color: #f59e0b;
+        background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+    }
+    
+    .achievement-card.locked {
+        border-color: #e5e7eb;
+        background: linear-gradient(135deg, #f9fafb 0%, #f3f4f6 100%);
+        opacity: 0.7;
+    }
+    
+    .achievement-icon {
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2.5rem;
+        margin: 0 auto 1rem;
+        position: relative;
+    }
+    
+    .achievement-card.earned .achievement-icon {
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        color: white;
+        box-shadow: 0px 8px 16px rgba(16, 185, 129, 0.3);
+    }
+    
+    .achievement-card.progress .achievement-icon {
+        background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+        color: white;
+        box-shadow: 0px 8px 16px rgba(245, 158, 11, 0.3);
+    }
+    
+    .achievement-card.locked .achievement-icon {
+        background: #e5e7eb;
+        color: #9ca3af;
+    }
+    
+    .achievement-title {
+        font-size: 1.125rem;
+        font-weight: 600;
+        color: #1f2937;
+        margin-bottom: 0.5rem;
+    }
+    
+    .achievement-description {
+        font-size: 0.875rem;
+        color: #6b7280;
+        margin-bottom: 1rem;
+        line-height: 1.4;
+    }
+    
+    .achievement-progress {
+        margin-bottom: 0.5rem;
+    }
+    
+    .achievement-date {
+        font-size: 0.75rem;
+        color: #9ca3af;
+    }
+    
+    .stats-overview {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        margin-bottom: 2rem;
+    }
+    
+    .stat-card {
+        background: white;
+        border-radius: 12px;
+        padding: 1.5rem;
+        text-align: center;
+        border: 1px solid #e5e7eb;
+        transition: all 0.3s ease;
+    }
+    
+    .stat-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0px 12px 24px rgba(0, 0, 0, 0.1);
+        border-color: #d1d5db;
+    }
+    
+    .stat-value {
+        font-size: 2rem;
+        font-weight: bold;
+        color: #1f2937;
+        margin-bottom: 0.25rem;
+    }
+    
+    .stat-label {
+        font-size: 0.875rem;
+        color: #6b7280;
+    }
+    
+    .progress-section {
+        background: white;
+        border-radius: 16px;
+        padding: 2rem;
+        margin-bottom: 2rem;
+    }
+    
+    .progress-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1rem;
+        padding-bottom: 1rem;
+        border-bottom: 1px solid #f3f4f6;
+    }
+    
+    .progress-item:last-child {
+        border-bottom: none;
+        margin-bottom: 0;
+    }
+    
+    .progress-label {
+        font-weight: 500;
+        color: #374151;
+    }
+    
+    .progress-bar-container {
+        flex: 1;
+        max-width: 200px;
+        height: 8px;
+        background: #e5e7eb;
+        border-radius: 4px;
+        overflow: hidden;
+    }
+    
+    .progress-fill {
+        height: 100%;
+        background: linear-gradient(90deg, #10b981 0%, #059669 100%);
+        transition: width 0.3s ease;
+    }
+    
+    .streaks-section {
+        background: white;
+        border-radius: 16px;
+        padding: 2rem;
+        margin-bottom: 2rem;
+    }
+    
+    .streak-item {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        margin-bottom: 1rem;
+        padding: 1rem;
+        background: #f9fafb;
+        border-radius: 8px;
+    }
+    
+    .streak-icon {
+        font-size: 2rem;
+    }
+    
+    .streak-info {
+        flex: 1;
+    }
+    
+    .streak-title {
+        font-weight: 600;
+        color: #1f2937;
+        margin-bottom: 0.25rem;
+    }
+    
+    .streak-value {
+        font-size: 1.5rem;
+        font-weight: bold;
+        color: #10b981;
+    }
+    
+    .challenges-section {
+        background: white;
+        border-radius: 16px;
+        padding: 2rem;
+    }
+    
+    .challenge-card {
+        border: 1px solid #e5e7eb;
+        border-radius: 12px;
+        padding: 1.5rem;
+        margin-bottom: 1rem;
+        transition: all 0.3s ease;
+    }
+    
+    .challenge-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0px 12px 24px rgba(0, 0, 0, 0.1);
+        border-color: #d1d5db;
+    }
+    
+    .challenge-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 1rem;
+    }
+    
+    .challenge-title {
+        font-weight: 600;
+        color: #1f2937;
+        flex: 1;
+    }
+    
+    .challenge-status {
+        padding: 0.25rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 500;
+    }
+    
+    .challenge-status.active {
+        background: #10b981;
+        color: white;
+    }
+    
+    .challenge-status.completed {
+        background: #6b7280;
+        color: white;
+    }
+    
+    .challenge-description {
+        color: #6b7280;
+        margin-bottom: 1rem;
+    }
+    
+    .challenge-progress {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .challenge-action {
+        padding: 0.5rem 1rem;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: 8px;
+        font-weight: 500;
+        transition: all 0.3s ease;
+        cursor: pointer;
+    }
+    
+    .challenge-action:hover {
+        transform: translateY(-2px);
+        box-shadow: 0px 4px 12px rgba(102, 126, 234, 0.4);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-container">
+    <!-- Page Header -->
+    <div class="page-header">
+        <div class="px-6">
+            <h1 class="page-title">Achievements Dashboard</h1>
+            <p class="page-subtitle">Track your progress, badges, and compete with others</p>
+        </div>
+    </div>
+
+    <div class="dashboard-grid">
+        <!-- Main Content -->
+        <div>
+            <!-- User Stats Overview -->
+            <div class="stats-overview">
+                <div class="stat-card">
+                    <div class="stat-value">{{ total_points|default:0 }}</div>
+                    <div class="stat-label">Total Points</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">{{ user_level|default:1 }}</div>
+                    <div class="stat-label">Current Level</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">{{ weekly_carbon_rank|default:'N/A' }}</div>
+                    <div class="stat-label">Weekly Rank</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">{{ weekly_trips_rank|default:'N/A' }}</div>
+                    <div class="stat-label">Trips Rank</div>
+                </div>
+            </div>
+
+            <!-- Recent Badges -->
+            <div class="achievements-section">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="section-title">Recent Badges</h2>
+                    <a href="{% url 'gamification:badges' %}" class="action-btn px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+                        View All Badges
+                    </a>
+                </div>
+                <div class="achievements-grid">
+                    {% for badge in user_badges %}
+                    <div class="achievement-card earned">
+                        <div class="achievement-icon">{{ badge.badge.icon|default:'🏆' }}</div>
+                        <h3 class="achievement-title">{{ badge.badge.name }}</h3>
+                        <p class="achievement-description">{{ badge.badge.description }}</p>
+                        <div class="achievement-date">
+                            Earned on {{ badge.earned_at|date:'M d, Y' }}
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div class="col-span-full text-center py-8">
+                        <p class="text-gray-500">No badges earned yet. Start your sustainability journey!</p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Progress Overview -->
+            <div class="progress-section">
+                <h2 class="section-title mb-4">Your Progress</h2>
+                {% for progress in user_progress %}
+                <div class="progress-item">
+                    <div class="progress-label">{{ progress.get_progress_type_display }}</div>
+                    <div class="progress-bar-container">
+                        <div class="progress-fill" style="width: {{ progress.percentage_complete|default:0 }}%"></div>
+                    </div>
+                    <div class="text-sm text-gray-600">{{ progress.current_value|default:0 }}/{{ progress.target_value|default:10 }}</div>
+                </div>
+                {% empty %}
+                <div class="text-center text-gray-500 py-4">
+                    <p>No progress data available</p>
+                </div>
+                {% endfor %}
+            </div>
+
+            <!-- Current Streaks -->
+            <div class="streaks-section">
+                <h2 class="section-title mb-4">Current Streaks</h2>
+                {% for streak in user_streaks %}
+                <div class="streak-item">
+                    <div class="streak-icon">🔥</div>
+                    <div class="streak-info">
+                        <div class="streak-title">{{ streak.get_streak_type_display }}</div>
+                        <div class="streak-value">{{ streak.current_streak|default:0 }} days</div>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="text-center text-gray-500 py-4">
+                    <p>No active streaks</p>
+                </div>
+                {% endfor %}
+            </div>
+
+            <!-- Active Challenges -->
+            <div class="challenges-section">
+                <h2 class="section-title mb-4">Active Challenges</h2>
+                {% for challenge in active_challenges %}
+                <div class="challenge-card">
+                    <div class="challenge-header">
+                        <div class="challenge-title">{{ challenge.challenge.title|default:'Weekly Eco Challenge' }}</div>
+                        <div class="challenge-status {{ challenge.challenge.status|default:'active' }}">
+                            {{ challenge.challenge.status|default:'Active' }}
+                        </div>
+                    </div>
+                    <div class="challenge-description">
+                        {{ challenge.challenge.description|default:'Complete 5 sustainable trips this week' }}
+                    </div>
+                    <div class="challenge-progress">
+                        <div class="text-sm text-gray-600">
+                            Progress: {{ challenge.progress|default:0 }}/{{ challenge.challenge.target|default:5 }}
+                        </div>
+                        <div class="progress-bar-container">
+                            <div class="progress-fill" style="width: {{ challenge.progress_percentage|default:0 }}%"></div>
+                        </div>
+                    </div>
+                    {% if challenge.challenge.status == 'active' %}
+                    <div class="mt-4">
+                        <button class="challenge-action" data-challenge-id="{{ challenge.challenge.id|default:1 }}">
+                            {{ challenge.action_text|default:'Join Challenge' }}
+                        </button>
+                    </div>
+                    {% endif %}
+                </div>
+                {% empty %}
+                <div class="text-center text-gray-500 py-4">
+                    <p>No active challenges. Join one to get started!</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Sidebar -->
+        <div>
+            <!-- Recent Points -->
+            <div class="modern-card p-6">
+                <h3 class="section-title mb-4">Recent Points</h3>
+                <div class="space-y-3">
+                    {% for point in recent_points %}
+                    <div class="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+                        <div class="text-sm">
+                            <div class="font-medium">{{ point.description }}</div>
+                            <div class="text-gray-500">{{ point.created_at|date:'M d, H:i' }}</div>
+                        </div>
+                        <div class="font-semibold text-green-600">+{{ point.points }}</div>
+                    </div>
+                    {% empty %}
+                    <div class="text-center text-gray-500 py-4">
+                        <p>No recent points activity</p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Leaderboard Preview -->
+            <div class="modern-card p-6">
+                <h3 class="section-title mb-4">Your Rankings</h3>
+                <div class="space-y-4">
+                    <div class="flex justify-between items-center">
+                        <span class="text-sm text-gray-600">Weekly Carbon Rank</span>
+                        <span class="font-semibold">{{ weekly_carbon_rank|default:'N/A' }}</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-sm text-gray-600">Weekly Trips Rank</span>
+                        <span class="font-semibold">{{ weekly_trips_rank|default:'N/A' }}</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-sm text-gray-600">Monthly Points Rank</span>
+                        <span class="font-semibold">{{ monthly_points_rank|default:'N/A' }}</span>
+                    </div>
+                </div>
+                <div class="mt-4">
+                    <a href="{% url 'gamification:leaderboards' %}" class="action-btn w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-center">
+                        View Full Leaderboards
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+class AchievementsDashboard {
+    constructor() {
+        this.initEventListeners();
+    }
+    
+    initEventListeners() {
+        // Challenge join buttons
+        document.querySelectorAll('.challenge-action').forEach(button => {
+            button.addEventListener('click', async (e) => {
+                const challengeId = e.target.dataset.challengeId;
+                await this.joinChallenge(challengeId);
+            });
+        });
+    }
+    
+    async joinChallenge(challengeId) {
+        try {
+            const response = await fetch('/employee/gamification/api/join-challenge/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                body: JSON.stringify({ challenge_id: challengeId })
+            });
+            
+            const data = await response.json();
+            
+            if (data.success) {
+                // Reload page to show updated challenge status
+                window.location.reload();
+            } else {
+                alert('Failed to join challenge: ' + (data.error || 'Unknown error'));
+            }
+        } catch (error) {
+            console.error('Error joining challenge:', error);
+            alert('Error joining challenge. Please try again.');
+        }
+    }
+}
+
+// Helper function to get CSRF token
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+
+// Initialize dashboard when DOM is ready
+document.addEventListener('DOMContentLoaded', () => {
+    window.achievementsDashboard = new AchievementsDashboard();
+});
+</script>
+{% endblock %}

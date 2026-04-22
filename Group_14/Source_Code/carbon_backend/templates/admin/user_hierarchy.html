@@ -1,0 +1,201 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}User Hierarchy | Admin Dashboard{% endblock %}
+
+{% block content %}
+<div class="bg-gray-50 min-h-screen">
+  <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+    <div class="mb-6">
+      <h1 class="text-3xl font-bold text-gray-900">User Hierarchy</h1>
+      <p class="mt-2 text-sm text-gray-600">View organizational structure and relationships between users.</p>
+    </div>
+    
+    <div class="bg-white shadow rounded-lg overflow-hidden">
+      <div class="p-6">
+        <!-- Admin section -->
+        <div class="mb-8">
+          <h2 class="text-xl font-semibold text-gray-800 mb-4">System Administrators</h2>
+          <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+              <thead class="bg-gray-50">
+                <tr>
+                  <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
+                  <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
+                  <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Role</th>
+                  <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Joined</th>
+                </tr>
+              </thead>
+              <tbody class="bg-white divide-y divide-gray-200">
+                {% for admin in admins %}
+                <tr>
+                  <td class="px-6 py-4 whitespace-nowrap">
+                    <div class="flex items-center">
+                      <div class="flex-shrink-0 h-10 w-10 bg-indigo-100 rounded-full flex items-center justify-center text-indigo-600 font-medium">
+                        {{ admin.first_name|slice:":1" }}{{ admin.last_name|slice:":1" }}
+                      </div>
+                      <div class="ml-4">
+                        <div class="text-sm font-medium text-gray-900">
+                          {% if admin.first_name or admin.last_name %}
+                            {{ admin.first_name }} {{ admin.last_name }}
+                          {% else %}
+                            {{ admin.email }}
+                          {% endif %}
+                        </div>
+                      </div>
+                    </div>
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{{ admin.email }}</td>
+                  <td class="px-6 py-4 whitespace-nowrap">
+                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+                      {% if admin.is_super_admin %}Super Admin{% else %}Bank Admin{% endif %}
+                    </span>
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    {{ admin.date_joined|date:"M d, Y" }}
+                  </td>
+                </tr>
+                {% empty %}
+                <tr>
+                  <td colspan="4" class="px-6 py-4 text-center text-sm text-gray-500">
+                    No administrators found.
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+        
+        <!-- Employer and employee hierarchies -->
+        <div>
+          <h2 class="text-xl font-semibold text-gray-800 mb-4">Employer Organizations</h2>
+          
+          {% if employers %}
+            <div class="space-y-10">
+              {% for employer in employers %}
+                <div class="employer-tree border border-gray-200 rounded-lg overflow-hidden">
+                  <!-- Employer header -->
+                  <div class="bg-gray-50 px-6 py-4 border-b">
+                    <div class="flex justify-between items-center">
+                      <div>
+                        <h3 class="text-lg font-medium text-gray-900">{{ employer.company_name }}</h3>
+                        <p class="text-sm text-gray-500">{{ employer.industry }}</p>
+                      </div>
+                      <div>
+                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+                          {% if employer.approved %}bg-green-100 text-green-800{% else %}bg-yellow-100 text-yellow-800{% endif %}">
+                          {% if employer.approved %}Approved{% else %}Pending{% endif %}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <!-- Employer details -->
+                  <div class="px-6 py-4 border-b bg-white">
+                    <div class="flex flex-wrap gap-4">
+                      <div class="min-w-64">
+                        <h4 class="text-sm font-medium text-gray-500">Admin Contact</h4>
+                        <div class="mt-1 flex items-center">
+                          <div class="flex-shrink-0 h-8 w-8 bg-green-100 rounded-full flex items-center justify-center text-green-600 font-medium">
+                            {{ employer.user.first_name|slice:":1" }}{{ employer.user.last_name|slice:":1" }}
+                          </div>
+                          <div class="ml-2">
+                            <p class="text-sm font-medium text-gray-900">
+                              {% if employer.user.first_name or employer.user.last_name %}
+                                {{ employer.user.first_name }} {{ employer.user.last_name }}
+                              {% else %}
+                                {{ employer.user.email }}
+                              {% endif %}
+                            </p>
+                            <p class="text-xs text-gray-500">{{ employer.user.email }}</p>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <div>
+                        <h4 class="text-sm font-medium text-gray-500">Registration</h4>
+                        <p class="mt-1 text-sm text-gray-900">{{ employer.registration_number }}</p>
+                      </div>
+                      
+                      <div>
+                        <h4 class="text-sm font-medium text-gray-500">Joined</h4>
+                        <p class="mt-1 text-sm text-gray-900">{{ employer.created_at|date:"M d, Y" }}</p>
+                      </div>
+                      
+                      <div>
+                        <h4 class="text-sm font-medium text-gray-500">Employees</h4>
+                        <p class="mt-1 text-sm text-gray-900">{{ employer.employees.count }}</p>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <!-- Employees section -->
+                  <div class="px-6 py-4">
+                    <h4 class="text-md font-medium text-gray-700 mb-3">Employees</h4>
+                    
+                    {% if employer.employees.count > 0 %}
+                      <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-200">
+                          <thead class="bg-gray-50">
+                            <tr>
+                              <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
+                              <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
+                              <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                              <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Joined</th>
+                            </tr>
+                          </thead>
+                          <tbody class="bg-white divide-y divide-gray-200">
+                            {% for employee in employer.employees.all %}
+                              <tr>
+                                <td class="px-4 py-3 whitespace-nowrap">
+                                  <div class="flex items-center">
+                                    <div class="flex-shrink-0 h-8 w-8 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 font-medium">
+                                      {{ employee.user.first_name|slice:":1" }}{{ employee.user.last_name|slice:":1" }}
+                                    </div>
+                                    <div class="ml-3">
+                                      <div class="text-sm font-medium text-gray-900">
+                                        {% if employee.user.first_name or employee.user.last_name %}
+                                          {{ employee.user.first_name }} {{ employee.user.last_name }}
+                                        {% else %}
+                                          {{ employee.user.email }}
+                                        {% endif %}
+                                      </div>
+                                    </div>
+                                  </div>
+                                </td>
+                                <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
+                                  {{ employee.user.email }}
+                                </td>
+                                <td class="px-4 py-3 whitespace-nowrap">
+                                  <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium 
+                                    {% if employee.approved %}bg-green-100 text-green-800{% else %}bg-yellow-100 text-yellow-800{% endif %}">
+                                    {% if employee.approved %}Approved{% else %}Pending{% endif %}
+                                  </span>
+                                </td>
+                                <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
+                                  {{ employee.created_at|date:"M d, Y" }}
+                                </td>
+                              </tr>
+                            {% endfor %}
+                          </tbody>
+                        </table>
+                      </div>
+                    {% else %}
+                      <p class="text-sm text-gray-500 py-4 text-center">No employees found for this employer.</p>
+                    {% endif %}
+                  </div>
+                </div>
+              {% endfor %}
+            </div>
+          {% else %}
+            <div class="text-center py-8 bg-white border rounded-lg">
+              <p class="text-gray-500">No employers found in the system.</p>
+            </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %} 

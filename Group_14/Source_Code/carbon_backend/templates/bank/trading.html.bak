@@ -1,0 +1,1103 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Carbon Trading - Carbon Credits Platform{% endblock %}
+
+{% block extra_css %}
+<style>
+    .trading-dashboard {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 1.5rem;
+    }
+    
+    .page-title {
+        font-size: 1.875rem;
+        font-weight: 700;
+        color: #2d3748;
+        margin-bottom: 1.5rem;
+    }
+    
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(1, minmax(0, 1fr));
+        gap: 1rem;
+        margin-bottom: 2rem;
+    }
+    
+    @media (min-width: 640px) {
+        .stats-grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+    }
+    
+    @media (min-width: 1024px) {
+        .stats-grid {
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+        }
+    }
+    
+    .stat-card {
+        background: white;
+        border-radius: 0.5rem;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        padding: 1.5rem;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        transition: transform 0.2s;
+    }
+    
+    .stat-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1);
+    }
+    
+    .stat-icon {
+        width: 3rem;
+        height: 3rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        margin-bottom: 1rem;
+    }
+    
+    .stat-icon svg {
+        width: 1.5rem;
+        height: 1.5rem;
+    }
+    
+    .stat-value {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #2F855A;
+        line-height: 1;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+    
+    .stat-label {
+        color: #718096;
+        font-size: 0.875rem;
+        margin-top: 0.5rem;
+    }
+    
+    .transaction-card {
+        background: white;
+        border-radius: 0.5rem;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        padding: 1.25rem;
+        transition: all 0.2s;
+        margin-bottom: 1rem;
+    }
+    
+    .transaction-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1);
+    }
+    
+    .nav-buttons {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        margin-bottom: 1rem;
+    }
+    
+    .nav-button {
+        flex: 1;
+        min-width: 120px;
+        background-color: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 0.5rem;
+        padding: 0.75rem 1rem;
+        text-align: center;
+        font-weight: 500;
+        color: #4a5568;
+        transition: all 0.2s ease;
+        font-size: 0.875rem;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        user-select: none;
+    }
+    
+    .nav-button:hover {
+        background-color: #edf2f7;
+        transform: translateY(-2px);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+    
+    .nav-button.active {
+        background-color: #ebf8ff;
+        border-color: #4299e1;
+        color: #3182ce;
+        font-weight: 600;
+    }
+    
+    .nav-button-icon {
+        display: block;
+        margin: 0 auto 0.5rem;
+        width: 1.25rem;
+        height: 1.25rem;
+    }
+    
+    .section-card {
+        background: white;
+        border-radius: 0.5rem;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+        overflow: hidden;
+        margin-bottom: 1.5rem;
+    }
+    
+    .section-header {
+        padding: 1rem 1.5rem;
+        border-bottom: 1px solid #e2e8f0;
+        background: #f8fafc;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    
+    .section-title {
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: #2d3748;
+    }
+    
+    .section-body {
+        padding: 1.5rem;
+    }
+    
+    .btn {
+        padding: 0.5rem 1rem;
+        border-radius: 0.375rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .btn-primary {
+        background-color: #4299e1;
+        color: white;
+        border: none;
+    }
+    
+    .btn-primary:hover {
+        background-color: #3182ce;
+    }
+    
+    .btn-success {
+        background-color: #48bb78;
+        color: white;
+        border: none;
+    }
+    
+    .btn-success:hover {
+        background-color: #38a169;
+    }
+    
+    .btn-sm {
+        padding: 0.25rem 0.5rem;
+        font-size: 0.875rem;
+    }
+    
+    .btn-icon {
+        margin-right: 0.5rem;
+    }
+    
+    table {
+        width: 100%;
+        min-width: 600px;
+        border-collapse: collapse;
+    }
+    
+    th {
+        text-align: left;
+        padding: 0.75rem 1rem;
+        font-weight: 600;
+        color: #4a5568;
+        background: #f7fafc;
+        border-bottom: 1px solid #e2e8f0;
+    }
+    
+    td {
+        padding: 0.75rem 1rem;
+        border-top: 1px solid #e2e8f0;
+    }
+    
+    .status-badge {
+        display: inline-block;
+        padding: 0.25rem 0.5rem;
+        border-radius: 9999px;
+        font-size: 0.75rem;
+        font-weight: 500;
+    }
+    
+    .status-completed {
+        background-color: #c6f6d5;
+        color: #22543d;
+    }
+    
+    .status-pending {
+        background-color: #fefcbf;
+        color: #744210;
+    }
+    
+    .status-rejected {
+        background-color: #fed7d7;
+        color: #742a2a;
+    }
+    
+    .tab-content-container {
+        width: 100%;
+    }
+    
+    .tab-content {
+        display: none;
+    }
+    
+    .tab-content.active {
+        display: block !important;
+    }
+    
+    .overflow-x-auto {
+        max-width: 100%;
+        overflow-x: auto;
+    }
+    
+    /* Responsive table styles */
+    @media (max-width: 768px) {
+        table {
+            display: block;
+            overflow-x: auto;
+            white-space: nowrap;
+        }
+    }
+    
+    /* Modal Styles */
+    .modal {
+        display: none;
+        position: fixed;
+        z-index: 1000;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        overflow: auto;
+        background-color: rgba(0, 0, 0, 0.4);
+    }
+    
+    .modal.show {
+        display: block !important;
+    }
+    
+    .modal-content {
+        background-color: #fefefe;
+        margin: 15% auto;
+        padding: 20px;
+        border: 1px solid #888;
+        width: 80%;
+        max-width: 500px;
+        border-radius: 0.5rem;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+    
+    .close {
+        color: #aaa;
+        float: right;
+        font-size: 28px;
+        font-weight: bold;
+        cursor: pointer;
+    }
+    
+    .close:hover,
+    .close:focus {
+        color: black;
+        text-decoration: none;
+        cursor: pointer;
+    }
+    
+    .form-group {
+        margin-bottom: 1rem;
+    }
+    
+    .form-group label {
+        display: block;
+        margin-bottom: 0.5rem;
+        font-weight: 500;
+    }
+    
+    .form-group input {
+        width: 100%;
+        padding: 0.5rem;
+        border: 1px solid #e2e8f0;
+        border-radius: 0.25rem;
+    }
+    
+    /* Add a loading indicator for chart initialization */
+    .chart-container {
+        position: relative;
+        min-height: 200px;
+    }
+    
+    /* Section specific styles */
+    section {
+        margin-bottom: 3rem;
+        scroll-margin-top: 100px; /* Adds margin for scrolling */
+    }
+    
+    .section-title-main {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #2F855A;
+        margin-bottom: 1rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 2px solid #2F855A;
+    }
+    
+    /* Navigation bar that sticks to the top */
+    .nav-container {
+        position: sticky;
+        top: 0;
+        background-color: white;
+        padding: 1rem 0;
+        z-index: 100;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        margin-bottom: 2rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="trading-dashboard">
+    <!-- Page Header -->
+    <h1 class="page-title">Carbon Trading</h1>
+    
+    <!-- Stats Overview -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-icon" style="background-color: #ebf8ff; color: #4299e1;">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                </svg>
+            </div>
+            <div class="stat-value">{{ total_volume|floatformat:2 }}</div>
+            <div class="stat-label">Total Trading Volume</div>
+        </div>
+        
+        <div class="stat-card">
+            <div class="stat-icon" style="background-color: #fefcbf; color: #d69e2e;">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+            </div>
+            <div class="stat-value">{{ pending_approvals }}</div>
+            <div class="stat-label">Pending Approvals</div>
+        </div>
+        
+        <div class="stat-card">
+            <div class="stat-icon" style="background-color: #e6fffa; color: #38b2ac;">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+            </div>
+            <div class="stat-value">{{ completed_transactions_count }}</div>
+            <div class="stat-label">Completed Transactions</div>
+        </div>
+        
+        <div class="stat-card">
+            <div class="stat-icon" style="background-color: #f0fff4; color: #48bb78;">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+            </div>
+            <div class="stat-value">${{ market_stats.avg_price }}</div>
+            <div class="stat-label">Avg. Price Per Credit</div>
+        </div>
+    </div>
+    
+    <!-- Navigation Bar - Sticky -->
+    <div class="nav-container">
+        <div class="flex flex-col sm:flex-row justify-between items-center">
+            <div class="nav-buttons w-full sm:w-auto mb-4 sm:mb-0 flex flex-wrap">
+                <button class="nav-button active" data-section="pending-section" id="pending-btn">
+                    <svg class="nav-button-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                    </svg>
+                    Pending Transactions
+                </button>
+                <button class="nav-button" data-section="marketplace-section" id="marketplace-btn">
+                    <svg class="nav-button-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+                    </svg>
+                    Marketplace
+                </button>
+                <button class="nav-button" data-section="completed-section" id="completed-btn">
+                    <svg class="nav-button-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    Completed Transactions
+                </button>
+                <button class="nav-button" data-section="analytics-section" id="analytics-btn">
+                    <svg class="nav-button-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                    </svg>
+                    Analytics
+                </button>
+            </div>
+            <div class="flex space-x-2">
+                <button id="refresh-button" class="btn btn-primary">
+                    <svg class="btn-icon h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                    </svg>
+                    Refresh
+                </button>
+                <a href="{% url 'bank:bank_trading' %}" class="btn btn-success">
+                    <svg class="btn-icon h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                    </svg>
+                    New Transaction
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Content Sections - All displayed one after another -->
+    
+    <!-- Pending Transactions Section -->
+    <section id="pending-section">
+        <h2 class="section-title-main">Pending Transactions</h2>
+        <div class="section-card">
+            <div class="section-header">
+                <h2 class="section-title">Transactions Requiring Approval</h2>
+            </div>
+            <div class="section-body">
+                {% if pending_transactions %}
+                <div class="overflow-x-auto">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Seller</th>
+                                <th>Buyer</th>
+                                <th>Credits</th>
+                                <th>Price</th>
+                                <th>Created</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for transaction in pending_transactions %}
+                            <tr>
+                                <td>#{{ transaction.id }}</td>
+                                <td>{{ transaction.seller.company_name }}</td>
+                                <td>{{ transaction.buyer.company_name }}</td>
+                                <td>{{ transaction.credit_amount }}</td>
+                                <td>${{ transaction.total_price }}</td>
+                                <td>{{ transaction.created_at|date:"M d, Y" }}</td>
+                                <td>
+                                    <div class="flex space-x-2">
+                                        <a href="{% url 'bank:transaction_approval' transaction.id %}?action=approve" class="btn btn-sm btn-success">
+                                            <i class="fas fa-check mr-1"></i> Approve
+                                        </a>
+                                        <a href="{% url 'bank:transaction_approval' transaction.id %}?action=reject" class="btn btn-sm btn-danger">
+                                            <i class="fas fa-times mr-1"></i> Reject
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="empty-state">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 text-blue-500 mb-4 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <p class="text-center text-gray-500">No pending transactions to approve</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </section>
+    
+    <!-- Marketplace Section -->
+    <section id="marketplace-section">
+        <h2 class="section-title-main">Marketplace</h2>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+            <!-- Available Credits -->
+            <div class="col-span-2 bg-white rounded-lg shadow p-4">
+                <h3 class="text-lg font-semibold mb-4">Available Credits</h3>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead>
+                            <tr>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Seller</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Credits</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Price/Credit</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total Price</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200">
+                            {% if market_offers %}
+                                {% for offer in market_offers %}
+                                <tr>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        {{ offer.seller.username }}
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        {{ offer.credit_amount }}
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        ${{ offer.price_per_credit }}
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        ${{ offer.total_price }}
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-right">
+                                        <button class="buy-credits-btn bg-green-500 hover:bg-green-600 text-white font-bold py-1 px-3 rounded"
+                                                data-offer-id="{{ offer.id }}"
+                                                data-seller="{{ offer.seller.company_name }}"
+                                                data-credits="{{ offer.credit_amount }}"
+                                                data-price="{{ offer.price_per_credit }}">
+                                            Buy
+                                        </button>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            {% else %}
+                                <tr>
+                                    <td colspan="5" class="px-4 py-4 text-center text-sm text-gray-500">No available credits for purchase</td>
+                                </tr>
+                            {% endif %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Market Summary -->
+            <div class="bg-white rounded-lg shadow p-4">
+                <h3 class="text-lg font-semibold mb-4">Market Summary</h3>
+                <div class="space-y-4">
+                    <div class="flex justify-between items-center py-2 border-b border-gray-200">
+                        <span class="text-sm text-gray-500">Total Available Credits</span>
+                        <span class="text-sm font-medium">{{ market_stats.total_available_credits }}</span>
+                    </div>
+                    <div class="flex justify-between items-center py-2 border-b border-gray-200">
+                        <span class="text-sm text-gray-500">Avg. Price per Credit</span>
+                        <span class="text-sm font-medium">${{ market_stats.avg_price_per_credit|floatformat:2 }}</span>
+                    </div>
+                    <div class="flex justify-between items-center py-2 border-b border-gray-200">
+                        <span class="text-sm text-gray-500">Lowest Price</span>
+                        <span class="text-sm font-medium">${{ market_stats.lowest_price|floatformat:2 }}</span>
+                    </div>
+                    <div class="flex justify-between items-center py-2 border-b border-gray-200">
+                        <span class="text-sm text-gray-500">Highest Price</span>
+                        <span class="text-sm font-medium">${{ market_stats.highest_price|floatformat:2 }}</span>
+                    </div>
+                    <div class="flex justify-between items-center py-2">
+                        <span class="text-sm text-gray-500">Market Trend</span>
+                        <span class="text-sm font-medium {% if market_stats.is_trending_up %}text-green-600{% else %}text-red-600{% endif %}">
+                            {% if market_stats.is_trending_up %}
+                                <i class="fas fa-arrow-up mr-1"></i> Up
+                            {% else %}
+                                <i class="fas fa-arrow-down mr-1"></i> Down
+                            {% endif %}
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Completed Transactions Section -->
+    <section id="completed-section">
+        <h2 class="section-title-main">Completed Transactions</h2>
+        <div class="section-card">
+            <div class="section-header flex justify-between items-center">
+                <h2 class="section-title">Transaction History</h2>
+                <div class="flex items-center space-x-2">
+                    <div class="dropdown">
+                        <button class="btn btn-sm btn-secondary">
+                            Filter <i class="fas fa-chevron-down ml-1"></i>
+                        </button>
+                        <div class="dropdown-content">
+                            <a href="#" class="filter-item" data-filter="all">All Transactions</a>
+                            <a href="#" class="filter-item" data-filter="buyer">As Buyer</a>
+                            <a href="#" class="filter-item" data-filter="seller">As Seller</a>
+                        </div>
+                    </div>
+                    <button id="export-csv" class="btn btn-sm btn-secondary">
+                        <i class="fas fa-download mr-1"></i> Export
+                    </button>
+                </div>
+            </div>
+            <div class="section-body">
+                {% if completed_transactions %}
+                <div class="overflow-x-auto">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Seller</th>
+                                <th>Buyer</th>
+                                <th>Credits</th>
+                                <th>Total Price</th>
+                                <th>Price/Credit</th>
+                                <th>Date</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for transaction in completed_transactions %}
+                            <tr>
+                                <td>#{{ transaction.id }}</td>
+                                <td>{{ transaction.seller.company_name }}</td>
+                                <td>{{ transaction.buyer.company_name }}</td>
+                                <td>{{ transaction.credit_amount }}</td>
+                                <td>${{ transaction.total_price }}</td>
+                                <td>${{ transaction.price_per_credit }}</td>
+                                <td>{{ transaction.completed_at|date:"M d, Y" }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="empty-state">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 text-blue-500 mb-4 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <p class="text-center text-gray-500">No completed transactions found</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </section>
+
+    <!-- Analytics Section -->
+    <section id="analytics-section">
+        <h2 class="section-title-main">Analytics</h2>
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <!-- Trading Volume -->
+            <div class="section-card">
+                <div class="section-header">
+                    <h2 class="section-title">Trading Volume</h2>
+                </div>
+                <div class="section-body">
+                    <div class="chart-container">
+                        <canvas id="volumeChart" height="250"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Price Trends -->
+            <div class="section-card">
+                <div class="section-header">
+                    <h2 class="section-title">Price Trends</h2>
+                </div>
+                <div class="section-body">
+                    <div class="chart-container">
+                        <canvas id="priceChart" height="250"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Trading Breakdown -->
+            <div class="section-card">
+                <div class="section-header">
+                    <h2 class="section-title">Trading Breakdown</h2>
+                </div>
+                <div class="section-body">
+                    <div class="chart-container">
+                        <canvas id="breakdownChart" height="250"></canvas>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Top Traders -->
+            <div class="section-card">
+                <div class="section-header">
+                    <h2 class="section-title">Top Traders</h2>
+                </div>
+                <div class="section-body">
+                    {% if top_traders %}
+                    <div class="overflow-x-auto">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Company</th>
+                                    <th>Bought</th>
+                                    <th>Sold</th>
+                                    <th>Net</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for trader in top_traders %}
+                                <tr>
+                                    <td>{{ trader.company_name }}</td>
+                                    <td>{{ trader.bought }}</td>
+                                    <td>{{ trader.sold }}</td>
+                                    <td class="{% if trader.net > 0 %}text-green-600{% elif trader.net < 0 %}text-red-600{% endif %}">
+                                        {{ trader.net }}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="empty-state">
+                        <p class="text-center text-gray-500">No trading data available</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </section>
+</div>
+
+<!-- Buy Credits Modal -->
+<div id="buyCreditsModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>Buy Carbon Credits</h2>
+            <span class="close">&times;</span>
+        </div>
+        <div class="modal-body">
+            <form id="buyCreditsForm">
+                <input type="hidden" id="offerId" name="offer_id">
+                <div class="form-group">
+                    <label for="seller">Seller</label>
+                    <input type="text" id="seller" class="form-control" readonly>
+                </div>
+                <div class="form-group">
+                    <label for="creditAmount">Number of Credits</label>
+                    <input type="number" id="creditAmount" class="form-control" min="1" step="1" readonly>
+                </div>
+                <div class="form-group">
+                    <label for="pricePerCredit">Price per Credit</label>
+                    <div class="input-group">
+                        <span class="input-group-text">$</span>
+                        <input type="number" id="pricePerCredit" class="form-control" step="0.01" readonly>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="totalPrice">Total Price</label>
+                    <div class="input-group">
+                        <span class="input-group-text">$</span>
+                        <input type="number" id="totalPrice" class="form-control" step="0.01" readonly>
+                    </div>
+                </div>
+            </form>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" id="cancelBuyBtn">Cancel</button>
+            <button type="button" class="btn btn-primary" id="confirmBuyBtn">Buy Credits</button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.1/dist/chart.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    console.log("DOM fully loaded");
+
+    // Change tab buttons to scroll to sections
+    const pendingBtn = document.getElementById('pending-btn');
+    const marketplaceBtn = document.getElementById('marketplace-btn');
+    const completedBtn = document.getElementById('completed-btn');
+    const analyticsBtn = document.getElementById('analytics-btn');
+    const sections = document.querySelectorAll('section');
+
+    // Add intersection observer to highlight active section in nav
+    const observerOptions = {
+        root: null,
+        rootMargin: '-100px 0px -80% 0px', // Adjust the top margin to account for the sticky header
+        threshold: 0
+    };
+
+    const navObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                // Update the active button based on which section is visible
+                const sectionId = entry.target.id;
+                document.querySelectorAll('.nav-button').forEach(btn => {
+                    btn.classList.remove('active');
+                });
+                document.querySelector(`[data-section="${sectionId}"]`).classList.add('active');
+            }
+        });
+    }, observerOptions);
+
+    // Observe all sections
+    sections.forEach(section => {
+        navObserver.observe(section);
+    });
+
+    function scrollToSection(sectionId) {
+        console.log(`Scrolling to section: ${sectionId}`);
+        const section = document.getElementById(sectionId);
+        if (section) {
+            // Update active button
+            document.querySelectorAll('.nav-button').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            document.querySelector(`[data-section="${sectionId}"]`).classList.add('active');
+            
+            // Scroll to section with offset for header
+            const yOffset = -20; 
+            const y = section.getBoundingClientRect().top + window.pageYOffset + yOffset;
+            window.scrollTo({top: y, behavior: 'smooth'});
+        } else {
+            console.error(`Section #${sectionId} not found`);
+        }
+    }
+    
+    if (pendingBtn) {
+        pendingBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            scrollToSection("pending-section");
+        });
+    }
+    
+    if (marketplaceBtn) {
+        marketplaceBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            scrollToSection("marketplace-section");
+        });
+    }
+    
+    if (completedBtn) {
+        completedBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            scrollToSection("completed-section");
+        });
+    }
+    
+    if (analyticsBtn) {
+        analyticsBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            scrollToSection("analytics-section");
+            // Initialize charts when scrolling to the analytics section
+            setTimeout(initCharts, 100);
+        });
+    }
+    
+    // Buy Credits Modal
+    const buyCreditsModal = document.getElementById('buyCreditsModal');
+    const closeBtn = buyCreditsModal.querySelector('.close');
+    const cancelBtn = document.getElementById('cancelBuyBtn');
+    const confirmBtn = document.getElementById('confirmBuyBtn');
+    
+    // Get all buttons that open the buy credits modal
+    const buyButtons = document.querySelectorAll('.buy-credits-btn');
+    const sellerName = document.getElementById('seller');
+    const offerIdInput = document.getElementById('offerId');
+    
+    // Add click event to each buy button
+    buyButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            // Get data from button attributes
+            const offerId = this.getAttribute('data-offer-id');
+            const seller = this.getAttribute('data-seller');
+            const credits = this.getAttribute('data-credits');
+            const price = this.getAttribute('data-price');
+            
+            // Populate the modal fields
+            sellerName.textContent = seller || 'Unknown Seller';
+            offerIdInput.value = offerId || '';
+            
+            // Calculate and set total price
+            calculateTotal();
+            
+            // Show the modal
+            buyCreditsModal.classList.remove('hidden');
+        });
+    });
+    
+    // Close modal when clicking the close button
+    if (closeBtn) {
+        closeBtn.addEventListener('click', function() {
+            buyCreditsModal.classList.add('hidden');
+        });
+    }
+    
+    // Close modal when clicking outside of it
+    window.addEventListener('click', function(event) {
+        if (event.target == buyCreditsModal) {
+            buyCreditsModal.classList.add('hidden');
+        }
+    });
+    
+    // Calculate total price when amount or price changes
+    const creditAmount = document.getElementById('creditAmount');
+    const pricePerCredit = document.getElementById('pricePerCredit');
+    const totalPrice = document.getElementById('totalPrice');
+    
+    if (creditAmount && pricePerCredit && totalPrice) {
+        creditAmount.addEventListener('input', calculateTotal);
+        pricePerCredit.addEventListener('input', calculateTotal);
+    }
+    
+    // Function to calculate total price
+    function calculateTotal() {
+        const amount = parseFloat(creditAmount.value) || 0;
+        const price = parseFloat(pricePerCredit.value) || 0;
+        totalPrice.value = (amount * price).toFixed(2);
+    }
+    
+    // Initialize Analytics Charts
+    function initCharts() {
+        // Check if charts already initialized to prevent duplicates
+        if (window.chartsInitialized) return;
+        
+        console.log("Initializing charts");
+        window.chartsInitialized = true;
+        
+        // Sample data - replace with real data in production
+        const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep'];
+        const volumeData = [30, 40, 35, 50, 49, 60, 70, 91, 125];
+        const priceData = [15, 17, 16, 14, 18, 19, 22, 21, 20];
+        
+        // Trading Volume chart
+        const volumeCtx = document.getElementById('volumeChart');
+        if (volumeCtx) {
+            console.log("Creating volume chart");
+            new Chart(volumeCtx, {
+                type: 'line',
+                data: {
+                    labels: months,
+                    datasets: [{
+                        label: 'Trading Volume',
+                        data: volumeData,
+                        backgroundColor: 'rgba(37, 99, 235, 0.2)',
+                        borderColor: 'rgba(37, 99, 235, 1)',
+                        borderWidth: 2,
+                        tension: 0.3
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        } else {
+            console.log("Volume chart element not found");
+        }
+        
+        // Price Trends chart
+        const priceCtx = document.getElementById('priceChart');
+        if (priceCtx) {
+            console.log("Creating price chart");
+            new Chart(priceCtx, {
+                type: 'line',
+                data: {
+                    labels: months,
+                    datasets: [{
+                        label: 'Avg. Price per Credit',
+                        data: priceData,
+                        backgroundColor: 'rgba(5, 150, 105, 0.2)',
+                        borderColor: 'rgba(5, 150, 105, 1)',
+                        borderWidth: 2,
+                        tension: 0.3
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        } else {
+            console.log("Price chart element not found");
+        }
+        
+        // Trading Breakdown chart
+        const breakdownCtx = document.getElementById('breakdownChart');
+        if (breakdownCtx) {
+            console.log("Creating breakdown chart");
+            new Chart(breakdownCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Company A', 'Company B', 'Company C', 'Others'],
+                    datasets: [{
+                        data: [45, 25, 20, 10],
+                        backgroundColor: [
+                            'rgba(37, 99, 235, 0.8)',
+                            'rgba(5, 150, 105, 0.8)',
+                            'rgba(245, 158, 11, 0.8)',
+                            'rgba(107, 114, 128, 0.8)'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        }
+                    }
+                }
+            });
+        }
+    }
+    
+    // Initialize charts when page loads
+    if (document.getElementById('analytics-section')) {
+        // Call initCharts when analytics button is clicked
+        if (analyticsBtn) {
+            analyticsBtn.addEventListener('click', initCharts);
+        }
+        
+        // Check if analytics section is visible in viewport
+        const chartObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    // Delay chart initialization slightly to ensure DOM is ready
+                    setTimeout(initCharts, 300);
+                    chartObserver.disconnect();
+                }
+            });
+        }, {
+            rootMargin: '0px 0px -200px 0px',
+            threshold: 0.1
+        });
+        
+        chartObserver.observe(document.getElementById('analytics-section'));
+    }
+    
+    // Refresh button functionality
+    const refreshButton = document.getElementById('refresh-button');
+    if (refreshButton) {
+        refreshButton.addEventListener('click', function() {
+            location.reload();
+        });
+    }
+});
+</script>
+{% endblock %}  

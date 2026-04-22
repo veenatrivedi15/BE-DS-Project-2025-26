@@ -1,0 +1,284 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ page_title }}{% endblock %}
+
+{% block extra_css %}
+<style>
+.points-container {
+    background: white;
+    border-radius: 16px;
+    padding: 2rem;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+}
+
+.points-overview {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 2rem;
+    margin-bottom: 3rem;
+}
+
+.points-card {
+    background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+    color: white;
+    border-radius: 12px;
+    padding: 2rem;
+    text-align: center;
+    transition: transform 0.3s ease;
+}
+
+.points-card:hover {
+    transform: translateY(-4px);
+}
+
+.points-icon {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+}
+
+.points-value {
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+}
+
+.points-label {
+    font-size: 1.125rem;
+    opacity: 0.9;
+}
+
+.history-container {
+    background: white;
+    border-radius: 16px;
+    padding: 2rem;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+}
+
+.history-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+    padding-bottom: 1rem;
+    border-bottom: 2px solid #e5e7eb;
+}
+
+.history-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #1f2937;
+}
+
+.history-filters {
+    display: flex;
+    gap: 1rem;
+}
+
+.filter-button {
+    padding: 0.5rem 1rem;
+    border: 2px solid #e5e7eb;
+    border-radius: 8px;
+    background: white;
+    color: #6b7280;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.filter-button:hover {
+    border-color: #d97706;
+    color: #d97706;
+}
+
+.filter-button.active {
+    background: #d97706;
+    color: white;
+    border-color: #d97706;
+}
+
+.points-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.points-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.5rem;
+    border-radius: 12px;
+    background: #f9fafb;
+    border-left: 4px solid #d97706;
+    transition: all 0.3s ease;
+}
+
+.points-item:hover {
+    background: #f3f4f6;
+    transform: translateX(4px);
+}
+
+.points-info {
+    flex: 1;
+}
+
+.points-description {
+    font-weight: 600;
+    color: #1f2937;
+    margin-bottom: 0.25rem;
+}
+
+.points-meta {
+    font-size: 0.875rem;
+    color: #6b7280;
+}
+
+.points-amount {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #d97706;
+}
+
+.points-type {
+    display: inline-block;
+    padding: 0.25rem 0.75rem;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    margin-bottom: 0.25rem;
+}
+
+.type-trip { background: #dcfce7; color: #166534; }
+.type-badge { background: #fef3c7; color: #d97706; }
+.type-streak { background: #fde68a; color: #d97706; }
+.type-challenge { background: #fef3c7; color: #d97706; }
+.type-bonus { background: #fef3c7; color: #f59e0b; }
+
+.points-date {
+    font-size: 0.875rem;
+    color: #6b7280;
+}
+
+.empty-state {
+    text-align: center;
+    padding: 3rem;
+    color: #6b7280;
+}
+
+.empty-state-icon {
+    font-size: 4rem;
+    margin-bottom: 1rem;
+    opacity: 0.5;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+    <!-- Header -->
+    <div class="bg-gradient-to-r from-yellow-50 to-orange-50 rounded-lg p-6 mb-8">
+        <div class="flex items-center">
+            <div class="flex-shrink-0">
+                <span class="text-4xl">⭐</span>
+            </div>
+            <div class="ml-4">
+                <h1 class="text-3xl font-bold text-gray-800">Points History</h1>
+                <p class="text-gray-600">Track your earned points and achievements</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Points Overview -->
+    <div class="points-overview">
+        <div class="points-card">
+            <div class="points-icon">⭐</div>
+            <div class="points-value">{{ total_points }}</div>
+            <div class="points-label">Total Points</div>
+        </div>
+        
+        {% for type_data in points_by_type %}
+        <div class="points-card">
+            <div class="points-icon">
+                {% if type_data.points_type == 'trip' %}🚗
+                {% elif type_data.points_type == 'badge' %}🏆
+                {% elif type_data.points_type == 'streak' %}🔥
+                {% elif type_data.points_type == 'challenge' %}🏆
+                {% else %}⭐{% endif %}
+            </div>
+            <div class="points-value">{{ type_data.total }}</div>
+            <div class="points-label">{{ type_data.points_type|title }} Points</div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Points History -->
+    {% if points_history %}
+        <div class="history-container">
+            <div class="history-header">
+                <h2 class="history-title">Recent Points Activity</h2>
+                <div class="history-filters">
+                    <button class="filter-button active">All</button>
+                    <button class="filter-button">Trips</button>
+                    <button class="filter-button">Badges</button>
+                    <button class="filter-button">Streaks</button>
+                </div>
+            </div>
+            
+            <div class="points-list">
+                {% for point in points_history %}
+                <div class="points-item">
+                    <div class="points-info">
+                        <div class="points-description">{{ point.description }}</div>
+                        <div class="points-meta">
+                            <span class="points-type type-{{ point.points_type }}">
+                                {{ point.get_points_type_display }}
+                            </span>
+                            <span class="points-date">{{ point.created_at|date:"M d, Y" }}</span>
+                        </div>
+                    </div>
+                    <div class="points-amount">+{{ point.points }}</div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    {% else %}
+        <div class="empty-state">
+            <div class="empty-state-icon">⭐</div>
+            <h3 class="text-xl font-semibold text-gray-800 mb-2">No Points Yet</h3>
+            <p class="text-gray-600">Start logging trips and earning achievements to get points!</p>
+            <a href="{% url 'employee_trip_log' %}" class="inline-flex items-center px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 transition-colors">
+                Log Your First Trip
+            </a>
+        </div>
+    {% endif %}
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Add filter functionality
+    const filterButtons = document.querySelectorAll('.filter-button');
+    const pointsItems = document.querySelectorAll('.points-item');
+    
+    filterButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            // Remove active class from all buttons
+            filterButtons.forEach(btn => btn.classList.remove('active'));
+            // Add active class to clicked button
+            this.classList.add('active');
+            
+            const filterType = this.textContent.toLowerCase();
+            
+            pointsItems.forEach(item => {
+                const itemType = item.querySelector('.points-type').textContent.toLowerCase();
+                if (filterType === 'all' || itemType.includes(filterType)) {
+                    item.style.display = 'flex';
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+        });
+    });
+});
+</script>
+{% endblock %}

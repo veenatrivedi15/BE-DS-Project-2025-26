@@ -1,0 +1,368 @@
+{% extends 'base.html' %}
+
+{% block title %}Register - Carbon Credits Platform{% endblock %}
+
+{% block content %}
+<div class="min-h-screen flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+    <div class="sm:mx-auto sm:w-full sm:max-w-md">
+        <h2 class="mt-6 text-center text-3xl font-extrabold text-gray-900">
+            Create Your Account
+        </h2>
+        <p class="mt-2 text-center text-sm text-gray-600">
+            Join us and start tracking your carbon footprint
+        </p>
+    </div>
+
+    <!-- Notification popup -->
+    <div id="notification" class="fixed inset-0 flex items-center justify-center z-50 hidden">
+        <div class="absolute inset-0 bg-black opacity-50"></div>
+        <div class="bg-white p-6 rounded-lg shadow-xl z-10 max-w-md w-full mx-4">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-lg font-medium text-gray-900" id="notification-title">Success</h3>
+                <button type="button" id="close-notification" class="text-gray-400 hover:text-gray-500">
+                    <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+            <p class="text-gray-600" id="notification-message"></p>
+            <div class="mt-6 flex justify-end">
+                <button type="button" id="notification-action" class="py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700">
+                    Continue
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
+        <div class="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10 card">
+            <!-- Registration Type Tabs -->
+            <div class="mb-6 border-b border-gray-200">
+                <div class="flex -mb-px">
+                    <button id="employer-tab" class="flex-1 py-2 px-1 text-center border-b-2 border-green-500 font-medium text-sm text-green-600 focus:outline-none">
+                        Register as Employer
+                    </button>
+                    <button id="employee-tab" class="flex-1 py-2 px-1 text-center border-b-2 border-transparent font-medium text-sm text-gray-500 hover:text-gray-700 hover:border-gray-300 focus:outline-none">
+                        Register as Employee
+                    </button>
+                </div>
+            </div>
+
+            <!-- Employer Registration Form -->
+            <div id="employer-form" class="space-y-6">
+                <form id="employerRegistrationForm" class="space-y-6">
+                    {% csrf_token %}
+                    
+                    <div class="space-y-4">
+                        <h3 class="text-lg font-medium text-gray-900">User Information</h3>
+                        
+                        <div>
+                            <label for="email" class="block text-sm font-medium text-gray-700">Email Address</label>
+                            <div class="mt-1">
+                                <input id="email" name="email" type="email" autocomplete="email" required class="input appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm">
+                            </div>
+                        </div>
+                        
+                        <div class="grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-2">
+                            <div>
+                                <label for="first_name" class="block text-sm font-medium text-gray-700">First Name</label>
+                                <div class="mt-1">
+                                    <input id="first_name" name="first_name" type="text" required class="input appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm">
+                                </div>
+                            </div>
+                            
+                            <div>
+                                <label for="last_name" class="block text-sm font-medium text-gray-700">Last Name</label>
+                                <div class="mt-1">
+                                    <input id="last_name" name="last_name" type="text" required class="input appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <label for="username" class="block text-sm font-medium text-gray-700">Username</label>
+                            <div class="mt-1">
+                                <input id="username" name="username" type="text" required class="input appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm">
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <label for="password" class="block text-sm font-medium text-gray-700">Password</label>
+                            <div class="mt-1">
+                                <input id="password" name="password" type="password" required class="input appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="space-y-4 pt-4 border-t border-gray-200">
+                        <h3 class="text-lg font-medium text-gray-900">Company Information</h3>
+                        
+                        <div>
+                            <label for="company_name" class="block text-sm font-medium text-gray-700">Company Name</label>
+                            <div class="mt-1">
+                                <input id="company_name" name="company_name" type="text" required class="input appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm">
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <label for="registration_number" class="block text-sm font-medium text-gray-700">Registration Number</label>
+                            <div class="mt-1">
+                                <input id="registration_number" name="registration_number" type="text" required class="input appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm">
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <label for="industry" class="block text-sm font-medium text-gray-700">Industry</label>
+                            <div class="mt-1">
+                                <input id="industry" name="industry" type="text" required class="input appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <button type="submit" class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 btn-primary">
+                            Register as Employer
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Employee Registration Form -->
+            <div id="employee-form" class="space-y-6 hidden">
+                <form id="employeeRegistrationForm" class="space-y-6">
+                    {% csrf_token %}
+                    
+                    <div class="space-y-4">
+                        <h3 class="text-lg font-medium text-gray-900">User Information</h3>
+                        
+                        <div>
+                            <label for="employee_email" class="block text-sm font-medium text-gray-700">Email Address</label>
+                            <div class="mt-1">
+                                <input id="employee_email" name="email" type="email" autocomplete="email" required class="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm">
+                            </div>
+                        </div>
+                        
+                        <div class="grid grid-cols-1 gap-y-4 gap-x-4 sm:grid-cols-2">
+                            <div>
+                                <label for="employee_first_name" class="block text-sm font-medium text-gray-700">First Name</label>
+                                <div class="mt-1">
+                                    <input id="employee_first_name" name="first_name" type="text" required class="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm">
+                                </div>
+                            </div>
+                            
+                            <div>
+                                <label for="employee_last_name" class="block text-sm font-medium text-gray-700">Last Name</label>
+                                <div class="mt-1">
+                                    <input id="employee_last_name" name="last_name" type="text" required class="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <label for="employee_username" class="block text-sm font-medium text-gray-700">Username</label>
+                            <div class="mt-1">
+                                <input id="employee_username" name="username" type="text" required class="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm">
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <label for="employee_password" class="block text-sm font-medium text-gray-700">Password</label>
+                            <div class="mt-1">
+                                <input id="employee_password" name="password" type="password" required class="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="space-y-4 pt-4 border-t border-gray-200">
+                        <h3 class="text-lg font-medium text-gray-900">Employment Information</h3>
+                        
+                        <div>
+                            <label for="employer_id" class="block text-sm font-medium text-gray-700">Employer</label>
+                            <div class="mt-1">
+                                <select id="employer_id" name="employer_id" required class="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm">
+                                    <option value="">Select your employer</option>
+                                    {% for employer in employers %}
+                                    <option value="{{ employer.id }}">{{ employer.company_name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <button type="submit" class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 btn-primary">
+                            Register as Employee
+                        </button>
+                    </div>
+                </form>
+            </div>
+            
+            <div class="mt-6">
+                <div class="relative">
+                    <div class="absolute inset-0 flex items-center">
+                        <div class="w-full border-t border-gray-300"></div>
+                    </div>
+                    <div class="relative flex justify-center text-sm">
+                        <span class="px-2 bg-white text-gray-500">
+                            Already have an account?
+                        </span>
+                    </div>
+                </div>
+
+                <div class="mt-6">
+                    <a href="{% url 'login' %}" class="w-full inline-block text-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-green-700 bg-green-100 hover:bg-green-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+                        Sign in here
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Tab switching functionality
+    const employerTab = document.getElementById('employer-tab');
+    const employeeTab = document.getElementById('employee-tab');
+    const employerForm = document.getElementById('employer-form');
+    const employeeForm = document.getElementById('employee-form');
+    
+    employerTab.addEventListener('click', function() {
+        employerTab.classList.add('border-green-500', 'text-green-600');
+        employerTab.classList.remove('border-transparent', 'text-gray-500');
+        employeeTab.classList.add('border-transparent', 'text-gray-500');
+        employeeTab.classList.remove('border-green-500', 'text-green-600');
+        
+        employerForm.classList.remove('hidden');
+        employeeForm.classList.add('hidden');
+    });
+    
+    employeeTab.addEventListener('click', function() {
+        employeeTab.classList.add('border-green-500', 'text-green-600');
+        employeeTab.classList.remove('border-transparent', 'text-gray-500');
+        employerTab.classList.add('border-transparent', 'text-gray-500');
+        employerTab.classList.remove('border-green-500', 'text-green-600');
+        
+        employeeForm.classList.remove('hidden');
+        employerForm.classList.add('hidden');
+    });
+
+    // Notification functionality
+    const notification = document.getElementById('notification');
+    const notificationTitle = document.getElementById('notification-title');
+    const notificationMessage = document.getElementById('notification-message');
+    const notificationAction = document.getElementById('notification-action');
+    const closeNotification = document.getElementById('close-notification');
+
+    function showNotification(title, message, actionText, actionUrl) {
+        notificationTitle.textContent = title;
+        notificationMessage.textContent = message;
+        notificationAction.textContent = actionText;
+        
+        notification.classList.remove('hidden');
+        
+        notificationAction.onclick = function() {
+            notification.classList.add('hidden');
+            if (actionUrl) {
+                window.location.href = actionUrl;
+            }
+        };
+        
+        closeNotification.onclick = function() {
+            notification.classList.add('hidden');
+        };
+    }
+
+    // Form submission helpers
+    function prepareFormData(form) {
+        const formData = new FormData(form);
+        const jsonData = {};
+        
+        formData.forEach((value, key) => {
+            jsonData[key] = value;
+        });
+        
+        return jsonData;
+    }
+    
+    function handleFormResponse(data, form) {
+        if (data.detail) {
+            // Show success notification
+            showNotification(
+                'Registration Successful', 
+                data.detail,
+                'Continue',
+                data.redirect_url
+            );
+            
+            // Reset form
+            form.reset();
+        } else if (data.error) {
+            // Show error notification
+            showNotification('Registration Failed', data.error, 'Try Again');
+        } else {
+            // Handle validation errors
+            const errorMessages = [];
+            for (const key in data) {
+                if (Array.isArray(data[key])) {
+                    errorMessages.push(`${key}: ${data[key].join(' ')}`);
+                }
+            }
+            showNotification('Registration Failed', errorMessages.join('\n'), 'Try Again');
+        }
+    }
+
+    // Employer registration form submission
+    document.getElementById('employerRegistrationForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const form = this;
+        const jsonData = prepareFormData(form);
+        
+        // Get CSRF token
+        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+        
+        fetch('/api/users/employers/register/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrfToken
+            },
+            body: JSON.stringify(jsonData)
+        })
+        .then(response => response.json())
+        .then(data => handleFormResponse(data, form))
+        .catch(error => {
+            console.error('Error:', error);
+            showNotification('Registration Failed', 'An unexpected error occurred. Please try again later.', 'Close');
+        });
+    });
+
+    // Employee registration form submission
+    document.getElementById('employeeRegistrationForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const form = this;
+        const jsonData = prepareFormData(form);
+        
+        // Get CSRF token
+        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+        
+        fetch('/api/users/employees/register/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrfToken
+            },
+            body: JSON.stringify(jsonData)
+        })
+        .then(response => response.json())
+        .then(data => handleFormResponse(data, form))
+        .catch(error => {
+            console.error('Error:', error);
+            showNotification('Registration Failed', 'An unexpected error occurred. Please try again later.', 'Close');
+        });
+    });
+</script>
+{% endblock %} 
