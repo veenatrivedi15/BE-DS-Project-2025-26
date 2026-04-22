@@ -1,0 +1,663 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Update Home Location - Carbon Credits Platform{% endblock %}
+
+{% block extra_css %}
+<style>
+    .container-box {
+        max-width: 800px;
+        margin: 0 auto;
+        background-color: #fff;
+        border-radius: 0.5rem;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        padding: 2rem;
+    }
+    
+    .map-container {
+        height: 400px;
+        width: 100%;
+        border-radius: 0.5rem;
+        overflow: hidden;
+        position: relative;
+        margin-bottom: 1.5rem;
+        border: 2px solid #e2e8f0;
+    }
+    
+    .search-box {
+        position: relative;
+        margin-bottom: 1.5rem;
+    }
+    
+    .search-input {
+        width: 100%;
+        padding: 12px;
+        border: 1px solid #e2e8f0;
+        border-radius: 0.375rem;
+        box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+        font-size: 1rem;
+    }
+    
+    .form-field {
+        margin-bottom: 1.5rem;
+    }
+    
+    .form-label {
+        display: block;
+        font-weight: 500;
+        margin-bottom: 0.5rem;
+        color: #374151;
+    }
+    
+    .form-input {
+        width: 100%;
+        padding: 10px 12px;
+        border: 1px solid #e2e8f0;
+        border-radius: 0.375rem;
+        background-color: #f8fafc;
+    }
+    
+    .btn-primary {
+        display: inline-block;
+        background-color: #059669;
+        color: white;
+        font-weight: 500;
+        padding: 0.75rem 1.5rem;
+        border-radius: 0.375rem;
+        border: none;
+        cursor: pointer;
+        transition: background-color 0.2s;
+    }
+    
+    .btn-primary:hover {
+        background-color: #047857;
+    }
+    
+    .btn-secondary {
+        display: inline-block;
+        background-color: #f1f5f9;
+        color: #334155;
+        font-weight: 500;
+        padding: 0.75rem 1.5rem;
+        border-radius: 0.375rem;
+        border: 1px solid #e2e8f0;
+        cursor: pointer;
+    }
+    
+    .btn-secondary:hover {
+        background-color: #e2e8f0;
+    }
+    
+    .loading-spinner {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: rgba(255, 255, 255, 0.8);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 10;
+    }
+    
+    .spinner {
+        width: 40px;
+        height: 40px;
+        border: 4px solid #e2e8f0;
+        border-top: 4px solid #059669;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+    }
+    
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+    
+    .hidden {
+        display: none;
+    }
+    
+    .instructions {
+        background-color: #f1f5f9;
+        border-left: 3px solid #059669;
+        padding: 1rem;
+        margin-bottom: 1.5rem;
+        border-radius: 0.25rem;
+    }
+    
+    .error-message {
+        background-color: #fef2f2;
+        color: #b91c1c;
+        padding: 1rem;
+        margin-bottom: 1rem;
+        border-radius: 0.25rem;
+        border-left: 3px solid #b91c1c;
+    }
+    
+    .map-instructions {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background-color: rgba(255, 255, 255, 0.9);
+        padding: 1rem;
+        border-radius: 0.375rem;
+        text-align: center;
+        max-width: 80%;
+        z-index: 5;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        pointer-events: none;
+    }
+    
+    .map-overlay {
+        position: absolute;
+        bottom: 10px;
+        left: 10px;
+        background-color: rgba(255, 255, 255, 0.9);
+        padding: 0.5rem 1rem;
+        border-radius: 0.25rem;
+        z-index: 5;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        max-width: 80%;
+        font-size: 0.875rem;
+    }
+    
+    .map-control {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        z-index: 5;
+    }
+    
+    .map-button {
+        background-color: white;
+        border: 1px solid #e2e8f0;
+        padding: 0.5rem;
+        border-radius: 0.25rem;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 0.5rem;
+    }
+    
+    .map-button:hover {
+        background-color: #f8fafc;
+    }
+    
+    .tabs {
+        display: flex;
+        margin-bottom: 1.5rem;
+        border-bottom: 1px solid #e2e8f0;
+    }
+    
+    .tab {
+        padding: 0.75rem 1.5rem;
+        cursor: pointer;
+        font-weight: 500;
+        border-bottom: 2px solid transparent;
+    }
+    
+    .tab.active {
+        color: #059669;
+        border-bottom-color: #059669;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <div class="container-box">
+        <h1 class="text-2xl font-bold mb-2">Set Your Home Location</h1>
+        <p class="text-gray-600 mb-3">Before logging trips, we need your home location. This will be saved for future trips.</p>
+        
+        {% if messages %}
+        <div class="mb-6">
+            {% for message in messages %}
+            <div class="p-4 rounded-md {% if message.tags == 'success' %}bg-green-100 text-green-700{% elif message.tags == 'error' %}bg-red-100 text-red-700{% else %}bg-blue-100 text-blue-700{% endif %}">
+                {{ message }}
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+        
+        <div id="error-container" class="error-message hidden"></div>
+        
+        <div class="tabs">
+            <div class="tab active" id="tab-search">Search Address</div>
+            <div class="tab" id="tab-manual">Manual Pin Placement</div>
+        </div>
+        
+        <!-- Search Tab Content -->
+        <div id="search-content">
+            <div class="instructions">
+                <p><strong>Search for your address</strong> using the search box below or switch to Manual Pin Placement to click directly on the map.</p>
+            </div>
+            
+            <div class="search-box">
+                <input id="location-search-input" type="text" placeholder="Enter your home address" class="search-input" />
+            </div>
+        </div>
+        
+        <!-- Manual Pin Tab Content -->
+        <div id="manual-content" class="hidden">
+            <div class="instructions">
+                <p><strong>Click anywhere on the map</strong> to place a pin at your home location. You can drag the pin to adjust it precisely.</p>
+            </div>
+        </div>
+        
+        <div class="map-container">
+            <div id="location-map"></div>
+            <div id="map-loading" class="loading-spinner">
+                <div class="spinner"></div>
+            </div>
+            <div id="map-instructions" class="map-instructions">
+                <p>Click anywhere on the map to place a pin</p>
+                <p class="text-sm text-gray-500 mt-1">You can drag the pin to adjust the exact location</p>
+            </div>
+            <div id="map-overlay" class="map-overlay hidden">
+                <p><strong>Tip:</strong> Drag the pin to adjust its position precisely</p>
+            </div>
+            <div class="map-control">
+                <button id="reset-map" class="map-button" title="Reset Map">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                    </svg>
+                </button>
+            </div>
+        </div>
+        
+        <form id="location-form" method="post" action="{% url 'employee_update_home_location' %}">
+            {% csrf_token %}
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="form-field">
+                    <label for="latitude-input" class="form-label">Latitude</label>
+                    <input type="text" id="latitude-input" name="latitude" value="{{ home_location.latitude|default:'' }}" class="form-input" readonly required />
+                </div>
+                
+                <div class="form-field">
+                    <label for="longitude-input" class="form-label">Longitude</label>
+                    <input type="text" id="longitude-input" name="longitude" value="{{ home_location.longitude|default:'' }}" class="form-input" readonly required />
+                </div>
+            </div>
+            
+            <div class="form-field">
+                <label for="address-input" class="form-label">Address</label>
+                <input type="text" id="address-input" name="address" value="{{ home_location.address|default:'' }}" class="form-input" readonly required />
+            </div>
+            
+            <div class="form-field">
+                <label for="name-input" class="form-label">Location Name</label>
+                <input type="text" id="name-input" name="name" value="My Home" class="search-input" />
+            </div>
+            
+            <div class="flex justify-between mt-6">
+                <a href="{% url 'employee_profile' %}" class="btn-secondary">Cancel</a>
+                <button type="submit" id="save-button" class="btn-primary" disabled>Save Home Location</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Hidden fields to store initial location data for JavaScript -->
+<div id="initial-data" 
+    data-has-location="{% if home_location and home_location.latitude and home_location.longitude %}true{% else %}false{% endif %}"
+    {% if home_location and home_location.latitude and home_location.longitude %}
+    data-latitude="{{ home_location.latitude }}"
+    data-longitude="{{ home_location.longitude }}"
+    data-address="{{ home_location.address|escapejs }}"
+    {% endif %}
+></div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // DOM elements
+    const mapElement = document.getElementById('location-map');
+    const searchInput = document.getElementById('location-search-input');
+    const addressInput = document.getElementById('address-input');
+    const latitudeInput = document.getElementById('latitude-input');
+    const longitudeInput = document.getElementById('longitude-input');
+    const saveButton = document.getElementById('save-button');
+    const loadingElement = document.getElementById('map-loading');
+    const errorContainer = document.getElementById('error-container');
+    const mapInstructions = document.getElementById('map-instructions');
+    const mapOverlay = document.getElementById('map-overlay');
+    const resetMapButton = document.getElementById('reset-map');
+    
+    // Tab elements
+    const tabSearch = document.getElementById('tab-search');
+    const tabManual = document.getElementById('tab-manual');
+    const searchContent = document.getElementById('search-content');
+    const manualContent = document.getElementById('manual-content');
+    
+    // Get initial data
+    const initialData = document.getElementById('initial-data');
+    const hasLocation = initialData.dataset.hasLocation === 'true';
+    
+    // Map variables
+    let map;
+    let marker;
+    let geocoder;
+    let placingPin = false;
+    
+    // Set up tab switching
+    tabSearch.addEventListener('click', function() {
+        tabSearch.classList.add('active');
+        tabManual.classList.remove('active');
+        searchContent.classList.remove('hidden');
+        manualContent.classList.add('hidden');
+        placingPin = false;
+    });
+    
+    tabManual.addEventListener('click', function() {
+        tabManual.classList.add('active');
+        tabSearch.classList.remove('active');
+        manualContent.classList.remove('hidden');
+        searchContent.classList.add('hidden');
+        placingPin = true;
+        
+        // Show instructions if no marker is on the map
+        if (!marker || !marker.getMap()) {
+            mapInstructions.classList.remove('hidden');
+        }
+    });
+    
+    // Show or hide the loading spinner
+    function setLoading(isLoading) {
+        if (isLoading) {
+            loadingElement.classList.remove('hidden');
+        } else {
+            loadingElement.classList.add('hidden');
+        }
+    }
+    
+    // Show an error message
+    function showError(message) {
+        errorContainer.textContent = message;
+        errorContainer.classList.remove('hidden');
+        
+        // Hide the message after 5 seconds
+        setTimeout(() => {
+            errorContainer.classList.add('hidden');
+        }, 5000);
+    }
+    
+    // Update form fields with location data
+    function updateLocation(address, lat, lng) {
+        // Update form inputs
+        addressInput.value = address;
+        latitudeInput.value = lat.toFixed(7);
+        longitudeInput.value = lng.toFixed(7);
+        
+        // Enable save button
+        saveButton.disabled = false;
+        
+        // Hide map instructions and show overlay with drag hint
+        mapInstructions.classList.add('hidden');
+        mapOverlay.classList.remove('hidden');
+    }
+    
+    // Remove the marker from the map
+    function removeMarker() {
+        if (marker) {
+            marker.setMap(null);
+        }
+        
+        // Reset form fields
+        addressInput.value = '';
+        latitudeInput.value = '';
+        longitudeInput.value = '';
+        saveButton.disabled = true;
+        
+        // Show instructions if in manual mode
+        if (placingPin) {
+            mapInstructions.classList.remove('hidden');
+        }
+        
+        // Hide overlay
+        mapOverlay.classList.add('hidden');
+    }
+    
+    // Initialize the map
+    function initMap() {
+        // Create geocoder for address lookups
+        geocoder = new google.maps.Geocoder();
+        
+        // Default location (Thane, Maharashtra, India)
+        let defaultLocation = { lat: 19.2183, lng: 72.9781 };
+        let defaultZoom = 13;
+        
+        // Use the existing home location if available
+        if (hasLocation) {
+            defaultLocation = {
+                lat: parseFloat(initialData.dataset.latitude),
+                lng: parseFloat(initialData.dataset.longitude)
+            };
+            defaultZoom = 15;
+            
+            // Pre-fill the form fields
+            updateLocation(
+                initialData.dataset.address,
+                defaultLocation.lat,
+                defaultLocation.lng
+            );
+        } else {
+            // Try to get user's current location if no home location is set
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(
+                    function(position) {
+                        const userLocation = {
+                            lat: position.coords.latitude,
+                            lng: position.coords.longitude
+                        };
+                        map.setCenter(userLocation);
+                        map.setZoom(13);
+                    },
+                    function() {
+                        // Failed to get location, use default
+                        console.log("Geolocation failed or was denied");
+                    }
+                );
+            }
+        }
+        
+        // Create the map
+        map = new google.maps.Map(mapElement, {
+            center: defaultLocation,
+            zoom: defaultZoom,
+            mapTypeControl: true,
+            streetViewControl: false,
+            fullscreenControl: true,
+            gestureHandling: 'greedy' // Makes it easier to use on mobile
+        });
+        
+        // Create a marker for the location
+        marker = new google.maps.Marker({
+            position: defaultLocation,
+            map: hasLocation ? map : null, // Only show marker if we have a location
+            draggable: true,
+            animation: google.maps.Animation.DROP
+        });
+        
+        // When the marker is dragged, update the form
+        marker.addListener('dragend', function() {
+            const position = marker.getPosition();
+            
+            setLoading(true);
+            geocoder.geocode({ location: position }, function(results, status) {
+                setLoading(false);
+                
+                if (status === 'OK' && results[0]) {
+                    updateLocation(
+                        results[0].formatted_address,
+                        position.lat(),
+                        position.lng()
+                    );
+                } else {
+                    showError('Could not determine the address for this location.');
+                    
+                    // Still update with coordinates
+                    updateLocation(
+                        'Unknown address',
+                        position.lat(),
+                        position.lng()
+                    );
+                }
+            });
+        });
+        
+        // When clicking on the map to place a pin
+        map.addListener('click', function(event) {
+            // Set the marker on the map
+            marker.setPosition(event.latLng);
+            marker.setMap(map);
+            
+            setLoading(true);
+            geocoder.geocode({ location: event.latLng }, function(results, status) {
+                setLoading(false);
+                
+                if (status === 'OK' && results[0]) {
+                    updateLocation(
+                        results[0].formatted_address,
+                        event.latLng.lat(),
+                        event.latLng.lng()
+                    );
+                } else {
+                    showError('Could not determine the address for this location.');
+                    
+                    // Still update with coordinates
+                    updateLocation(
+                        'Unknown address',
+                        event.latLng.lat(),
+                        event.latLng.lng()
+                    );
+                }
+            });
+        });
+        
+        // Set up the search box
+        const autocomplete = new google.maps.places.Autocomplete(searchInput);
+        
+        // Bias results to the current map view
+        autocomplete.bindTo('bounds', map);
+        
+        // When a place is selected from the dropdown
+        autocomplete.addListener('place_changed', function() {
+            const place = autocomplete.getPlace();
+            
+            if (!place.geometry || !place.geometry.location) {
+                // Try geocoding the address directly
+                geocodeAddress(searchInput.value);
+                return;
+            }
+            
+            // Set marker and map position
+            map.setCenter(place.geometry.location);
+            map.setZoom(16);
+            marker.setPosition(place.geometry.location);
+            marker.setMap(map);
+            
+            // Update form
+            updateLocation(
+                place.formatted_address || place.name,
+                place.geometry.location.lat(),
+                place.geometry.location.lng()
+            );
+        });
+        
+        // Handle direct geocoding for the search input
+        function geocodeAddress(address) {
+            setLoading(true);
+            
+            geocoder.geocode({ address: address }, function(results, status) {
+                setLoading(false);
+                
+                if (status === 'OK' && results[0]) {
+                    const location = results[0].geometry.location;
+                    
+                    // Set marker and map position
+                    map.setCenter(location);
+                    map.setZoom(16);
+                    marker.setPosition(location);
+                    marker.setMap(map);
+                    
+                    // Update form
+                    updateLocation(
+                        results[0].formatted_address,
+                        location.lat(),
+                        location.lng()
+                    );
+                } else {
+                    showError('Could not find that address. Please try another address or click directly on the map.');
+                }
+            });
+        }
+        
+        // Handle Enter key press in the search box
+        searchInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                geocodeAddress(searchInput.value);
+            }
+        });
+        
+        // Reset map button
+        resetMapButton.addEventListener('click', function() {
+            removeMarker();
+            
+            // Reset view to default or user location
+            if (navigator.geolocation) {
+                setLoading(true);
+                navigator.geolocation.getCurrentPosition(
+                    function(position) {
+                        setLoading(false);
+                        const userLocation = {
+                            lat: position.coords.latitude,
+                            lng: position.coords.longitude
+                        };
+                        map.setCenter(userLocation);
+                        map.setZoom(13);
+                    },
+                    function() {
+                        setLoading(false);
+                        // Failed to get location, use default
+                        map.setCenter(defaultLocation);
+                        map.setZoom(10);
+                    }
+                );
+            } else {
+                map.setCenter(defaultLocation);
+                map.setZoom(10);
+            }
+        });
+        
+        // Hide loading indicator when map is ready
+        google.maps.event.addListenerOnce(map, 'idle', function() {
+            setLoading(false);
+            
+            // Show instructions if no location exists
+            if (!hasLocation) {
+                mapInstructions.classList.remove('hidden');
+            } else {
+                mapOverlay.classList.remove('hidden');
+            }
+        });
+    }
+    
+    // Make sure the form has coordinates before submitting
+    document.getElementById('location-form').addEventListener('submit', function(e) {
+        if (!latitudeInput.value || !longitudeInput.value) {
+            e.preventDefault();
+            showError('Please select a location on the map before saving.');
+        }
+    });
+</script>
+
+<!-- Load Google Maps API with Places library -->
+<script src="https://maps.googleapis.com/maps/api/js?key={{ google_maps_api_key }}&libraries=places&callback=initMap" async defer></script>
+{% endblock %} 

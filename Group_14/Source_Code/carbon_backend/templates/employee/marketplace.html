@@ -1,0 +1,182 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Marketplace - Carbon Credits Platform{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <!-- Sidebar -->
+        <div class="col-md-3 col-lg-2 d-md-block sidebar">
+            {% include 'employee/sidebar.html' %}
+        </div>
+
+        <!-- Main Content -->
+        <div class="col-md-9 ms-sm-auto col-lg-10 px-md-4 mt-4">
+            <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pb-2 mb-3 border-bottom">
+                <h1 class="h2">Carbon Credits Marketplace</h1>
+                <div>
+                    <span class="badge bg-success p-2 me-2">Your Credits: <span id="available-credits">{{ employee_credits }}</span></span>
+                    <span class="badge bg-info p-2 me-2">Wallet Balance: ${{ wallet_balance }}</span>
+                    <span class="badge bg-secondary p-2">Current Rate: $<span id="market-rate">{{ market_rate }}</span>/credit</span>
+                </div>
+            </div>
+
+            <!-- Exchange credits with your employer -->
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Exchange Credits with {{ employer.company_name }}</h5>
+                </div>
+                <div class="card-body">
+                    <form method="post" id="offer-form">
+                        {% csrf_token %}
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <div class="form-check form-check-inline">
+                                    <input class="form-check-input" type="radio" name="offer_type" id="buy-radio" value="buy" checked>
+                                    <label class="form-check-label" for="buy-radio">Buy Credits</label>
+                                </div>
+                                <div class="form-check form-check-inline">
+                                    <input class="form-check-input" type="radio" name="offer_type" id="sell-radio" value="sell">
+                                    <label class="form-check-label" for="sell-radio">Sell Credits</label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id="buy-info" class="alert alert-info">
+                            <p><strong>Buy Credits:</strong> You'll use money from your wallet to purchase carbon credits.</p>
+                        </div>
+
+                        <div id="sell-info" class="alert alert-warning d-none">
+                            <p><strong>Sell Credits:</strong> You'll convert your carbon credits to money in your wallet.</p>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="credit-amount" class="form-label">Credit Amount</label>
+                                <input type="number" min="0.01" step="0.01" class="form-control" id="credit-amount" name="credit_amount" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Total Value</label>
+                                <div class="form-control bg-light">$<span id="total-amount">0.00</span></div>
+                            </div>
+                        </div>
+
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <button type="submit" class="btn btn-primary">Submit Offer</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Pending Offers -->
+            <div class="card mb-4">
+                <div class="card-header bg-warning">
+                    <h5 class="mb-0">Pending Offers</h5>
+                </div>
+                <div class="card-body">
+                    {% if pending_offers %}
+                        <div class="table-responsive">
+                            <table class="table table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>Date</th>
+                                        <th>Type</th>
+                                        <th>Credits</th>
+                                        <th>Rate</th>
+                                        <th>Total Amount</th>
+                                        <th>Status</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for offer in pending_offers %}
+                                    <tr>
+                                        <td>{{ offer.created_at|date:"M d, Y" }}</td>
+                                        <td>
+                                            {% if offer.offer_type == 'sell' %}
+                                            <span class="badge bg-danger">Sell</span>
+                                            {% else %}
+                                            <span class="badge bg-success">Buy</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>{{ offer.credit_amount }}</td>
+                                        <td>${{ offer.market_rate }}</td>
+                                        <td>${{ offer.total_amount }}</td>
+                                        <td><span class="badge bg-warning">Pending</span></td>
+                                        <td>
+                                            <a href="{% url 'cancel_offer' offer.id %}" class="btn btn-sm btn-danger cancel-offer-btn">Cancel</a>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <p class="text-center mb-0">You don't have any pending offers.</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Completed Transactions -->
+            <div class="card">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0">Completed Transactions</h5>
+                </div>
+                <div class="card-body">
+                    {% if completed_offers %}
+                        <div class="table-responsive">
+                            <table class="table table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>Date</th>
+                                        <th>Type</th>
+                                        <th>Credits</th>
+                                        <th>Rate</th>
+                                        <th>Total Amount</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for offer in completed_offers %}
+                                    <tr>
+                                        <td>{{ offer.processed_at|date:"M d, Y" }}</td>
+                                        <td>
+                                            {% if offer.offer_type == 'sell' %}
+                                            <span class="badge bg-danger">Sold</span>
+                                            {% else %}
+                                            <span class="badge bg-success">Bought</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>{{ offer.credit_amount }}</td>
+                                        <td>${{ offer.market_rate }}</td>
+                                        <td>${{ offer.total_amount }}</td>
+                                        <td>
+                                            {% if offer.status == 'approved' %}
+                                            <span class="badge bg-success">Approved</span>
+                                            {% elif offer.status == 'rejected' %}
+                                            <span class="badge bg-danger">Rejected</span>
+                                            {% elif offer.status == 'cancelled' %}
+                                            <span class="badge bg-secondary">Cancelled</span>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <p class="text-center mb-0">You don't have any completed transactions.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{% static 'js/employee-marketplace.js' %}"></script>
+{% endblock %} 
+ 
+ 

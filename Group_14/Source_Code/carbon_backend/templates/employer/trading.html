@@ -1,0 +1,466 @@
+{% extends 'base.html' %}
+
+{% block title %}Carbon Credit Trading - Carbon Credits Platform{% endblock %}
+
+{% block content %}
+<div class="py-8 bg-gray-50 min-h-screen">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <h1 class="text-3xl font-extrabold text-gray-900">Carbon Credit Trading</h1>
+        <p class="mt-2 text-lg text-gray-600">Buy and sell carbon credits on the marketplace.</p>
+    </div>
+    
+    {% if notifications %}
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-6">
+        <div class="bg-white shadow overflow-hidden sm:rounded-md">
+            <div class="p-4 bg-white border-b border-gray-200">
+                <h2 class="text-lg font-medium text-gray-900">Transaction Notifications</h2>
+            </div>
+            <ul class="divide-y divide-gray-200">
+                {% for notification in notifications %}
+                <li class="p-4 hover:bg-gray-50 {% if not notification.is_read %}bg-blue-50{% endif %}">
+                    <div class="flex items-start">
+                        <div class="flex-shrink-0">
+                            {% if notification.is_read %}
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                            </svg>
+                            {% else %}
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                            </svg>
+                            {% endif %}
+                        </div>
+                        <div class="ml-3 flex-1">
+                            <p class="text-sm text-gray-700">{{ notification.message }}</p>
+                            <p class="mt-1 text-xs text-gray-500">{{ notification.created_at|date:"M d, Y H:i" }}</p>
+                        </div>
+                        <form method="post" action="{% url 'employer:mark_notification_read' notification.id %}" class="ml-2">
+                            {% csrf_token %}
+                            <button type="submit" class="text-xs text-gray-500 hover:text-gray-700">
+                                {% if notification.is_read %}
+                                Mark as unread
+                                {% else %}
+                                Mark as read
+                                {% endif %}
+                            </button>
+                        </form>
+                    </div>
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+    {% endif %}
+    
+    <div class="container mx-auto px-4 py-8">
+        <!-- Display flash messages if any -->
+        {% if messages %}
+        <div class="mb-6">
+            {% for message in messages %}
+            <div class="p-4 rounded-lg {% if message.tags == 'success' %}bg-green-100 text-green-800{% elif message.tags == 'error' %}bg-red-100 text-red-800{% else %}bg-blue-100 text-blue-800{% endif %}">
+                {{ message }}
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+        
+        <!-- Stats Overview -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <div class="bg-white rounded-lg shadow p-6">
+                <h3 class="text-lg font-semibold text-gray-700 mb-2">Your Carbon Credits</h3>
+                <p class="text-3xl font-bold text-green-600">{{ total_credits|default:"0.00" }}</p>
+            </div>
+            <div class="bg-white rounded-lg shadow p-6">
+                <h3 class="text-lg font-semibold text-gray-700 mb-2">Average Market Price</h3>
+                <p class="text-3xl font-bold text-blue-600">${{ avg_price|default:"0.00" }} <span class="text-sm text-gray-500">per credit</span></p>
+            </div>
+            <div class="bg-white rounded-lg shadow p-6">
+                <h3 class="text-lg font-semibold text-gray-700 mb-2">Total Credits Purchased</h3>
+                <p class="text-3xl font-bold text-purple-600">{{ total_purchased|default:"0.00" }}</p>
+            </div>
+        </div>
+        
+        <!-- Tabs -->
+        <div class="mb-6 border-b border-gray-200">
+            <ul class="flex flex-wrap -mb-px text-sm font-medium text-center">
+                <li class="mr-2">
+                    <button class="tab-button active inline-block p-4 border-b-2 border-blue-600 rounded-t-lg text-blue-600" data-tab="marketplace">Marketplace</button>
+                </li>
+                <li class="mr-2">
+                    <button class="tab-button inline-block p-4 border-b-2 border-transparent rounded-t-lg hover:text-gray-600 hover:border-gray-300" data-tab="my-transactions">My Transactions</button>
+                </li>
+            </ul>
+        </div>
+        
+        <!-- Marketplace Tab -->
+        <div class="tab-content active" id="marketplace">
+            <!-- Sell Credits Card -->
+            <div class="bg-white rounded-lg shadow-lg overflow-hidden mb-6">
+                <div class="p-6">
+                    <div class="flex justify-between items-center mb-4">
+                        <h2 class="text-xl font-semibold text-gray-800">Sell Your Credits</h2>
+                        <button id="sell-credits-btn" class="bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-4 rounded-lg flex items-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m6 0H6m6 6v-6m0 0l-6 5.25v-12L18 12l-6 5.25z" />
+                            </svg>
+                            Sell Credits
+                        </button>
+                    </div>
+                    <p class="text-gray-600">You currently have <span class="font-semibold text-green-600">{{ total_credits|default:"0.00" }}</span> credits available to sell.</p>
+                </div>
+            </div>
+            
+            <!-- Available Credits -->
+            <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+                <div class="p-6">
+                    <div class="flex justify-between items-center mb-6">
+                        <h2 class="text-xl font-semibold text-gray-800">Available Credits</h2>
+                        <button id="refresh-marketplace" class="bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium py-2 px-4 rounded-lg flex items-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                            </svg>
+                            Refresh
+                        </button>
+                    </div>
+                    
+                    {% if market_offers %}
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Seller</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Available Credits</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Price per Credit</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total Price</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Listed Date</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody class="bg-white divide-y divide-gray-200">
+                                {% for offer in market_offers %}
+                                <tr>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ offer.seller.company_name }}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ offer.credit_amount }}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${{ offer.price_per_credit }}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${{ offer.total_price }}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ offer.created_at|date:"M d, Y" }}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                        <button class="buy-btn bg-green-600 hover:bg-green-700 text-white font-medium py-1 px-3 rounded-md" 
+                                                data-offer-id="{{ offer.id }}"
+                                                data-seller="{{ offer.seller.company_name }}"
+                                                data-amount="{{ offer.credit_amount }}"
+                                                data-price="{{ offer.price_per_credit }}"
+                                                data-total="{{ offer.total_price }}">
+                                            Buy
+                                        </button>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="text-center py-8">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 mx-auto text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                        </svg>
+                        <h3 class="mt-4 text-lg font-medium text-gray-900">No credits available</h3>
+                        <p class="mt-1 text-sm text-gray-500">There are no carbon credits available for purchase at the moment.</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <!-- My Transactions Tab -->
+        <div class="tab-content hidden" id="my-transactions">
+            <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+                <div class="p-6">
+                    <div class="flex justify-between items-center mb-6">
+                        <h2 class="text-xl font-semibold text-gray-800">Your Transaction History</h2>
+                        <button id="export-transactions" class="bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium py-2 px-4 rounded-lg flex items-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                            </svg>
+                            Export CSV
+                        </button>
+                    </div>
+                    
+                    {% if transactions %}
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Transaction ID</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Party</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Credits</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total Price</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                                </tr>
+                            </thead>
+                            <tbody class="bg-white divide-y divide-gray-200">
+                                {% for transaction in transactions %}
+                                <tr>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ transaction.id }}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                        {% if transaction.buyer == user.employer_profile %}
+                                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">Purchase</span>
+                                        {% else %}
+                                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">Sale</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                        {% if transaction.buyer == user.employer_profile %}
+                                        {{ transaction.seller.company_name }}
+                                        {% else %}
+                                        {{ transaction.buyer.company_name }}
+                                        {% endif %}
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ transaction.credit_amount }}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${{ transaction.total_price }}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        {% if transaction.status == 'completed' %}
+                                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">Completed</span>
+                                        {% elif transaction.status == 'approved' %}
+                                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">Approved</span>
+                                        {% elif transaction.status == 'pending' %}
+                                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">Pending Bank Approval</span>
+                                        <span class="block mt-1 text-xs text-gray-500">Awaiting approval from bank admin</span>
+                                        {% elif transaction.status == 'rejected' %}
+                                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">Rejected</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ transaction.created_at|date:"M d, Y H:i" }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="text-center py-8">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 mx-auto text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        </svg>
+                        <h3 class="mt-4 text-lg font-medium text-gray-900">No transactions yet</h3>
+                        <p class="mt-1 text-sm text-gray-500">You haven't made any carbon credit transactions yet.</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Buy Credit Modal -->
+<div id="buy-modal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden flex items-center justify-center z-50">
+    <div class="bg-white rounded-lg shadow-xl max-w-md w-full mx-4">
+        <div class="border-b px-6 py-4">
+            <h3 class="text-lg font-medium text-gray-900">Confirm Purchase</h3>
+        </div>
+        <form id="buy-form" method="post" action="{% url 'employer:create_transaction' %}">
+            {% csrf_token %}
+            <input type="hidden" id="offer-id" name="offer_id">
+            <div class="px-6 py-4">
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Seller</label>
+                        <p id="modal-seller" class="mt-1 text-sm text-gray-900"></p>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Available Credits</label>
+                        <p id="modal-amount" class="mt-1 text-sm text-gray-900"></p>
+                    </div>
+                    <div>
+                        <label for="purchase-amount" class="block text-sm font-medium text-gray-700">Credits to Purchase</label>
+                        <input type="number" id="purchase-amount" name="amount" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500" min="0.01" step="0.01" required>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Price per Credit</label>
+                        <p id="modal-price" class="mt-1 text-sm text-gray-900"></p>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Total Price</label>
+                        <p id="modal-total" class="mt-1 text-sm font-medium text-green-600"></p>
+                    </div>
+                </div>
+            </div>
+            <div class="bg-gray-50 px-6 py-4 flex justify-end space-x-3">
+                <button type="button" id="cancel-buy" class="bg-white py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+                    Cancel
+                </button>
+                <button type="submit" class="bg-green-600 py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+                    Confirm Purchase
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Sell Credit Modal -->
+<div id="sell-modal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden flex items-center justify-center z-50">
+    <div class="bg-white rounded-lg shadow-xl max-w-md w-full mx-4">
+        <div class="border-b px-6 py-4">
+            <h3 class="text-lg font-medium text-gray-900">Sell Carbon Credits</h3>
+        </div>
+        <form id="sell-form" method="post" action="{% url 'employer:create_offer' %}">
+            {% csrf_token %}
+            <div class="px-6 py-4">
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Available Credits</label>
+                        <p class="mt-1 text-sm text-gray-900">{{ total_credits|default:"0.00" }}</p>
+                    </div>
+                    <div>
+                        <label for="credit-amount" class="block text-sm font-medium text-gray-700">Credits to Sell</label>
+                        <input type="number" id="credit-amount" name="credit_amount" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500" min="0.01" step="0.01" max="{{ total_credits }}" required>
+                    </div>
+                    <div>
+                        <label for="price-per-credit" class="block text-sm font-medium text-gray-700">Price per Credit</label>
+                        <div class="mt-1 relative rounded-md shadow-sm">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <span class="text-gray-500 sm:text-sm">$</span>
+                            </div>
+                            <input type="number" id="price-per-credit" name="price_per_credit" class="pl-7 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500" min="0.01" step="0.01" required value="{{ avg_price|default:'10.00' }}">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Total Price</label>
+                        <p id="sell-total" class="mt-1 text-sm font-medium text-green-600">$0.00</p>
+                    </div>
+                </div>
+            </div>
+            <div class="bg-gray-50 px-6 py-4 flex justify-end space-x-3">
+                <button type="button" id="cancel-sell" class="bg-white py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+                    Cancel
+                </button>
+                <button type="submit" class="bg-green-600 py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+                    List for Sale
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Tab switching
+    const tabButtons = document.querySelectorAll('.tab-button');
+    const tabContents = document.querySelectorAll('.tab-content');
+    
+    tabButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            const tabId = button.getAttribute('data-tab');
+            
+            // Update active tab button
+            tabButtons.forEach(btn => btn.classList.remove('active', 'border-blue-600', 'text-blue-600'));
+            tabButtons.forEach(btn => btn.classList.add('border-transparent'));
+            button.classList.add('active', 'border-blue-600', 'text-blue-600');
+            button.classList.remove('border-transparent');
+            
+            // Update active tab content
+            tabContents.forEach(content => content.classList.add('hidden'));
+            tabContents.forEach(content => content.classList.remove('active'));
+            document.getElementById(tabId).classList.remove('hidden');
+            document.getElementById(tabId).classList.add('active');
+        });
+    });
+    
+    // Buy modal functionality
+    const buyButtons = document.querySelectorAll('.buy-btn');
+    const buyModal = document.getElementById('buy-modal');
+    const cancelBuy = document.getElementById('cancel-buy');
+    const buyForm = document.getElementById('buy-form');
+    const purchaseAmount = document.getElementById('purchase-amount');
+    
+    // Open buy modal
+    buyButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            const offerId = button.getAttribute('data-offer-id');
+            const seller = button.getAttribute('data-seller');
+            const amount = button.getAttribute('data-amount');
+            const price = button.getAttribute('data-price');
+            const total = button.getAttribute('data-total');
+            
+            document.getElementById('offer-id').value = offerId;
+            document.getElementById('modal-seller').textContent = seller;
+            document.getElementById('modal-amount').textContent = amount;
+            document.getElementById('modal-price').textContent = '$' + price;
+            document.getElementById('modal-total').textContent = '$' + total;
+            
+            purchaseAmount.max = amount;
+            purchaseAmount.value = amount;
+            
+            buyModal.classList.remove('hidden');
+        });
+    });
+    
+    // Close buy modal
+    cancelBuy.addEventListener('click', () => {
+        buyModal.classList.add('hidden');
+    });
+    
+    // Calculate total price on input change
+    purchaseAmount.addEventListener('input', () => {
+        const price = parseFloat(document.getElementById('modal-price').textContent.replace('$', ''));
+        const amount = parseFloat(purchaseAmount.value);
+        const total = (price * amount).toFixed(2);
+        
+        document.getElementById('modal-total').textContent = '$' + total;
+    });
+    
+    // Sell modal functionality
+    const sellBtn = document.getElementById('sell-credits-btn');
+    const sellModal = document.getElementById('sell-modal');
+    const cancelSell = document.getElementById('cancel-sell');
+    const creditAmount = document.getElementById('credit-amount');
+    const pricePerCredit = document.getElementById('price-per-credit');
+    
+    // Open sell modal
+    sellBtn.addEventListener('click', () => {
+        sellModal.classList.remove('hidden');
+    });
+    
+    // Close sell modal
+    cancelSell.addEventListener('click', () => {
+        sellModal.classList.add('hidden');
+    });
+    
+    // Calculate total price for sell form
+    function updateSellTotal() {
+        const amount = parseFloat(creditAmount.value) || 0;
+        const price = parseFloat(pricePerCredit.value) || 0;
+        const total = (amount * price).toFixed(2);
+        
+        document.getElementById('sell-total').textContent = '$' + total;
+    }
+    
+    creditAmount.addEventListener('input', updateSellTotal);
+    pricePerCredit.addEventListener('input', updateSellTotal);
+    
+    // Initial calculation
+    updateSellTotal();
+    
+    // Close modals when clicking outside
+    window.addEventListener('click', (e) => {
+        if (e.target === buyModal) {
+            buyModal.classList.add('hidden');
+        }
+        if (e.target === sellModal) {
+            sellModal.classList.add('hidden');
+        }
+    });
+    
+    // Refresh marketplace
+    document.getElementById('refresh-marketplace').addEventListener('click', () => {
+        location.reload();
+    });
+    
+    // Export transactions to CSV
+    document.getElementById('export-transactions').addEventListener('click', () => {
+        alert('Export functionality will be implemented soon.');
+    });
+});
+</script>
+{% endblock %} 

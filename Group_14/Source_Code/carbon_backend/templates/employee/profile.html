@@ -1,0 +1,296 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Employee Profile - Carbon Credits Platform{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <div class="mb-8">
+        <h1 class="text-3xl font-bold mb-2">Employee Profile</h1>
+        <p class="text-gray-600">Manage your account details and commuting information.</p>
+    </div>
+
+    <!-- Profile Information Card -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div class="col-span-2">
+            <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+                <div class="flex items-center mb-6">
+                    <div class="w-20 h-20 rounded-full bg-blue-100 flex items-center justify-center mr-4">
+                        <svg class="w-10 h-10 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                        </svg>
+                    </div>
+                    <div>
+                        <h2 class="text-2xl font-bold">{{ user.get_full_name }}</h2>
+                        <p class="text-gray-600">{{ employee_profile.employer.company_name }}</p>
+                    </div>
+                </div>
+
+                <!-- Profile Information Form -->
+                <form method="post" action="{% url 'employee_update_profile' %}">
+                    {% csrf_token %}
+                    
+                    {% if messages %}
+                    <div class="mb-4">
+                        {% for message in messages %}
+                        <div class="p-4 rounded-md {% if message.tags == 'success' %}bg-green-100 text-green-700{% elif message.tags == 'error' %}bg-red-100 text-red-700{% else %}bg-blue-100 text-blue-700{% endif %}">
+                            {{ message }}
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                        <div>
+                            <label for="first_name" class="block text-sm font-medium text-gray-700 mb-1">First Name</label>
+                            <input type="text" id="first_name" name="first_name" value="{{ user.first_name }}" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        </div>
+                        <div>
+                            <label for="last_name" class="block text-sm font-medium text-gray-700 mb-1">Last Name</label>
+                            <input type="text" id="last_name" name="last_name" value="{{ user.last_name }}" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        </div>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label for="email" class="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
+                        <input type="email" id="email" name="email" value="{{ user.email }}" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    
+                    {% if employee_profile.employee_id %}
+                    <div class="mb-4">
+                        <label for="employee_id" class="block text-sm font-medium text-gray-700 mb-1">Employee ID</label>
+                        <input type="text" id="employee_id" name="employee_id" value="{{ employee_profile.employee_id }}" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" readonly>
+                        <p class="text-xs text-gray-500 mt-1">Employee ID cannot be changed.</p>
+                    </div>
+                    {% endif %}
+                    
+                    <div class="flex justify-end">
+                        <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">Update Profile</button>
+                    </div>
+                </form>
+            </div>
+            
+            <!-- Home Location Card -->
+            <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+                <h3 class="text-xl font-bold mb-4">Home Location</h3>
+                
+                {% if home_location %}
+                <div class="mb-4">
+                    <div class="flex justify-between mb-2">
+                        <span class="font-medium text-gray-700">Address:</span>
+                        <span>{{ home_location.address }}</span>
+                    </div>
+                    <div class="flex justify-between mb-2">
+                        <span class="font-medium text-gray-700">Coordinates:</span>
+                        <span>{{ home_location.latitude }}, {{ home_location.longitude }}</span>
+                    </div>
+                    <div class="mt-4">
+                        <div id="home-location-map" class="w-full h-64 rounded-md mb-4"></div>
+                    </div>
+                </div>
+                <div class="flex justify-end">
+                    <a href="{% url 'employee_update_home_location' %}" class="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">Update Home Location</a>
+                </div>
+                {% else %}
+                <div class="p-4 bg-yellow-50 text-yellow-700 rounded-md mb-4">
+                    <div class="flex">
+                        <svg class="h-5 w-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                        </svg>
+                        <span>You haven't set your home location yet.</span>
+                    </div>
+                </div>
+                <div class="flex justify-center">
+                    <a href="{% url 'employee_update_home_location' %}" class="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">Set Home Location</a>
+                </div>
+                {% endif %}
+            </div>
+            
+            <!-- Change Password Card -->
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <h3 class="text-xl font-bold mb-4">Change Password</h3>
+                <form method="post" action="{% url 'employee_change_password' %}">
+                    {% csrf_token %}
+                    <div class="mb-4">
+                        <label for="current_password" class="block text-sm font-medium text-gray-700 mb-1">Current Password</label>
+                        <input type="password" id="current_password" name="current_password" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label for="new_password" class="block text-sm font-medium text-gray-700 mb-1">New Password</label>
+                        <input type="password" id="new_password" name="new_password" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label for="confirm_password" class="block text-sm font-medium text-gray-700 mb-1">Confirm New Password</label>
+                        <input type="password" id="confirm_password" name="confirm_password" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    
+                    <div class="flex justify-end">
+                        <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">Change Password</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        <div>
+            <!-- Account Summary Card -->
+            <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+                <h3 class="text-xl font-bold mb-4">Account Summary</h3>
+                <div class="space-y-3">
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">Account Type:</span>
+                        <span class="font-medium">Employee</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">Employer:</span>
+                        <span class="font-medium">{{ employee_profile.employer.company_name }}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">Carbon Credits:</span>
+                        <span class="font-medium">{{ employee_profile.carbon_credits|default:"0" }} credits</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">Status:</span>
+                        <span class="font-medium">
+                            {% if employee_profile.approved %}
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                Approved
+                            </span>
+                            {% else %}
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                                Pending Approval
+                            </span>
+                            {% endif %}
+                        </span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">Joined:</span>
+                        <span class="font-medium">{{ user.date_joined|date:"M d, Y" }}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">Last Login:</span>
+                        <span class="font-medium">{{ user.last_login|date:"M d, Y H:i" }}</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Carbon Credit Stats Card -->
+            <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+                <h3 class="text-xl font-bold mb-4">Carbon Credit Stats</h3>
+                <div class="space-y-3">
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">Total Credits Earned:</span>
+                        <span class="font-medium">{{ stats.total_credits|default:"0" }}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">Credits Redeemed:</span>
+                        <span class="font-medium">{{ stats.redeemed_credits|default:"0" }}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">Available Credits:</span>
+                        <span class="font-medium text-green-600">{{ stats.available_credits|default:"0" }}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">Total Trips:</span>
+                        <span class="font-medium">{{ stats.total_trips|default:"0" }}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">CO₂ Saved:</span>
+                        <span class="font-medium">{{ stats.co2_saved|default:"0" }} kg</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Quick Actions Card -->
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <h3 class="text-xl font-bold mb-4">Quick Actions</h3>
+                <div class="space-y-2">
+                    <a href="{% url 'employee_dashboard' %}" class="block p-3 rounded-md bg-gray-100 hover:bg-gray-200 text-gray-800">
+                        <div class="flex items-center">
+                            <svg class="w-5 h-5 mr-3 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
+                            </svg>
+                            Dashboard
+                        </div>
+                    </a>
+                    <a href="{% url 'employee_trip_log' %}" class="block p-3 rounded-md bg-gray-100 hover:bg-gray-200 text-gray-800">
+                        <div class="flex items-center">
+                            <svg class="w-5 h-5 mr-3 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path>
+                            </svg>
+                            Log a Trip
+                        </div>
+                    </a>
+                    <a href="{% url 'employee_trips' %}" class="block p-3 rounded-md bg-gray-100 hover:bg-gray-200 text-gray-800">
+                        <div class="flex items-center">
+                            <svg class="w-5 h-5 mr-3 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path>
+                            </svg>
+                            My Trips
+                        </div>
+                    </a>
+                    <a href="{% url 'employee_marketplace' %}" class="block p-3 rounded-md bg-gray-100 hover:bg-gray-200 text-gray-800">
+                        <div class="flex items-center">
+                            <svg class="w-5 h-5 mr-3 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3"></path>
+                            </svg>
+                            Marketplace
+                        </div>
+                    </a>
+                    <a href="{% url 'logout' %}" class="block p-3 rounded-md bg-red-100 hover:bg-red-200 text-red-800">
+                        <div class="flex items-center">
+                            <svg class="w-5 h-5 mr-3 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
+                            </svg>
+                            Logout
+                        </div>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if home_location %}
+<!-- Google Maps JavaScript for Home Location Map -->
+<script src="https://maps.googleapis.com/maps/api/js?key={{ google_maps_api_key }}&libraries=places"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initialize the map
+        const homeLocation = {
+            lat: parseFloat("{{ home_location.latitude }}"),
+            lng: parseFloat("{{ home_location.longitude }}")
+        };
+        
+        const map = new google.maps.Map(document.getElementById('home-location-map'), {
+            center: homeLocation,
+            zoom: 15,
+            mapTypeControl: true,
+            streetViewControl: false,
+            fullscreenControl: true
+        });
+        
+        // Add marker for home location
+        const marker = new google.maps.Marker({
+            position: homeLocation,
+            map: map,
+            title: 'Your Home Location',
+            icon: {
+                url: '{% static "img/markers/home.png" %}',
+                scaledSize: new google.maps.Size(32, 32)
+            }
+        });
+        
+        // Add info window
+        const infoWindow = new google.maps.InfoWindow({
+            content: '<div class="p-2"><strong>Your Home Location</strong><br>{{ home_location.address }}</div>'
+        });
+        
+        marker.addListener('click', function() {
+            infoWindow.open(map, marker);
+        });
+    });
+</script>
+{% endif %}
+{% endblock %} 

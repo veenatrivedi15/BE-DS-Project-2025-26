@@ -1,0 +1,313 @@
+{% extends 'base.html' %}
+
+{% block title %}Manage Home Location - Carbon Credits Platform{% endblock %}
+
+{% block extra_css %}
+<style>
+    .home-location-container {
+        max-width: 1000px;
+        margin: 0 auto;
+    }
+    
+    .map-container {
+        height: 400px;
+        width: 100%;
+        background-color: #f3f4f6;
+        border-radius: 0.5rem;
+        overflow: hidden;
+        position: relative;
+    }
+    
+    #location-map {
+        height: 100%;
+        width: 100%;
+    }
+    
+    .map-loading {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: rgba(255, 255, 255, 0.7);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 5;
+    }
+    
+    .map-search-container {
+        position: absolute;
+        top: 10px;
+        left: 10px;
+        right: 10px;
+        z-index: 10;
+        background: white;
+        padding: 10px;
+        border-radius: 4px;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+    }
+    
+    #map-search-input {
+        width: 100%;
+        padding: 8px 12px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="home-location-container px-4 py-6">
+    <div class="relative mb-8">
+        <div class="bg-pattern"></div>
+        <div class="relative z-10">
+            <h1 class="section-headline text-3xl md:text-4xl font-bold mb-6">Manage Home Location</h1>
+            <p class="text-gray-600 max-w-3xl">
+                {% if has_home_location %}
+                Update your home location to ensure accurate trip calculations.
+                {% else %}
+                Set your home location to start logging sustainable trips and earning carbon credits.
+                {% endif %}
+            </p>
+        </div>
+    </div>
+
+    <!-- Display flash messages if any -->
+    {% if messages %}
+    <div class="mb-6">
+        {% for message in messages %}
+        <div class="p-4 rounded-lg {% if message.tags == 'success' %}bg-green-100 text-green-800{% elif message.tags == 'error' %}bg-red-100 text-red-800{% else %}bg-blue-100 text-blue-800{% endif %}">
+            {{ message }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <div class="modern-card p-6 mb-8">
+        <form id="home-location-form" method="post" action="{% url 'employee_manage_home_location' %}">
+            {% csrf_token %}
+            
+            <div class="mb-6">
+                <h2 class="text-xl font-semibold mb-4">
+                    {% if has_home_location %}
+                    Update Your Home Location
+                    {% else %}
+                    Set Your Home Location
+                    {% endif %}
+                </h2>
+                <p class="text-sm text-gray-600 mb-4">
+                    Use the map below to search for or pinpoint your home address. This will be used to calculate your commute distance.
+                </p>
+                
+                <div class="map-container mb-4">
+                    <div class="map-loading" id="map-loading">
+                        <div class="spinner">
+                            <svg class="animate-spin h-8 w-8 text-green-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                        </div>
+                        <span class="ml-2 text-gray-600">Loading map...</span>
+                    </div>
+                    <div class="map-search-container">
+                        <input id="map-search-input" type="text" placeholder="Search for your home address">
+                    </div>
+                    <div id="location-map" class="h-full w-full"></div>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <div>
+                        <label for="home-lat" class="block text-sm font-medium text-gray-700 mb-1">Home Latitude</label>
+                        <input type="text" id="home-lat" name="home_latitude" value="{{ home_location.latitude|default:'' }}" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500" readonly>
+                    </div>
+                    <div>
+                        <label for="home-lng" class="block text-sm font-medium text-gray-700 mb-1">Home Longitude</label>
+                        <input type="text" id="home-lng" name="home_longitude" value="{{ home_location.longitude|default:'' }}" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500" readonly>
+                    </div>
+                </div>
+                
+                <div class="mb-4">
+                    <label for="home-address" class="block text-sm font-medium text-gray-700 mb-1">Home Address</label>
+                    <input type="text" id="home-address" name="home_address" value="{{ home_location.address|default:'' }}" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500">
+                </div>
+                
+                <div class="mb-4">
+                    <label for="home-name" class="block text-sm font-medium text-gray-700 mb-1">Location Name</label>
+                    <input type="text" id="home-name" name="home_name" value="{{ home_location.name|default:'My Home' }}" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500">
+                </div>
+                
+                <div class="flex justify-end space-x-3">
+                    <a href="{% url 'employee_dashboard' %}" class="px-6 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50">Cancel</a>
+                    <button type="submit" class="px-6 py-2 bg-green-600 text-white rounded-md hover:bg-green-700">
+                        {% if has_home_location %}
+                        Update Home Location
+                        {% else %}
+                        Save Home Location
+                        {% endif %}
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{% if google_maps_api_key and google_maps_api_key != 'AIzaSyA-test-key-for-development-only' and google_maps_api_key|length > 20 %}
+<!-- Load Google Maps API with the provided API key -->
+<script src="https://maps.googleapis.com/maps/api/js?key={{ google_maps_api_key }}&libraries=places,geometry&callback=initMap" async defer></script>
+<script>
+    // Initialize globals
+    var hasExistingLocation = {% if has_home_location %}true{% else %}false{% endif %};
+    var existingLat = {% if home_location.latitude %}{{ home_location.latitude }}{% else %}null{% endif %};
+    var existingLng = {% if home_location.longitude %}{{ home_location.longitude }}{% else %}null{% endif %};
+    
+    function initMap() {
+        // Default center (Thane, Maharashtra, India)
+        var defaultCenter = { lat: 19.2183, lng: 72.9781 };
+        
+        // If we have existing coordinates, use them
+        if (existingLat && existingLng) {
+            defaultCenter = {
+                lat: parseFloat(existingLat),
+                lng: parseFloat(existingLng)
+            };
+        }
+        
+        // Create map instance
+        var map = new google.maps.Map(document.getElementById('location-map'), {
+            zoom: 15,
+            center: defaultCenter,
+            mapTypeControl: true,
+            streetViewControl: false,
+            fullscreenControl: true
+        });
+        
+        // Create marker for home location
+        var homeMarker = new google.maps.Marker({
+            map: map,
+            position: defaultCenter,
+            draggable: true,
+            icon: {
+                url: 'https://maps.google.com/mapfiles/ms/icons/blue-dot.png',
+                scaledSize: new google.maps.Size(40, 40)
+            },
+            animation: google.maps.Animation.DROP,
+            title: 'Your Home'
+        });
+        
+        // Initialize geocoder
+        var geocoder = new google.maps.Geocoder();
+        
+        // Only show marker if we have existing location
+        if (!hasExistingLocation) {
+            homeMarker.setMap(null);
+        }
+        
+        // Set up map search box
+        var searchInput = document.getElementById('map-search-input');
+        var searchBox = new google.maps.places.SearchBox(searchInput);
+        
+        // Bias search results to current map view
+        map.addListener('bounds_changed', function() {
+            searchBox.setBounds(map.getBounds());
+        });
+        
+        // Handle search box selection
+        searchBox.addListener('places_changed', function() {
+            var places = searchBox.getPlaces();
+            if (places.length === 0) return;
+            
+            var place = places[0];
+            if (!place.geometry || !place.geometry.location) return;
+            
+            // Set home marker
+            var homeLocation = {
+                lat: place.geometry.location.lat(),
+                lng: place.geometry.location.lng()
+            };
+            
+            homeMarker.setPosition(homeLocation);
+            homeMarker.setMap(map);
+            
+            // Center map on selected location
+            map.setCenter(homeLocation);
+            
+            // Update form fields
+            document.getElementById('home-lat').value = homeLocation.lat;
+            document.getElementById('home-lng').value = homeLocation.lng;
+            document.getElementById('home-address').value = place.formatted_address || place.name;
+            
+            // If this is a new location, suggest a name
+            if (!hasExistingLocation) {
+                document.getElementById('home-name').value = 'My Home';
+            }
+            
+            hasExistingLocation = true;
+        });
+        
+        // Handle clicks on the map
+        map.addListener('click', function(event) {
+            var clickedLocation = {
+                lat: event.latLng.lat(),
+                lng: event.latLng.lng()
+            };
+            
+            homeMarker.setPosition(clickedLocation);
+            homeMarker.setMap(map);
+            
+            // Update form fields
+            document.getElementById('home-lat').value = clickedLocation.lat;
+            document.getElementById('home-lng').value = clickedLocation.lng;
+            
+            // Get address via reverse geocoding
+            geocoder.geocode({ location: clickedLocation }, function(results, status) {
+                if (status === 'OK' && results[0]) {
+                    document.getElementById('home-address').value = results[0].formatted_address;
+                } else {
+                    document.getElementById('home-address').value = clickedLocation.lat + ', ' + clickedLocation.lng;
+                }
+            });
+            
+            hasExistingLocation = true;
+        });
+        
+        // Handle marker drag end
+        homeMarker.addListener('dragend', function() {
+            var draggedLocation = {
+                lat: homeMarker.getPosition().lat(),
+                lng: homeMarker.getPosition().lng()
+            };
+            
+            // Update form fields
+            document.getElementById('home-lat').value = draggedLocation.lat;
+            document.getElementById('home-lng').value = draggedLocation.lng;
+            
+            // Get address via reverse geocoding
+            geocoder.geocode({ location: draggedLocation }, function(results, status) {
+                if (status === 'OK' && results[0]) {
+                    document.getElementById('home-address').value = results[0].formatted_address;
+                } else {
+                    document.getElementById('home-address').value = draggedLocation.lat + ', ' + draggedLocation.lng;
+                }
+            });
+        });
+        
+        // Hide loading overlay
+        var loadingOverlay = document.getElementById('map-loading');
+        if (loadingOverlay) {
+            loadingOverlay.style.display = 'none';
+        }
+    }
+    
+    // Make initMap globally available
+    window.initMap = initMap;
+</script>
+{% else %}
+<script>
+    console.error('Google Maps API key not configured');
+    document.getElementById('map-loading').innerHTML = '<div class="p-4 bg-red-100 text-red-800 rounded">Google Maps API key not configured. Please contact administrator.</div>';
+</script>
+{% endif %}
+{% endblock %} 

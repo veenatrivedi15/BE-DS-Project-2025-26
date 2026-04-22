@@ -1,0 +1,469 @@
+{% extends 'base.html' %}
+
+{% block title %}Employer Dashboard - Carbon Credits Platform{% endblock %}
+
+{% block extra_css %}
+<style>
+    .dashboard-container {
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+    
+    .stat-card {
+        transition: all 0.3s ease;
+    }
+    
+    .stat-card:hover {
+        transform: translateY(-5px);
+    }
+    
+    .quick-actions-card {
+        border-radius: 16px;
+        background-color: white;
+        box-shadow: 0px 6px 24px rgba(0, 0, 0, 0.08);
+    }
+    
+    .action-btn {
+        transition: all 0.3s ease;
+    }
+    
+    .action-btn:hover {
+        transform: translateY(-2px);
+    }
+    
+    .chart-container {
+        position: relative;
+        height: 300px;
+        width: 100%;
+    }
+    
+    .kpi-card {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+    
+    .kpi-card .trend-indicator {
+        font-size: 0.875rem;
+        display: flex;
+        align-items: center;
+    }
+    
+    .trend-up {
+        color: #4CAF50;
+    }
+    
+    .trend-down {
+        color: #FF6B6B;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-container px-4 py-6">
+    <div class="relative mb-8">
+        <div class="bg-pattern"></div>
+        <div class="relative z-10">
+            <h1 class="section-headline text-3xl md:text-4xl font-bold mb-6">Employer Dashboard</h1>
+            <p class="text-gray-600 max-w-3xl">
+                Welcome, {{ user.first_name }}! Manage your organization's carbon credits program.
+            </p>
+        </div>
+    </div>
+
+    <!-- Stats Overview -->
+    <div class="mb-10">
+        <h2 class="text-2xl font-semibold text-gray-800 mb-6">Company Impact</h2>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div class="modern-card p-6 stat-card">
+                <div class="flex items-start">
+                    <div class="p-3 rounded-full bg-green-100 text-green-600">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                        </svg>
+                    </div>
+                    <div class="ml-4">
+                        <h3 class="text-lg font-medium text-gray-500">Total Employees</h3>
+                        <p class="text-3xl font-bold text-gray-800">{{ total_employees }}</p>
+                        <div class="text-sm text-gray-500 mt-1">
+                            <span class="text-green-600 font-medium">{{ active_employees }}</span> active users
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="modern-card p-6 stat-card">
+                <div class="flex items-start">
+                    <div class="p-3 rounded-full bg-blue-100 text-blue-600">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+                        </svg>
+                    </div>
+                    <div class="ml-4">
+                        <h3 class="text-lg font-medium text-gray-500">Total Trips</h3>
+                        <p class="text-3xl font-bold text-gray-800">{{ total_trips }}</p>
+                        <div class="text-sm text-gray-500 mt-1">
+                            <span class="text-green-600 font-medium">{{ pending_trips }}</span> pending approval
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="modern-card p-6 stat-card">
+                <div class="flex items-start">
+                    <div class="p-3 rounded-full bg-purple-100 text-purple-600">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                    </div>
+                    <div class="ml-4">
+                        <h3 class="text-lg font-medium text-gray-500">Total Credits</h3>
+                        <p class="text-3xl font-bold text-gray-800">{{ total_credits|floatformat:2 }}</p>
+                        <div class="text-sm text-gray-500 mt-1">
+                            <span class="trend-indicator trend-up">↑ {{ credits_growth|floatformat:1 }}% this month</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="modern-card p-6 stat-card">
+                <div class="flex items-start">
+                    <div class="p-3 rounded-full bg-yellow-100 text-yellow-600">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                        </svg>
+                    </div>
+                    <div class="ml-4">
+                        <h3 class="text-lg font-medium text-gray-500">CO₂ Saved</h3>
+                        <p class="text-3xl font-bold text-gray-800">{{ co2_saved|floatformat:1 }} kg</p>
+                        <div class="text-sm text-gray-500 mt-1">
+                            <span class="text-green-600 font-medium">{{ tree_equivalent }}</span> trees equivalent
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Charts & Quick Actions -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-10">
+        <!-- Charts Section -->
+        <div class="lg:col-span-2">
+            <h2 class="text-2xl font-semibold text-gray-800 mb-6">Analytics</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="modern-card p-6">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-lg font-medium text-gray-700">Monthly Credits</h3>
+                        <div class="flex space-x-2">
+                            <button class="px-3 py-1 text-xs font-medium bg-gray-100 rounded-md hover:bg-gray-200 period-selector active" data-period="quarterly">Quarterly</button>
+                            <button class="px-3 py-1 text-xs font-medium bg-gray-100 rounded-md hover:bg-gray-200 period-selector" data-period="yearly">Yearly</button>
+                        </div>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="creditsChart"></canvas>
+                    </div>
+                </div>
+                
+                <div class="modern-card p-6">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-lg font-medium text-gray-700">Transport Modes</h3>
+                        <button class="p-1 rounded-full bg-gray-100 hover:bg-gray-200 refresh-btn" title="Refresh data">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                            </svg>
+                        </button>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="transportModesChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Quick Actions -->
+        <div>
+            <h2 class="text-2xl font-semibold text-gray-800 mb-6">Quick Actions</h2>
+            <div class="quick-actions-card p-6">
+                <div class="space-y-4">
+                    <a href="{% url 'employer:pending_trips' %}" class="flex items-center p-4 bg-white border border-gray-200 rounded-xl shadow-sm hover:bg-gray-50 action-btn">
+                        <div class="p-2 rounded-full bg-yellow-100 text-yellow-600">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 5v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                            </svg>
+                        </div>
+                        <div class="ml-4">
+                            <p class="text-lg font-medium text-gray-900">Approve Trips</p>
+                            <span class="text-sm text-gray-500">{{ pending_trips }} pending approvals</span>
+                        </div>
+                    </a>
+                    
+                    <a href="{% url 'employer:employees' %}" class="flex items-center p-4 bg-white border border-gray-200 rounded-xl shadow-sm hover:bg-gray-50 action-btn">
+                        <div class="p-2 rounded-full bg-blue-100 text-blue-600">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                            </svg>
+                        </div>
+                        <div class="ml-4">
+                            <p class="text-lg font-medium text-gray-900">Manage Employees</p>
+                            <span class="text-sm text-gray-500">View and update employee accounts</span>
+                        </div>
+                    </a>
+                    
+                    <a href="{% url 'employer:locations' %}" class="flex items-center p-4 bg-white border border-gray-200 rounded-xl shadow-sm hover:bg-gray-50 action-btn">
+                        <div class="p-2 rounded-full bg-green-100 text-green-600">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                            </svg>
+                        </div>
+                        <div class="ml-4">
+                            <p class="text-lg font-medium text-gray-900">Manage Locations</p>
+                            <span class="text-sm text-gray-500">Add or update office locations</span>
+                        </div>
+                    </a>
+                    
+                    <a href="{% url 'employer:trading' %}" class="flex items-center p-4 bg-white border border-gray-200 rounded-xl shadow-sm hover:bg-gray-50 action-btn">
+                        <div class="p-2 rounded-full bg-purple-100 text-purple-600">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                        </div>
+                        <div class="ml-4">
+                            <p class="text-lg font-medium text-gray-900">Carbon Trading</p>
+                            <span class="text-sm text-gray-500">Buy or sell carbon credits</span>
+                        </div>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Top Employees -->
+    <div class="mb-8">
+        <h2 class="text-2xl font-semibold text-gray-800 mb-6">Top Employees</h2>
+        <div class="modern-card overflow-hidden">
+            <div class="px-6 py-5 border-b border-gray-200 bg-gray-50">
+                <h3 class="text-lg font-medium text-gray-700">Monthly Leaderboard</h3>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Rank</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Employee</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Department</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Trips</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Distance</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Credits</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">CO₂ Saved</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        {% for employee in top_employees %}
+                        <tr>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="text-sm font-medium text-gray-900">{{ forloop.counter }}</div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="flex items-center">
+                                    <div class="flex-shrink-0 h-10 w-10">
+                                        <div class="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center">
+                                            <span class="text-gray-700 font-medium">{{ employee.user.first_name|slice:":1" }}{{ employee.user.last_name|slice:":1" }}</span>
+                                        </div>
+                                    </div>
+                                    <div class="ml-4">
+                                        <div class="text-sm font-medium text-gray-900">{{ employee.user.get_full_name }}</div>
+                                        <div class="text-sm text-gray-500">{{ employee.user.email }}</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="text-sm text-gray-900">{{ employee.department }}</div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                {{ employee.trip_count }}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                {{ employee.total_distance|floatformat:1 }} km
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="text-sm font-medium text-green-600">{{ employee.total_credits|floatformat:2 }}</div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                {{ employee.co2_saved|floatformat:1 }} kg
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="7" class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-center">
+                                No employee data available yet.
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% if top_employees %}
+            <div class="px-6 py-4 bg-gray-50 border-t border-gray-200">
+                <a href="{% url 'employer:employees' %}" class="text-sm font-medium text-green-600 hover:text-green-500">
+                    View all employees <span aria-hidden="true">&rarr;</span>
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initialize charts
+        initializeCharts();
+        
+        // Add event listeners for period selectors
+        document.querySelectorAll('.period-selector').forEach(button => {
+            button.addEventListener('click', function() {
+                document.querySelectorAll('.period-selector').forEach(btn => btn.classList.remove('active'));
+                this.classList.add('active');
+                updateCharts(this.dataset.period);
+            });
+        });
+        
+        // Add event listener for refresh button
+        document.querySelector('.refresh-btn').addEventListener('click', function() {
+            updateCharts(document.querySelector('.period-selector.active').dataset.period);
+        });
+        
+        function initializeCharts() {
+            // Credits Chart
+            const creditsCtx = document.getElementById('creditsChart').getContext('2d');
+            window.creditsChart = new Chart(creditsCtx, {
+                type: 'bar',
+                data: {
+                    labels: ['January', 'February', 'March'],
+                    datasets: [{
+                        label: 'Credits Earned',
+                        data: [65, 84, 93],
+                        backgroundColor: 'rgba(43, 147, 72, 0.7)',
+                        borderColor: '#2B9348',
+                        borderWidth: 1,
+                        borderRadius: 4,
+                        barThickness: 20
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                color: 'rgba(0, 0, 0, 0.05)'
+                            }
+                        },
+                        x: {
+                            grid: {
+                                display: false
+                            }
+                        }
+                    },
+                    plugins: {
+                        tooltip: {
+                            backgroundColor: 'rgba(0, 0, 0, 0.7)',
+                            padding: 10,
+                            cornerRadius: 6,
+                            titleFont: {
+                                size: 14,
+                                weight: 'bold'
+                            }
+                        },
+                        legend: {
+                            display: false
+                        }
+                    }
+                }
+            });
+            
+            // Transport Modes Chart
+            const transportCtx = document.getElementById('transportModesChart').getContext('2d');
+            window.transportChart = new Chart(transportCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Bicycle', 'Walking', 'Public Transport', 'Carpool', 'Other'],
+                    datasets: [{
+                        data: [35, 20, 25, 15, 5],
+                        backgroundColor: [
+                            '#55A630', // green
+                            '#1E88E5', // blue
+                            '#70A9A1', // teal
+                            '#F9DC5C', // yellow
+                            '#9DACFF'  // lavender
+                        ],
+                        borderWidth: 0,
+                        hoverOffset: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    cutout: '70%',
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                padding: 20,
+                                usePointStyle: true,
+                                pointStyle: 'circle'
+                            }
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(0, 0, 0, 0.7)',
+                            padding: 10,
+                            cornerRadius: 6,
+                            callbacks: {
+                                label: function(context) {
+                                    const label = context.label || '';
+                                    const value = context.formattedValue;
+                                    return `${label}: ${value}%`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        
+        function updateCharts(period) {
+            // Simple mock data for different periods
+            let creditsData;
+            let labels;
+            
+            if (period === 'quarterly') {
+                labels = ['January', 'February', 'March'];
+                creditsData = [65, 84, 93];
+            } else if (period === 'yearly') {
+                labels = ['Q1', 'Q2', 'Q3', 'Q4'];
+                creditsData = [242, 185, 278, 324];
+            }
+            
+            // Update credits chart
+            window.creditsChart.data.labels = labels;
+            window.creditsChart.data.datasets[0].data = creditsData;
+            window.creditsChart.update();
+            
+            // Also update transport chart with random data just for demo purposes
+            const transportData = [
+                Math.floor(Math.random() * 30) + 20,
+                Math.floor(Math.random() * 20) + 15,
+                Math.floor(Math.random() * 20) + 10,
+                Math.floor(Math.random() * 15) + 10,
+                Math.floor(Math.random() * 10) + 5
+            ];
+            
+            window.transportChart.data.datasets[0].data = transportData;
+            window.transportChart.update();
+        }
+    });
+</script>
+{% endblock %} 

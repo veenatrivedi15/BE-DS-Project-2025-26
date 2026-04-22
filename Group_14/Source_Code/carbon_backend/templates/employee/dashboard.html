@@ -1,0 +1,868 @@
+{% extends 'base.html' %}
+
+{% block title %}Employee Dashboard - VayuNetra{% endblock %}
+
+{% block extra_css %}
+<style>
+    .dashboard-container {
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+    
+    .stat-card {
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    
+    .stat-card:hover {
+        transform: translateY(-8px) scale(1.02);
+        box-shadow: 0px 20px 40px rgba(0, 0, 0, 0.15);
+    }
+    
+    .quick-actions-card {
+        border-radius: 16px;
+        background-color: white;
+        box-shadow: 0px 6px 24px rgba(0, 0, 0, 0.08);
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    
+    .quick-actions-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0px 12px 30px rgba(0, 0, 0, 0.12);
+    }
+    
+    .action-btn {
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        border-radius: 12px;
+    }
+    
+    .action-btn:hover {
+        transform: translateY(-4px) scale(1.02);
+        box-shadow: 0px 8px 20px rgba(0, 0, 0, 0.1);
+        background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+    }
+    
+    .modern-card {
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        border-radius: 16px;
+        box-shadow: 0px 6px 24px rgba(0, 0, 0, 0.08);
+    }
+    
+    .modern-card:hover {
+        transform: translateY(-6px);
+        box-shadow: 0px 16px 40px rgba(0, 0, 0, 0.12);
+    }
+    
+    /* Smooth animations for progress bars */
+    .progress-bar {
+        transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    
+    /* Smooth fade in for content */
+    .fade-in {
+        animation: fadeIn 0.6s ease-in-out;
+    }
+    
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    
+    /* Smooth hover for badges */
+    .badge-card {
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    
+    .badge-card:hover {
+        transform: translateY(-4px) rotate(2deg);
+        box-shadow: 0px 12px 24px rgba(0, 0, 0, 0.15);
+    }
+    
+    /* Smooth transitions for navigation */
+    .nav-link {
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        position: relative;
+    }
+    
+    .nav-link::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 50%;
+        width: 0;
+        height: 2px;
+        background: var(--primary);
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        transform: translateX(-50%);
+    }
+    
+    .nav-link:hover::after,
+    .nav-link.active::after {
+        width: 100%;
+    }
+    
+    .chart-container {
+        position: relative;
+        height: 300px;
+        width: 100%;
+    }
+    
+    .kpi-card {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+    
+    .kpi-card .trend-indicator {
+        font-size: 0.875rem;
+        display: flex;
+        align-items: center;
+    }
+    
+    .trend-up {
+        color: #4CAF50;
+    }
+    
+    .trend-down {
+        color: #FF6B6B;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-container px-4 py-6">
+    <div class="relative mb-8">
+        <div class="bg-pattern"></div>
+        <div class="relative z-10">
+            <h1 class="section-headline text-3xl md:text-4xl font-bold mb-6">Employee Dashboard</h1>
+            <p class="text-gray-600 max-w-3xl">
+                Welcome, {{ user.first_name }}! Track your sustainable commutes and earn carbon credits.
+            </p>
+        </div>
+    </div>
+
+    <!-- ML Model Status Alert -->
+    <div class="mb-6 fade-in">
+        <div class="modern-card p-4 bg-gradient-to-r from-blue-100 to-indigo-100 border-2 border-blue-400 shadow-lg">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center">
+                    <span class="text-2xl mr-3">🤖</span>
+                    <div>
+                        <h3 class="text-lg font-bold text-blue-800">ML Prediction Model</h3>
+                        <p class="text-sm text-blue-600">
+                            Fine-tuned Gradient Boosting • 94.27% accuracy • Real-time predictions
+                        </p>
+                    </div>
+                </div>
+                <div class="flex items-center">
+                    <span class="px-3 py-1 bg-green-500 text-white text-sm font-medium rounded-full">
+                        ACTIVE
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sustainability Tip -->
+    {% if sustainability_tip %}
+    <div class="modern-card p-5 mb-6 bg-gradient-to-r from-green-100 to-emerald-100 border-2 border-green-400 shadow-lg fade-in">
+        <div class="flex items-start">
+            <div class="flex-shrink-0">
+                <span class="text-4xl">🌱</span>
+            </div>
+            <div class="ml-4 flex-1">
+                <h3 class="text-lg font-bold text-green-800 mb-2">Today's Sustainability Tip</h3>
+                <p class="text-base font-semibold text-gray-900 leading-relaxed">
+                    {{ sustainability_tip }}
+                </p>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Pollution Alerts -->
+    {% if total_alerts > 0 %}
+    <div class="modern-card p-5 mb-6 bg-gradient-to-r from-red-100 to-orange-100 border-2 border-red-400 shadow-lg fade-in">
+        <div class="flex items-start">
+            <div class="flex-shrink-0">
+                <span class="text-4xl">⚠️</span>
+            </div>
+            <div class="ml-4 flex-1">
+                <h3 class="text-lg font-bold text-red-800 mb-2">Pollution Alerts</h3>
+                <p class="text-base font-semibold text-gray-900 leading-relaxed">
+                    You have {{ total_alerts }} active pollution alert{% if total_alerts != 1 %}s{% endif %}. 
+                    <a href="{% url 'pollution:dashboard' %}" class="text-red-600 hover:text-red-800 underline font-medium">Check air quality now →</a>
+                </p>
+                {% for alert in pollution_alerts %}
+                <div class="mt-2 text-sm text-red-700 bg-red-50 p-2 rounded">
+                    • {{ alert.get_alert_type_display }}: {{ alert.message|truncatewords:15 }}
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Primary Stats Grid -->
+    <div class="mb-8">
+        <h2 class="text-2xl font-semibold text-gray-800 mb-4">Your Carbon Impact & Achievements</h2>
+        
+        <!-- Top Row - Main Stats -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+            <!-- Total Credits -->
+            <div class="modern-card p-5 stat-card fade-in">
+                <div class="flex items-start">
+                    <div class="p-2 rounded-full bg-green-100 text-green-600">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                    </div>
+                    <div class="ml-3 flex-1">
+                        <h3 class="text-sm font-medium text-gray-500">Total Credits</h3>
+                        <p class="text-2xl font-bold text-gray-800">{{ total_credits|floatformat:2 }}</p>
+                        <div class="text-xs text-gray-500 mt-1">
+                            <span class="text-green-600 font-medium">+{{ credits_last_week|floatformat:2 }}</span> this week
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Total Trips -->
+            <div class="modern-card p-5 stat-card fade-in">
+                <div class="flex items-start">
+                    <div class="p-2 rounded-full bg-blue-100 text-blue-600">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+                        </svg>
+                    </div>
+                    <div class="ml-3 flex-1">
+                        <h3 class="text-sm font-medium text-gray-500">Total Trips</h3>
+                        <p class="text-2xl font-bold text-gray-800">{{ total_trips }}</p>
+                        <div class="text-xs text-gray-500 mt-1">
+                            <span class="text-blue-600 font-medium">{{ total_distance|floatformat:1 }}</span> km traveled
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- CO2 Saved -->
+            <div class="modern-card p-5 stat-card fade-in">
+                <div class="flex items-start">
+                    <div class="p-2 rounded-full bg-purple-100 text-purple-600">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2V10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                        </svg>
+                    </div>
+                    <div class="ml-3 flex-1">
+                        <h3 class="text-sm font-medium text-gray-500">CO₂ Saved</h3>
+                        <p class="text-2xl font-bold text-gray-800">{{ co2_saved|floatformat:1 }} kg</p>
+                        <div class="text-xs text-gray-500 mt-1">
+                            <span class="trend-indicator trend-up">↑ {{ tree_equivalent }} trees</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Current Streak -->
+            <div class="modern-card p-5 stat-card fade-in">
+                <div class="flex items-start">
+                    <div class="p-2 rounded-full bg-yellow-100 text-yellow-600">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
+                        </svg>
+                    </div>
+                    <div class="ml-3 flex-1">
+                        <h3 class="text-sm font-medium text-gray-500">Current Streak</h3>
+                        <p class="text-2xl font-bold text-gray-800">{{ current_streak_days }}</p>
+                        <div class="text-xs text-gray-500 mt-1">
+                            <span class="text-green-600 font-medium">days active</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bottom Row - Secondary Stats -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            <!-- CO2 Emitted -->
+            <div class="modern-card p-5 stat-card fade-in">
+                <div class="flex items-start">
+                    <div class="p-2 rounded-full bg-red-100 text-red-600">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+                        </svg>
+                    </div>
+                    <div class="ml-3 flex-1">
+                        <h3 class="text-sm font-medium text-gray-500">CO₂ Emitted</h3>
+                        <p class="text-2xl font-bold text-gray-800">{{ co2_emitted|floatformat:1 }} kg</p>
+                        <div class="text-xs text-gray-500 mt-1">
+                            <span class="trend-indicator trend-down">↓ Baseline</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Total Points -->
+            <div class="modern-card p-5 stat-card fade-in">
+                <div class="flex items-start">
+                    <div class="p-2 rounded-full bg-indigo-100 text-indigo-600">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7" />
+                        </svg>
+                    </div>
+                    <div class="ml-3 flex-1">
+                        <h3 class="text-sm font-medium text-gray-500">Total Points</h3>
+                        <p class="text-2xl font-bold text-gray-800">{{ total_points }}</p>
+                        <div class="text-xs text-gray-500 mt-1">
+                            <span class="text-green-600 font-medium">+{{ points_this_week }}</span> this week
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Wallet Balance -->
+            <div class="modern-card p-5 stat-card fade-in">
+                <div class="flex items-start">
+                    <div class="p-2 rounded-full bg-green-100 text-green-600">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h1m4 0h1m-7 4h1m4 0h1M3 21h18M3 3h18" />
+                        </svg>
+                    </div>
+                    <div class="ml-3 flex-1">
+                        <h3 class="text-sm font-medium text-gray-500">Wallet Balance</h3>
+                        <p class="text-2xl font-bold text-gray-800">${{ wallet_balance|floatformat:2 }}</p>
+                        <div class="text-xs text-gray-500 mt-1">
+                            <span class="text-blue-600 font-medium">Available</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Achievements & Progress -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-10">
+        <!-- Recent Badges -->
+        {% if recent_badges %}
+        <div>
+            <h2 class="text-2xl font-semibold text-gray-800 mb-6">Recent Achievements</h2>
+            <div class="modern-card p-6">
+                <div class="space-y-4">
+                    {% for badge in recent_badges %}
+                    <div class="flex items-center p-4 bg-gradient-to-r from-yellow-50 to-orange-50 rounded-lg border border-yellow-200">
+                        <div class="flex-shrink-0">
+                            <div class="w-12 h-12 rounded-full bg-{{ badge.badge.badge_type|lower }}-100 flex items-center justify-center">
+                                <span class="text-2xl">{{ badge.badge.icon }}</span>
+                            </div>
+                        </div>
+                        <div class="ml-4 flex-1">
+                            <h4 class="text-lg font-semibold text-gray-900">{{ badge.badge.name }}</h4>
+                            <p class="text-sm text-gray-600">{{ badge.badge.description }}</p>
+                            <p class="text-xs text-gray-500 mt-1">Earned {{ badge.earned_at|date:"M d, Y" }}</p>
+                        </div>
+                        <div class="flex-shrink-0">
+                            <span class="px-2 py-1 text-xs font-medium rounded-full bg-{{ badge.badge.badge_type|lower }}-100 text-{{ badge.badge.badge_type|lower }}-800">
+                                {{ badge.badge.get_badge_type_display }}
+                            </span>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                <div class="mt-4 text-center">
+                    <a href="{% url 'gamification:dashboard' %}" class="text-sm font-medium text-yellow-600 hover:text-yellow-800">
+                        View all achievements <span aria-hidden="true">&rarr;</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+        
+        <!-- Active Progress Goals -->
+        {% if active_progress %}
+        <div>
+            <h2 class="text-2xl font-semibold text-gray-800 mb-6">Active Goals</h2>
+            <div class="modern-card p-6">
+                <div class="space-y-4">
+                    {% for progress in active_progress %}
+                    <div class="p-4 bg-gradient-to-r from-blue-50 to-teal-50 rounded-lg border border-blue-200">
+                        <div class="flex justify-between items-center mb-2">
+                            <h4 class="text-lg font-semibold text-gray-900">{{ progress.get_progress_type_display }}</h4>
+                            <span class="text-sm text-gray-600">{{ progress.current_value }}/{{ progress.target_value }}</span>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-2">
+                            <div class="bg-gradient-to-r from-blue-500 to-teal-500 h-2 rounded-full transition-all duration-300 progress-bar" 
+                                 data-progress="{{ progress.percentage_complete|default:0 }}"></div>
+                        </div>
+                        <p class="text-sm text-gray-600 mt-2">{{ progress.percentage_complete|floatformat:1 }}% complete</p>
+                    </div>
+                    {% endfor %}
+                </div>
+                <div class="mt-4 text-center">
+                    <a href="{% url 'gamification:dashboard' %}" class="text-sm font-medium text-blue-600 hover:text-blue-800">
+                        View all goals <span aria-hidden="true">&rarr;</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+    <div class="grid grid-cols-1 lg:grid-cols-1 gap-8 mb-10">
+        <!-- Charts Section -->
+        <div>
+            <h2 class="text-2xl font-semibold text-gray-800 mb-6">My Activity</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="modern-card p-6">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-lg font-medium text-gray-700">Credits Earned</h3>
+                        <div class="flex space-x-2">
+                            <button class="px-3 py-1 text-xs font-medium bg-gray-100 rounded-md hover:bg-gray-200 period-selector active" data-period="weekly">Weekly</button>
+                            <button class="px-3 py-1 text-xs font-medium bg-gray-100 rounded-md hover:bg-gray-200 period-selector" data-period="monthly">Monthly</button>
+                        </div>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="creditsEarnedChart"></canvas>
+                    </div>
+                </div>
+                
+                <div class="modern-card p-6">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-lg font-medium text-gray-700">Transport Modes</h3>
+                        <button class="p-1 rounded-full bg-gray-100 hover:bg-gray-200 refresh-btn" title="Refresh data">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                            </svg>
+                        </button>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="transportModesChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Quick Actions -->
+        <div>
+            <h2 class="text-2xl font-semibold text-gray-800 mb-6">Quick Actions</h2>
+            <div class="quick-actions-card p-6">
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <a href="{% url 'employee_trip_log' %}" class="flex items-center p-4 bg-white border border-gray-200 rounded-xl shadow-sm hover:bg-gray-50 action-btn">
+                        <div class="p-2 rounded-full bg-green-100 text-green-600">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                        </div>
+                        <div class="ml-4">
+                            <p class="text-lg font-medium text-gray-900">Log New Trip</p>
+                            <span class="text-sm text-gray-500">Record your sustainable commute</span>
+                        </div>
+                    </a>
+                    
+                    <!-- New Home Location Button -->
+                    <a href="{% url 'employee_manage_home_location' %}" class="flex items-center p-4 bg-white border border-gray-200 rounded-xl shadow-sm hover:bg-gray-50 action-btn">
+                        <div class="p-2 rounded-full bg-blue-100 text-blue-600">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                            </svg>
+                        </div>
+                        <div class="ml-4">
+                            <p class="text-lg font-medium text-gray-900">Manage Home Location</p>
+                            <span class="text-sm text-gray-500">Add or update your home address</span>
+                        </div>
+                    </a>
+                    
+                    <a href="{% url 'employee_redeem_credits' %}" class="flex items-center p-4 bg-white border border-gray-200 rounded-xl shadow-sm hover:bg-gray-50 action-btn">
+                        <div class="p-2 rounded-full bg-purple-100 text-purple-600">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                        </div>
+                        <div class="ml-4">
+                            <p class="text-lg font-medium text-gray-900">Redeem Credits</p>
+                            <span class="text-sm text-gray-500">Convert credits to cash, coupons, or vouchers</span>
+                        </div>
+                    </a>
+                    
+                    <!-- Wallet Button -->
+                    <a href="{% url 'wallet_dashboard' %}" class="flex items-center p-4 bg-white border border-gray-200 rounded-xl shadow-sm hover:bg-gray-50 action-btn">
+                        <div class="p-2 rounded-full bg-indigo-100 text-indigo-600">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                            </svg>
+                        </div>
+                        <div class="ml-4">
+                            <p class="text-lg font-medium text-gray-900">Carbon Wallet</p>
+                            <span class="text-sm text-gray-500">Manage your digital carbon credits</span>
+                        </div>
+                    </a>
+                    
+                    <!-- Pollution Awareness Button -->
+                    <a href="{% url 'pollution:dashboard' %}" class="flex items-center p-4 bg-white border border-gray-200 rounded-xl shadow-sm hover:bg-gray-50 action-btn">
+                        <div class="p-2 rounded-full bg-red-100 text-red-600">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 15a4 4 0 004 4h9a5 5 0 10-.1 9.999 5.002 5.002 0 00.097-.988l.703-2.551A3 3 0 0017 14H7a3 3 0 00-2.795 1.894l-.703 2.551A5 5 0 017 19a4 4 0 004-4z" />
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 13V3m0 0l-4 4m4-4l4 4" />
+                            </svg>
+                        </div>
+                        <div class="ml-4">
+                            <p class="text-lg font-medium text-gray-900">Pollution Awareness</p>
+                            <span class="text-sm text-gray-500">Check air quality and industrial zones</span>
+                        </div>
+                    </a>
+                    
+                    <!-- Enhanced NLP Button -->
+                    <a href="{% url 'enhanced_nlp:nlp_dashboard' %}" class="flex items-center p-4 bg-white border border-gray-200 rounded-xl shadow-sm hover:bg-gray-50 action-btn">
+                        <div class="p-2 rounded-full bg-purple-100 text-purple-600">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m0 16v1m9.167-9.167H14.833M5.5 10.5h13M5.5 15.5h13m-13-6h13"/>
+                            </svg>
+                        </div>
+                        <div class="ml-4">
+                            <p class="text-lg font-medium text-gray-900">AI Insights</p>
+                            <span class="text-sm text-gray-500">Advanced sustainability analysis</span>
+                        </div>
+                    </a>
+                    
+                    <!-- Predictive Analytics Button -->
+                    <a href="/analytics/dashboard/" class="flex items-center p-4 bg-white border border-gray-200 rounded-xl shadow-sm hover:bg-gray-50 action-btn">
+                        <div class="p-2 rounded-full bg-blue-100 text-blue-600">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                            </svg>
+                        </div>
+                        <div class="ml-4">
+                            <p class="text-lg font-medium text-gray-900">Predictive Analytics</p>
+                            <span class="text-sm text-gray-500">Carbon forecasting & insights</span>
+                        </div>
+                    </a>
+                    
+                    <!-- Gamification Button -->
+                    <a href="{% url 'gamification:dashboard' %}" class="flex items-center p-4 bg-white border border-gray-200 rounded-xl shadow-sm hover:bg-gray-50 action-btn">
+                        <div class="p-2 rounded-full bg-yellow-100 text-yellow-600">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
+                            </svg>
+                        </div>
+                        <div class="ml-4">
+                            <p class="text-lg font-medium text-gray-900">Achievements & Leaderboards</p>
+                            <span class="text-sm text-gray-500">View badges, progress, and compete with others</span>
+                        </div>
+                    </a>
+
+                    <a href="{% url 'gamification:leaderboards' %}" class="flex items-center p-4 bg-white border border-gray-200 rounded-xl shadow-sm hover:bg-gray-50 action-btn">
+                        <div class="p-2 rounded-full bg-blue-100 text-blue-600">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6a2 2 0 012-2h2a2 2 0 012 2v13m-6 0H7a2 2 0 01-2-2V9a2 2 0 012-2h2m6 12h2a2 2 0 002-2V7a2 2 0 00-2-2h-2" />
+                            </svg>
+                        </div>
+                        <div class="ml-4">
+                            <p class="text-lg font-medium text-gray-900">Leaderboards</p>
+                            <span class="text-sm text-gray-500">Compare rankings across challenges</span>
+                        </div>
+                    </a>
+                        <div class="ml-4">
+                            <p class="text-lg font-medium text-gray-900">Progress Tracker</p>
+                            <span class="text-sm text-gray-500">Monitor your sustainability goals</span>
+                        </div>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Recent Trips -->
+    <div class="mb-8">
+        <h2 class="text-2xl font-semibold text-gray-800 mb-6">Recent Trips</h2>
+        <div class="modern-card overflow-hidden">
+            <div class="px-6 py-5 border-b border-gray-200 bg-gray-50">
+                <h3 class="text-lg font-medium text-gray-700">Your Latest Activity</h3>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Start Location</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">End Location</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Transport Mode</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Distance</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Credits</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        {% for trip in recent_trips %}
+                        <tr>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                {{ trip.start_time|date:"M d, Y" }}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="text-sm font-medium text-gray-900">{{ trip.start_location.name }}</div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="text-sm font-medium text-gray-900">{{ trip.end_location.name }}</div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="flex items-center">
+                                    <span class="p-1.5 rounded-full 
+                                    {% if trip.transport_mode == 'bicycle' %}
+                                    bg-green-100 text-green-700
+                                    {% elif trip.transport_mode == 'walking' %}
+                                    bg-blue-100 text-blue-700
+                                    {% elif trip.transport_mode == 'public_transport' %}
+                                    bg-purple-100 text-purple-700
+                                    {% elif trip.transport_mode == 'carpool' %}
+                                    bg-yellow-100 text-yellow-700
+                                    {% else %}
+                                    bg-gray-100 text-gray-700
+                                    {% endif %}
+                                    mr-2">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            {% if trip.transport_mode == 'bicycle' %}
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 19a2 2 0 01-2-2V7a2 2 0 012-2h4l2 2h4a2 2 0 012 2v1M5 19h14a2 2 0 002-2v-5a2 2 0 00-2-2H9a2 2 0 00-2 2v5a2 2 0 01-2 2z" />
+                                            {% elif trip.transport_mode == 'walking' %}
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+                                            {% elif trip.transport_mode == 'public_transport' %}
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                                            {% elif trip.transport_mode == 'carpool' %}
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                                            {% else %}
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                                            {% endif %}
+                                        </svg>
+                                    </span>
+                                    <span class="text-sm text-gray-900">{{ trip.get_transport_mode_display }}</span>
+                                </div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                {% if trip.distance_km %}
+                                    {{ trip.distance_km|floatformat:1 }} km
+                                {% else %}
+                                    N/A
+                                {% endif %}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                {% if trip.credits_earned %}
+                                    {{ trip.credits_earned|floatformat:2 }}
+                                {% elif trip.carbon_credits_earned %}
+                                    {{ trip.carbon_credits_earned|floatformat:2 }}
+                                {% else %}
+                                    0.00
+                                {% endif %}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                {% if trip.verification_status == 'verified' %}
+                                <span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                                    Verified
+                                </span>
+                                {% elif trip.verification_status == 'rejected' %}
+                                <span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">
+                                    Rejected
+                                </span>
+                                {% elif trip.verification_status == 'flagged' %}
+                                <span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-orange-100 text-orange-800">
+                                    Flagged
+                                </span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+            </div>
+            {% if recent_trips %}
+            <div class="px-6 py-4 bg-gray-50 border-t border-gray-200">
+                <a href="{% url 'employee_trips' %}" class="text-sm font-medium text-green-600 hover:text-green-500">
+                    View all trips <span aria-hidden="true">&rarr;</span>
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<!-- Store chart data in JSON script tags for safe access -->
+{{ weekly_labels|json_script:"weekly_labels" }}
+{{ weekly_credits_data|json_script:"weekly_credits_data" }}
+{{ monthly_labels|json_script:"monthly_labels" }}
+{{ monthly_credits_data|json_script:"monthly_credits_data" }}
+{{ transport_labels|json_script:"transport_labels" }}
+{{ transport_data|json_script:"transport_data" }}
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initialize charts
+        initializeCharts();
+        
+        // Set progress bar widths from data attributes
+        document.querySelectorAll('.progress-bar').forEach(function(bar) {
+            const progress = bar.getAttribute('data-progress');
+            if (progress) {
+                bar.style.width = progress + '%';
+            }
+        });
+        
+        // Add event listeners for period selectors
+        document.querySelectorAll('.period-selector').forEach(button => {
+            button.addEventListener('click', function() {
+                document.querySelectorAll('.period-selector').forEach(btn => btn.classList.remove('active'));
+                this.classList.add('active');
+                updateCharts(this.dataset.period);
+            });
+        });
+        
+        // Add event listener for refresh button
+        document.querySelector('.refresh-btn').addEventListener('click', function() {
+            updateCharts(document.querySelector('.period-selector.active').dataset.period);
+        });
+        
+        function initializeCharts() {
+            // Get real data from Django template using json_script
+            const weeklyLabels = JSON.parse(document.getElementById('weekly_labels').textContent);
+            const weeklyCreditsData = JSON.parse(document.getElementById('weekly_credits_data').textContent);
+            const monthlyLabels = JSON.parse(document.getElementById('monthly_labels').textContent);
+            const monthlyCreditsData = JSON.parse(document.getElementById('monthly_credits_data').textContent);
+            const transportLabels = JSON.parse(document.getElementById('transport_labels').textContent);
+            const transportData = JSON.parse(document.getElementById('transport_data').textContent);
+            
+            // Credits Earned Chart
+            const creditsCtx = document.getElementById('creditsEarnedChart').getContext('2d');
+            window.creditsChart = new Chart(creditsCtx, {
+                type: 'line',
+                data: {
+                    labels: weeklyLabels,
+                    datasets: [{
+                        label: 'Credits Earned',
+                        data: weeklyCreditsData,
+                        backgroundColor: 'rgba(43, 147, 72, 0.2)',
+                        borderColor: '#2B9348',
+                        borderWidth: 2,
+                        tension: 0.4,
+                        fill: true,
+                        pointBackgroundColor: '#2B9348',
+                        pointBorderColor: '#fff',
+                        pointBorderWidth: 2,
+                        pointRadius: 4,
+                        pointHoverRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                color: 'rgba(0, 0, 0, 0.05)'
+                            }
+                        },
+                        x: {
+                            grid: {
+                                display: false
+                            }
+                        }
+                    },
+                    plugins: {
+                        tooltip: {
+                            backgroundColor: 'rgba(0, 0, 0, 0.7)',
+                            padding: 10,
+                            cornerRadius: 6,
+                            titleFont: {
+                                size: 14,
+                                weight: 'bold'
+                            }
+                        },
+                        legend: {
+                            display: false
+                        }
+                    }
+                }
+            });
+            
+            // Transport Modes Chart
+            const transportCtx = document.getElementById('transportModesChart').getContext('2d');
+            
+            // Color mapping for transport modes
+            const transportColors = {
+                'Bicycle': '#55A630',
+                'Walking': '#1E88E5',
+                'Public Transport': '#70A9A1',
+                'Carpool': '#F9DC5C',
+                'Car': '#9DACFF',
+                'Work From Home': '#FF6B6B',
+                'No trips yet': '#CCCCCC'
+            };
+            
+            const transportBackgroundColors = transportLabels.map(label => {
+                return transportColors[label] || '#9DACFF';
+            });
+            
+            window.transportChart = new Chart(transportCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: transportLabels,
+                    datasets: [{
+                        data: transportData,
+                        backgroundColor: transportBackgroundColors,
+                        borderWidth: 0,
+                        hoverOffset: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    cutout: '70%',
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                padding: 20,
+                                usePointStyle: true,
+                                pointStyle: 'circle'
+                            }
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(0, 0, 0, 0.7)',
+                            padding: 10,
+                            cornerRadius: 6,
+                            callbacks: {
+                                label: function(context) {
+                                    const label = context.label || '';
+                                    const value = context.formattedValue;
+                                    return `${label}: ${value}%`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        
+        function updateCharts(period) {
+            // Get real data from Django template using json_script
+            const weeklyLabels = JSON.parse(document.getElementById('weekly_labels').textContent);
+            const weeklyCreditsData = JSON.parse(document.getElementById('weekly_credits_data').textContent);
+            const monthlyLabels = JSON.parse(document.getElementById('monthly_labels').textContent);
+            const monthlyCreditsData = JSON.parse(document.getElementById('monthly_credits_data').textContent);
+            
+            let creditsData;
+            let labels;
+            
+            if (period === 'weekly') {
+                labels = weeklyLabels;
+                creditsData = weeklyCreditsData;
+            } else if (period === 'monthly') {
+                labels = monthlyLabels;
+                creditsData = monthlyCreditsData;
+            }
+            
+            // Update credits chart
+            window.creditsChart.data.labels = labels;
+            window.creditsChart.data.datasets[0].data = creditsData;
+            window.creditsChart.update();
+            
+            // Transport chart data doesn't change with period, it's already set with real data
+        }
+    });
+</script>
+{% endblock %} 

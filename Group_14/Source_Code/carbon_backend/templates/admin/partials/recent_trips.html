@@ -1,0 +1,64 @@
+<div class="overflow-x-auto">
+    <table class="min-w-full divide-y divide-gray-200">
+        <thead class="bg-gray-50">
+            <tr>
+                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Employee</th>
+                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Trip Type</th>
+                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Credits</th>
+            </tr>
+        </thead>
+        <tbody class="bg-white divide-y divide-gray-200">
+            {% for trip in trips %}
+            <tr>
+                <td class="px-6 py-4 whitespace-nowrap">
+                    <div class="flex items-center">
+                        <div class="h-8 w-8 rounded-full bg-gray-100 flex items-center justify-center text-gray-600 font-medium">
+                            {{ trip.employee.user.first_name|slice:":1" }}{{ trip.employee.user.last_name|slice:":1" }}
+                        </div>
+                        <div class="ml-4">
+                            <div class="text-sm font-medium text-gray-900">{{ trip.employee.user.get_full_name }}</div>
+                            <div class="text-sm text-gray-500">{{ trip.employee.employer.company_name }}</div>
+                        </div>
+                    </div>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                    <div class="text-sm text-gray-900">{{ trip.get_transport_mode_display }}</div>
+                    <div class="text-sm text-gray-500">{{ trip.distance_km|floatformat:1 }} km</div>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    {{ trip.start_time|date:"M d, Y" }}
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                    {% if trip.verification_status == 'verified' %}
+                    <span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                        Verified
+                    </span>
+                    {% else %}
+                    <span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">
+                        {{ trip.verification_status|title }}
+                    </span>
+                    {% endif %}
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    {{ trip.credits_earned|floatformat:2 }}
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="5" class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-center">
+                    No recent trips found
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% if trips %}
+<div class="px-6 py-4 bg-gray-50 border-t border-gray-200">
+    <a href="#" class="text-sm font-medium text-green-600 hover:text-green-500">
+        View all trips <span aria-hidden="true">&rarr;</span>
+    </a>
+</div>
+{% endif %} 

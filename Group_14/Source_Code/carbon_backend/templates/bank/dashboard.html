@@ -1,0 +1,672 @@
+{% extends 'base.html' %}
+
+{% block title %}Bank Dashboard - Carbon Credits Platform{% endblock %}
+
+{% block extra_css %}
+<style>
+    body {
+        background-color: #f9fafb;
+    }
+    
+    .dashboard-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 1rem;
+    }
+    
+    .dashboard-header {
+        margin-bottom: 1.5rem;
+    }
+    
+    .dashboard-title {
+        font-size: 1.5rem;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+    }
+    
+    .stat-card {
+        transition: all 0.3s ease;
+        padding: 1rem;
+        border-radius: 0.5rem;
+        background-color: white;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        margin-bottom: 1rem;
+    }
+    
+    .stat-card:hover {
+        transform: translateY(-5px);
+    }
+    
+    .stat-card-content {
+        display: flex;
+        align-items: flex-start;
+    }
+    
+    .stat-icon {
+        padding: 0.75rem;
+        border-radius: 9999px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .stat-details {
+        margin-left: 1rem;
+    }
+    
+    .stat-label {
+        font-size: 1rem;
+        color: #6b7280;
+        margin-bottom: 0.25rem;
+    }
+    
+    .stat-value {
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: #111827;
+        margin-bottom: 0.25rem;
+    }
+    
+    .stat-subtext {
+        font-size: 0.75rem;
+        color: #9ca3af;
+    }
+    
+    .quick-actions-card {
+        border-radius: 1rem;
+        background-color: white;
+        box-shadow: 0px 6px 24px rgba(0, 0, 0, 0.08);
+        padding: 1rem;
+        margin-bottom: 1.5rem;
+    }
+    
+    .action-btn {
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        padding: 1rem;
+        background-color: white;
+        border: 1px solid #e5e7eb;
+        border-radius: 0.75rem;
+        margin-bottom: 0.75rem;
+        text-decoration: none;
+    }
+    
+    .action-btn:hover {
+        transform: translateY(-2px);
+        background-color: #f9fafb;
+    }
+    
+    .action-icon {
+        padding: 0.5rem;
+        border-radius: 9999px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .action-details {
+        margin-left: 1rem;
+    }
+    
+    .action-title {
+        font-size: 1rem;
+        font-weight: 500;
+        color: #111827;
+    }
+    
+    .action-subtitle {
+        font-size: 0.75rem;
+        color: #6b7280;
+    }
+    
+    .chart-container {
+        position: relative;
+        height: 250px;
+        min-height: 200px;
+        width: 100%;
+    }
+    
+    .chart-card {
+        background-color: white;
+        border-radius: 0.5rem;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        padding: 1rem;
+        margin-bottom: 1rem;
+    }
+    
+    .chart-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1rem;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+    
+    .chart-title {
+        font-size: 1rem;
+        font-weight: 500;
+        color: #4b5563;
+    }
+    
+    .period-selector {
+        padding: 0.25rem 0.75rem;
+        font-size: 0.75rem;
+        font-weight: 500;
+        background-color: #f3f4f6;
+        border-radius: 0.375rem;
+        border: none;
+        cursor: pointer;
+    }
+    
+    .period-selector.active {
+        background-color: #e0f2fe;
+        color: #0369a1;
+    }
+    
+    .refresh-btn {
+        padding: 0.25rem;
+        border-radius: 9999px;
+        background-color: #f3f4f6;
+        border: none;
+        cursor: pointer;
+    }
+    
+    .kpi-card {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+    
+    .trend-indicator {
+        font-size: 0.75rem;
+        display: flex;
+        align-items: center;
+    }
+    
+    .trend-up {
+        color: #10b981;
+    }
+    
+    .trend-down {
+        color: #ef4444;
+    }
+    
+    .table-responsive {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+    
+    .transactions-table {
+        min-width: 650px;
+        width: 100%;
+        border-collapse: collapse;
+    }
+    
+    .transactions-table th,
+    .transactions-table td {
+        padding: 0.75rem 1rem;
+        text-align: left;
+    }
+    
+    .transactions-table th {
+        font-weight: 500;
+        color: #4b5563;
+        background-color: #f9fafb;
+    }
+    
+    .transactions-table td {
+        border-bottom: 1px solid #e5e7eb;
+    }
+    
+    .section-header {
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: #1f2937;
+        margin-bottom: 1rem;
+    }
+    
+    @media (min-width: 640px) {
+        .dashboard-container {
+            padding: 1.5rem;
+        }
+        
+        .dashboard-title {
+            font-size: 1.75rem;
+        }
+        
+        .stat-card {
+            padding: 1.25rem;
+        }
+        
+        .stat-value {
+            font-size: 1.75rem;
+        }
+        
+        .chart-card {
+            padding: 1.25rem;
+        }
+        
+        .section-header {
+            font-size: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+    }
+    
+    @media (min-width: 768px) {
+        .dashboard-title {
+            font-size: 2rem;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+        }
+        
+        .charts-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+        }
+        
+        .chart-container {
+            height: 300px;
+        }
+    }
+    
+    @media (min-width: 1024px) {
+        .dashboard-container {
+            padding: 2rem;
+        }
+        
+        .stats-grid {
+            grid-template-columns: repeat(4, 1fr);
+        }
+        
+        .analytics-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 1.5rem;
+        }
+        
+        .stat-value {
+            font-size: 2rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+    <div class="dashboard-header">
+        <h1 class="dashboard-title">Bank Dashboard</h1>
+        <p class="text-gray-600">
+            Welcome to the Carbon Credits Bank Dashboard. Monitor credits, approve transactions, and oversee the marketplace.
+        </p>
+    </div>
+
+    <!-- Stats Overview -->
+    <div class="mb-8">
+        <h2 class="section-header">Carbon Credits Overview</h2>
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-card-content">
+                    <div class="stat-icon bg-green-100 text-green-600">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                    </div>
+                    <div class="stat-details">
+                        <h3 class="stat-label">Total Credits</h3>
+                        <p class="stat-value">{{ total_credits }}</p>
+                        <div class="stat-subtext">
+                            <span class="text-green-600 font-medium">+{{ recent_credits }}</span> in last 7 days
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="stat-card-content">
+                    <div class="stat-icon bg-blue-100 text-blue-600">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                        </svg>
+                    </div>
+                    <div class="stat-details">
+                        <h3 class="stat-label">Employers</h3>
+                        <p class="stat-value">{{ employer_count }}</p>
+                        <div class="stat-subtext">
+                            From {{ location_count }} locations
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="stat-card-content">
+                    <div class="stat-icon bg-purple-100 text-purple-600">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+                        </svg>
+                    </div>
+                    <div class="stat-details">
+                        <h3 class="stat-label">Transactions</h3>
+                        <p class="stat-value">{{ transaction_count }}</p>
+                        <div class="stat-subtext">
+                            <span class="text-green-600 font-medium">{{ pending_approvals }}</span> pending approval
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="stat-card-content">
+                    <div class="stat-icon bg-yellow-100 text-yellow-600">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+                        </svg>
+                    </div>
+                    <div class="stat-details">
+                        <h3 class="stat-label">Market Value</h3>
+                        <p class="stat-value">${{ market_value }}</p>
+                        <div class="stat-subtext">
+                            <span class="trend-indicator trend-up">↑ 12% this month</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Analytics and Quick Actions -->
+    <div class="analytics-grid mb-8">
+        <!-- Charts Section -->
+        <div>
+            <h2 class="section-header">Analytics</h2>
+            <div class="charts-grid">
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <h3 class="chart-title">Credits Issued</h3>
+                        <div class="flex space-x-2">
+                            <button class="period-selector active" data-period="weekly">Weekly</button>
+                            <button class="period-selector" data-period="monthly">Monthly</button>
+                            <button class="period-selector" data-period="yearly">Yearly</button>
+                        </div>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="creditsIssuedChart"></canvas>
+                    </div>
+                </div>
+                
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <h3 class="chart-title">Transport Modes</h3>
+                        <button class="refresh-btn">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                            </svg>
+                        </button>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="transportModesChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Quick Actions -->
+        <div>
+            <h2 class="section-header">Quick Actions</h2>
+            <div class="quick-actions-card">
+                <div>
+                    <a href="{% url 'bank:bank_employers' %}" class="action-btn">
+                        <div class="action-icon bg-blue-100 text-blue-600">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                            </svg>
+                        </div>
+                        <div class="action-details">
+                            <p class="action-title">Manage Employers</p>
+                            <span class="action-subtitle">View and manage participating employers</span>
+                        </div>
+                    </a>
+                    
+                    <a href="{% url 'bank:bank_approvals' %}" class="action-btn">
+                        <div class="action-icon bg-green-100 text-green-600">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                        </div>
+                        <div class="action-details">
+                            <p class="action-title">Transaction Approvals</p>
+                            <span class="action-subtitle">Review and approve pending transactions</span>
+                        </div>
+                    </a>
+                    
+                    <a href="{% url 'bank:bank_reports' %}" class="action-btn">
+                        <div class="action-icon bg-purple-100 text-purple-600">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                            </svg>
+                        </div>
+                        <div class="action-details">
+                            <p class="action-title">Generate Reports</p>
+                            <span class="action-subtitle">Create detailed analytics reports</span>
+                        </div>
+                    </a>
+                    
+                    <a href="{% url 'bank:profile' %}" class="action-btn">
+                        <div class="action-icon bg-yellow-100 text-yellow-600">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                            </svg>
+                        </div>
+                        <div class="action-details">
+                            <p class="action-title">Manage Profile</p>
+                            <span class="action-subtitle">Update your account settings</span>
+                        </div>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Recent Transactions -->
+    <div class="mb-8">
+        <h2 class="section-header">Recent Transactions</h2>
+        <div class="chart-card">
+            <h3 class="chart-title mb-3">Latest Credit Transactions</h3>
+            <div class="table-responsive">
+                <table class="transactions-table">
+                    <thead>
+                        <tr>
+                            <th>Transaction ID</th>
+                            <th>Date</th>
+                            <th>Employer</th>
+                            <th>Type</th>
+                            <th>Amount</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for transaction in recent_transactions %}
+                        <tr>
+                            <td>{{ transaction.id }}</td>
+                            <td>{{ transaction.date }}</td>
+                            <td>{{ transaction.employer }}</td>
+                            <td>{{ transaction.type }}</td>
+                            <td>{{ transaction.amount }}</td>
+                            <td>
+                                <span class="status-badge status-{{ transaction.status|lower }}">
+                                    {{ transaction.status }}
+                                </span>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="6" class="text-center py-4 text-gray-500">
+                                No recent transactions found
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Credits Issued Chart
+        const creditsIssuedCtx = document.getElementById('creditsIssuedChart').getContext('2d');
+        const creditsIssuedChart = new Chart(creditsIssuedCtx, {
+            type: 'line',
+            data: {
+                labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug'],
+                datasets: [{
+                    label: 'Credits Issued',
+                    data: [1245, 1854, 1600, 2105, 2400, 2800, 2725, 3150],
+                    backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                    borderColor: '#0ea5e9',
+                    borderWidth: 2,
+                    tension: 0.3,
+                    fill: true,
+                    pointRadius: 3
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(17, 24, 39, 0.8)',
+                        padding: 8,
+                        cornerRadius: 4
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: {
+                            color: 'rgba(0, 0, 0, 0.05)'
+                        },
+                        ticks: {
+                            font: {
+                                size: 11
+                            }
+                        }
+                    },
+                    x: {
+                        grid: {
+                            display: false
+                        },
+                        ticks: {
+                            font: {
+                                size: 11
+                            }
+                        }
+                    }
+                }
+            }
+        });
+        
+        // Transport Modes Chart
+        const transportModesCtx = document.getElementById('transportModesChart').getContext('2d');
+        const transportModesChart = new Chart(transportModesCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Public Transit', 'Electric Vehicle', 'Carpool', 'Bicycle', 'Walking'],
+                datasets: [{
+                    data: [35, 25, 15, 20, 5],
+                    backgroundColor: [
+                        '#0ea5e9', // sky blue
+                        '#10b981', // green
+                        '#8b5cf6', // purple
+                        '#f59e0b', // amber
+                        '#ef4444'  // red
+                    ],
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                cutout: '60%',
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            usePointStyle: true,
+                            pointStyle: 'circle',
+                            padding: 10,
+                            font: {
+                                size: 11
+                            }
+                        }
+                    }
+                }
+            }
+        });
+        
+        // Period selectors for charts
+        const periodSelectors = document.querySelectorAll('.period-selector');
+        periodSelectors.forEach(selector => {
+            selector.addEventListener('click', function() {
+                const parent = this.parentElement;
+                parent.querySelectorAll('.period-selector').forEach(s => s.classList.remove('active'));
+                this.classList.add('active');
+                
+                const period = this.getAttribute('data-period');
+                updateChartData(period);
+            });
+        });
+        
+        function updateChartData(period) {
+            let labels, data;
+            
+            if (period === 'weekly') {
+                labels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+                data = [142, 165, 159, 180, 181, 156, 140];
+            } else if (period === 'monthly') {
+                labels = ['Week 1', 'Week 2', 'Week 3', 'Week 4'];
+                data = [680, 790, 820, 910];
+            } else if (period === 'yearly') {
+                labels = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+                data = [1245, 1854, 1600, 2105, 2400, 2800, 2725, 3105, 3450, 3680, 4020, 4350];
+            }
+            
+            creditsIssuedChart.data.labels = labels;
+            creditsIssuedChart.data.datasets[0].data = data;
+            creditsIssuedChart.update();
+        }
+        
+        // Refresh button for transport modes chart
+        const refreshBtn = document.querySelector('.refresh-btn');
+        if (refreshBtn) {
+            refreshBtn.addEventListener('click', function() {
+                // For demo, just slightly change the data
+                const newData = [
+                    Math.floor(Math.random() * 10) + 30,
+                    Math.floor(Math.random() * 10) + 20,
+                    Math.floor(Math.random() * 10) + 10,
+                    Math.floor(Math.random() * 10) + 15,
+                    Math.floor(Math.random() * 5) + 2
+                ];
+                
+                transportModesChart.data.datasets[0].data = newData;
+                transportModesChart.update();
+            });
+        }
+    });
+</script>
+{% endblock %}
