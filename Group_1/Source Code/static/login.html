@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang=" en">
+<head>
+ <meta charset="UTF-8">
+ <meta name="viewport" content="width=device-width initial-scale=1.0">
+ <link rel="stylesheet" href="styles.css">
+ <title>Login - AgriAid+</title>
+ <style>
+ body { display: flex; flex-direction: column; min-height: 100vh; }
+ main { flex: 1; display: flex; align-items: center; justify-content: center; padding: 2rem; }
+ .login-container { width: 100%; max-width: 450px; }
+ .login-card { background: rgba(26, 26, 26, 0.6); backdrop-filter: blur(12px); border: 1px solid rgba(74, 124, 89, 0.3); border-radius: 20px; padding: 3rem 2rem; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3); animation: slideInUp 0.6s ease-out; }
+ @keyframes slideInUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+ .login-header { text-align: center; margin-bottom: 2rem; }
+ .login-header h1 { font-size: 2rem; font-weight: 700; color: #e8f5e8; margin-bottom: 0.5rem; }
+ .login-header p { color: #9FE29F; font-size: 0.95rem; font-weight: 500; }
+ .form-group { margin-bottom: 1.5rem; }
+ .form-group label { display: block; font-weight: 600; color: #e8f5e8; margin-bottom: 0.5rem; font-size: 0.95rem; }
+ .form-group input { width: 100%; padding: 12px 15px; background: rgba(255, 255, 255, 0.1); border: 2px solid rgba(45, 74, 62, 0.3); border-radius: 12px; color: #e8f5e8; font-size: 1rem; transition: all 0.3s ease; font-family: inherit; }
+ .form-group input::placeholder { color: rgba(255, 255, 255, 0.7); }
+ .form-group input:focus { outline: none; border-color: #4a7c59; background: rgba(255, 255, 255, 0.15); box-shadow: 0 0 0 4px rgba(74, 124, 89, 0.1); }
+ .role-group { margin-bottom: 1.5rem; }
+ .role-options { display: flex; gap: 1rem; margin-top: 0.5rem; }
+ .role-option { flex: 1; }
+ .role-option input[type="radio"] { display: none; }
+ .role-option label { display: block; padding: 10px; text-align: center; background: rgba(255, 255, 255, 0.08); border: 2px solid rgba(110, 231, 183, 0.2); border-radius: 10px; color: #b0c9b5; cursor: pointer; font-weight: 600; transition: all 0.3s ease; margin-bottom: 0; }
+ .role-option input[type="radio"]:checked + label { background: linear-gradient(135deg, rgba(74, 124, 89, 0.3) 0%, rgba(107, 156, 122, 0.3) 100%); border-color: #9FE29F; color: #e8f5e8; box-shadow: 0 0 20px rgba(159, 226, 159, 0.2); }
+ .role-option label:hover { border-color: rgba(110, 231, 183, 0.4); background: rgba(110, 231, 183, 0.1); }
+ #login-org-fields { display: none; }
+ .password-toggle { position: relative; }
+ .toggle-btn { position: absolute; right: 15px; top: 45px; background: none; border: none; color: #9FE29F; cursor: pointer; font-size: 1.2rem; transition: color 0.3s ease; }
+ .toggle-btn:hover { color: #6ee7b7; }
+ .btn-login { width: 100%; padding: 12px 20px; background: linear-gradient(135deg, #4a7c59 0%, #6b9c7a 100%); color: white; border: none; border-radius: 12px; font-size: 1rem; font-weight: 600; cursor: pointer; transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(74, 124, 89, 0.35); margin-top: 1rem; }
+ .btn-login:hover { transform: translateY(-2px); box-shadow: 0 6px 25px rgba(74, 124, 89, 0.45); }
+ .btn-login:active { transform: translateY(0); }
+ .btn-login:disabled { opacity: 0.6; cursor: not-allowed; }
+ .login-footer { text-align: center; margin-top: 1.5rem; font-size: 0.9rem; }
+ .login-footer a { color: #9FE29F; text-decoration: none; font-weight: 600; transition: color 0.3s ease; }
+ .login-footer a:hover { color: #6ee7b7; text-decoration: underline; }
+ .signup-link { color: #b0c9b5; margin-top: 0.8rem; }
+ .signup-link a { color: #9FE29F; }
+ @media (max-width: 768px) { main { padding: 1rem; } .login-card { padding: 2rem 1.5rem; } .login-header h1 { font-size: 1.5rem; } .toggle-btn { top: 42px; } .role-options { flex-direction: column; } }
+ </style>
+</head>
+<body>
+ <header class="header" id="site-header">
+        <nav class="nav">
+            <a href="/" class="logo">
+                <svg viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M18 3C18 3 8 10 8 20C8 25.5 12.5 30 18 30C23.5 30 28 25.5 28 20C28 10 18 3 18 3Z" fill="#4a7c59"/>
+                    <path d="M18 10V26M18 10C14 14 12 18 12 22M18 10C22 14 24 18 24 22" stroke="#9FE29F" stroke-width="1.5" stroke-linecap="round"/>
+                </svg>
+                AgriAid+
+            </a>
+            <div class="nav-links">
+                <a href="/">Home</a>
+                <a href="/croppred">Crop Prediction</a>
+                <a href="/weather">Weather</a>
+                <a href="/market">Market</a>
+                <a href="/ecom">E-commerce</a>
+                <a href="/nakshatra-page">Nakshatra</a>
+            </div>
+            <div class="nav-auth">
+                <a href="/login" class="btn-signin">Sign In</a>
+                <a href="/signup" class="btn-getstarted">Get Started</a>
+            </div>
+            <button class="hamburger" id="hamburger-btn" aria-label="Toggle menu">
+                <span></span><span></span><span></span>
+            </button>
+        </nav>
+        <div class="mobile-menu" id="mobile-menu">
+            <a href="/">Home</a>
+            <a href="/croppred">Crop Prediction</a>
+            <a href="/weather">Weather</a>
+            <a href="/market">Market</a>
+            <a href="/ecom">E-commerce</a>
+            <a href="/nakshatra-page">Nakshatra</a>
+            <div class="mobile-auth">
+                <a href="/login" class="btn-signin">Sign In</a>
+                <a href="/signup" class="btn-getstarted">Get Started</a>
+            </div>
+        </div>
+    </header>
+
+ <main>
+ <div class="login-container">
+ <div class="login-card">
+ <div class="login-header">
+ <h1>Welcome Back</h1>
+ <p>Login to your AgriAid+ account</p>
+ </div>
+
+ <form id="login-form">
+ <div class="role-group">
+ <label>I am a:</label>
+ <div class="role-options">
+ <div class="role-option">
+ <input type="radio" id="role-user" name="role" value="user" checked>
+ <label for="role-user">Farmer</label>
+ </div>
+ <div class="role-option">
+ <input type="radio" id="role-admin" name="role" value="admin">
+ <label for="role-admin">Organization</label>
+ </div>
+ </div>
+ </div>
+
+ <div class="form-group">
+ <label for="login-username">Username</label>
+ <input type="text" id="login-username" name="username" placeholder="Enter your username" required>
+ </div>
+
+ <div class="form-group password-toggle">
+ <label for="login-password">Password</label>
+ <input type="password" id="login-password" name="password" placeholder="Enter your password" required>
+ <button type="button" class="toggle-btn">👁️</button>
+ </div>
+
+
+
+ <button type="submit" class="btn-login">Login</button>
+ </form>
+
+ <div class="login-footer">
+ <p><a href="#">Forgot Password?</a></p>
+ <p class="signup-link">Don't have account? <a href="/signup">Sign up here</a></p>
+ </div>
+ </div>
+ </div>
+ </main>
+
+ <script src="/login-script.js"></script>
+ <script src="script.js?v=2"></script>
+</body>
+</html>
