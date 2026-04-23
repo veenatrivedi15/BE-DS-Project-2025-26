@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>E-commerce Marketplace - AgriAid+</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+    <!-- Navigation -->
+    <header class="header" id="site-header">
+        <nav class="nav">
+            <a href="/" class="logo">
+                <svg viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M18 3C18 3 8 10 8 20C8 25.5 12.5 30 18 30C23.5 30 28 25.5 28 20C28 10 18 3 18 3Z" fill="#4a7c59"/>
+                    <path d="M18 10V26M18 10C14 14 12 18 12 22M18 10C22 14 24 18 24 22" stroke="#9FE29F" stroke-width="1.5" stroke-linecap="round"/>
+                </svg>
+                AgriAid+
+            </a>
+            <div class="nav-links">
+                <a href="/">Home</a>
+                <a href="/croppred">Crop Prediction</a>
+                <a href="/weather">Weather</a>
+                <a href="/market">Market</a>
+                <a href="/ecom" class="active">E-commerce</a>
+                <a href="/nakshatra-page">Nakshatra</a>
+            </div>
+            <div class="nav-auth">
+                <a href="/login" class="btn-signin">Sign In</a>
+                <a href="/signup" class="btn-getstarted">Get Started</a>
+            </div>
+            <button class="hamburger" id="hamburger-btn" aria-label="Toggle menu">
+                <span></span><span></span><span></span>
+            </button>
+        </nav>
+        <div class="mobile-menu" id="mobile-menu">
+            <a href="/">Home</a>
+            <a href="/croppred">Crop Prediction</a>
+            <a href="/weather">Weather</a>
+            <a href="/market">Market</a>
+            <a href="/ecom" class="active">E-commerce</a>
+            <a href="/nakshatra-page">Nakshatra</a>
+            <div class="mobile-auth">
+                <a href="/login" class="btn-signin">Sign In</a>
+                <a href="/signup" class="btn-getstarted">Get Started</a>
+            </div>
+        </div>
+    </header>
+
+    <div style="height: 24px;"></div>
+
+
+    <!-- E-commerce Page 
+    <main id="ecommerce-page" class="page active">
+        <div class="page-header">
+            <div class="container">
+                <h1>🛒 E-commerce Marketplace</h1>
+                <p>Buy and sell agricultural products directly with other farmers</p>
+            </div>
+        </div>
+
+        <div class="container">-->
+
+    <div style="text-align: center; margin-bottom: 30px; display: flex; justify-content: center; gap: 20px;">
+        <button id="add-product-btn" onclick="toggleAddProductForm()" class="btn" style="max-width: 300px;">➕ Add New
+            Product</button>
+        <a href="/dashboard" class="btn"
+            style="max-width: 200px; background-color: #f39c12; text-decoration: none; display: flex; align-items: center; justify-content: center;">📦
+            My Products</a>
+    </div>
+
+    <form id="add-product-form" class="add-product-form" style="display: none;">
+        <h3>📝 Add New Product</h3>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px;">
+            <div class="form-group">
+                <label for="product-name">🏷️ Product Name</label>
+                <input type="text" id="product-name" name="name" placeholder="e.g., Fresh Tomatoes" required>
+            </div>
+
+            <div class="form-group">
+                <label for="product-price">💰 Price (₹)</label>
+                <input type="number" id="product-price" name="price" placeholder="e.g., 45" required>
+            </div>
+
+            <!-- Seller Name is now auto-filled from login -->
+
+            <div class="form-group">
+                <label for="product-category">📂 Category</label>
+                <select id="product-category" required
+                    style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px;">
+                    <option value="crop">Crop</option>
+                    <option value="fertilizer">Fertilizer</option>
+                    <option value="equipment">Equipment</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="product-mode">🔄 Mode</label>
+                <select id="product-mode" required
+                    style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px;">
+                    <option value="sell">Sell</option>
+                    <option value="rent">Rent</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="product-quantity">📦 Quantity</label>
+                <input type="text" id="product-quantity" name="quantity" placeholder="e.g., 10kg" required>
+            </div>
+
+            <div class="form-group">
+                <label for="product-location">📍 Location</label>
+                <input type="text" id="product-location" name="location" placeholder="e.g., Punjab" required>
+            </div>
+
+            <div class="form-group full-width" style="grid-column: 1 / -1;">
+                <label for="product-description">📝 Description</label>
+                <textarea id="product-description" name="description" placeholder="Describe your product..." rows="3" required style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; font-family: inherit;"></textarea>
+            </div>
+            
+            <div class="form-group full-width" style="grid-column: 1 / -1;">
+                <label for="productImages">📸 Product Images (1-3 images)</label>
+                <input type="file" id="productImages" name="productImages" accept="image/png, image/jpeg, image/jpg" multiple required style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px;">
+                <small style="color: #666; display: block; margin-top: 5px;">Upload 1 to 3 images (PNG, JPG, JPEG).</small>
+            </div>
+        </div>
+
+        <button type="submit" class="btn" style="margin-top: 20px;">✅ Add Product</button>
+    </form>
+
+    <div id="products-results" class="results">
+        <h2>🛍️ Available Products (<span id="products-count">0</span>)</h2>
+        <div id="products-grid" class="products-grid"></div>
+    </div>
+
+    <div style="text-align: center; margin-top: 30px;">
+        <button onclick="fetchProducts()" class="btn" style="max-width: 200px;">🔄 Refresh Products</button>
+    </div>
+    </div>
+    </main>
+
+
+    <!-- AI Morph Panel -->
+    <div id="ai-morph-panel">
+        <div class="ai-panel-toggle">
+            <div class="color-orb"></div>
+            <span>Ask AI</span>
+        </div>
+        <div class="ai-panel-chat">
+            <div class="ai-panel-header">
+                <div class="color-orb small"></div>
+                <div>
+                    <strong>AgriAid AI</strong>
+                    <span class="ai-subtitle">Ask in English, हिंदी, or मराठी</span>
+                </div>
+                <button class="ai-panel-close" aria-label="Close">✕</button>
+            </div>
+            <div class="ai-panel-messages" id="ai-panel-messages">
+                <div class="msg msg-ai">Hello! I'm your AI farming assistant. Ask me anything about crops, soil, weather, or fertilizers!</div>
+            </div>
+            <div class="ai-panel-input">
+                <textarea id="ai-panel-textarea" placeholder="Ask anything..." rows="1"></textarea>
+                <button id="ai-panel-send" aria-label="Send">
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js?v=2"></script>
+    <script>
+        // Load products when page loads
+        document.addEventListener('DOMContentLoaded', function () {
+            fetchProducts();
+        });
+    </script>
+</body>
+
+</html>

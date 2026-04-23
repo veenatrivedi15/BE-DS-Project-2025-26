@@ -1,0 +1,618 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Dashboard - AgriAid+</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        /* CSS Variables for Dark Dashboard Theme */
+        :root {
+            --bg-dark: #121a16;
+            --bg-panel: rgba(26, 26, 26, 0.85); /* Sidebar and Header */
+            --bg-card: rgba(45, 74, 62, 0.4);
+            --primary-green: #6b9c7a;
+            --primary-light: #b6f5b6;
+            --hover-green: rgba(74, 124, 89, 0.25);
+            --text-main: #e8f5e8;
+            --text-muted: #a4c4b5;
+            --border-color: rgba(74, 124, 89, 0.3);
+        }
+
+        body {
+            margin: 0;
+            background-color: var(--bg-dark); /* Matches global dark theme */
+            font-family: 'Inter', sans-serif;
+            color: var(--text-main);
+            overflow-x: hidden;
+        }
+
+        /* Dash Layout Grid */
+        .dash-layout {
+            display: grid;
+            grid-template-columns: 260px 1fr;
+            min-height: 100vh;
+        }
+
+        /* SIDEBAR (Dark Mode) */
+        .dash-sidebar {
+            background-color: var(--bg-panel);
+            backdrop-filter: blur(10px);
+            border-right: 1px solid var(--border-color);
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            position: sticky;
+            top: 0;
+            height: 100vh;
+            overflow-y: auto;
+        }
+
+        .dash-logo {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: var(--primary-light);
+            margin-bottom: 40px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            text-decoration: none;
+        }
+
+        .dash-logo svg {
+            color: var(--primary-light);
+        }
+
+        .dash-nav {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .dash-nav-item {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 12px 16px;
+            text-decoration: none;
+            color: var(--text-muted);
+            border-radius: 12px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .dash-nav-item svg {
+            width: 20px;
+            height: 20px;
+            stroke: currentColor;
+            stroke-width: 2;
+            fill: none;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+
+        .dash-nav-item:hover {
+            background-color: var(--hover-green);
+            color: var(--primary-light);
+        }
+
+        .dash-nav-item.active {
+            background-color: var(--primary-green);
+            color: white;
+            box-shadow: 0 4px 15px rgba(107, 156, 122, 0.4);
+        }
+
+        /* MAIN CONTENT */
+        .dash-main {
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+        }
+
+        /* HEADER */
+        .dash-header {
+            background-color: var(--bg-panel);
+            backdrop-filter: blur(10px);
+            height: 80px;
+            padding: 0 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border-color);
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .dash-search {
+            position: relative;
+            width: 320px;
+        }
+
+        .dash-search svg {
+            position: absolute;
+            left: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 18px;
+            height: 18px;
+            color: var(--text-muted);
+        }
+
+        .dash-search input {
+            width: 100%;
+            padding: 12px 16px 12px 42px;
+            border: 1px solid var(--border-color);
+            border-radius: 30px;
+            background-color: rgba(26, 26, 26, 0.5); /* dark input bg */
+            color: var(--text-main);
+            outline: none;
+            transition: border-color 0.3s;
+            font-size: 0.95rem;
+        }
+
+        .dash-search input:focus {
+            border-color: var(--primary-light);
+        }
+
+        .dash-header-actions {
+            display: flex;
+            align-items: center;
+            gap: 24px;
+        }
+
+        .dash-btn-icon {
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            color: var(--text-muted);
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: color 0.3s;
+        }
+
+        .dash-btn-icon:hover {
+            color: var(--primary-light);
+        }
+
+        .dash-btn-icon::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 8px;
+            height: 8px;
+            background-color: #e74c3c;
+            border-radius: 50%;
+            border: 2px solid var(--bg-panel);
+        }
+
+        .dash-avatar {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background-color: var(--hover-green);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--primary-light);
+            font-weight: bold;
+            overflow: hidden;
+            border: 2px solid var(--primary-green);
+            cursor: pointer;
+        }
+
+        .dash-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        /* GRID CONTENT ZONE */
+        .dash-content-area {
+            padding: 40px;
+        }
+
+        .dash-welcome {
+            margin-bottom: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+        }
+
+        .dash-welcome h1 {
+            margin: 0 0 8px 0;
+            font-size: 2.2rem;
+            color: var(--primary-light);
+        }
+
+        .dash-welcome p {
+            margin: 0;
+            color: var(--text-muted);
+        }
+
+        .add-item-btn {
+            background: linear-gradient(135deg, #4a7c59 0%, #6b9c7a 100%);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 15px;
+            text-decoration: none;
+            font-weight: 700;
+            font-size: 1.05rem;
+            border: none;
+            cursor: pointer;
+            transition: transform 0.3s, box-shadow 0.3s;
+            box-shadow: 0 4px 15px rgba(74, 124, 89, 0.3);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .add-item-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(74, 124, 89, 0.4);
+        }
+
+        /* MY LISTINGS (Restored User Products Block) */
+        .listings-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 24px;
+            margin-top: 10px;
+        }
+
+        .listing-card {
+            background: var(--bg-card);
+            border-radius: 15px;
+            border: 1px solid var(--border-color);
+            padding: 20px;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(5px);
+        }
+
+        .listing-card:hover {
+            transform: translateY(-5px);
+            border-color: var(--primary-green);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .listing-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 15px;
+        }
+
+        .listing-badge {
+            background: var(--hover-green);
+            color: var(--primary-green);
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .listing-price {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: var(--primary-light);
+        }
+
+        .listing-body h3 {
+            color: var(--text-main);
+            margin-bottom: 10px;
+            font-size: 1.2rem;
+        }
+
+        .listing-body p {
+            color: var(--text-muted);
+            font-size: 0.95rem;
+            margin-bottom: 5px;
+        }
+
+        .listing-footer {
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn-edit,
+        .btn-delete {
+            padding: 8px 15px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            flex: 1;
+            transition: all 0.3s;
+        }
+
+        .btn-edit {
+            background: var(--hover-green);
+            color: var(--primary-light);
+            border: 1px solid var(--primary-green);
+        }
+
+        .btn-edit:hover {
+            background: rgba(107, 156, 122, 0.4);
+        }
+
+        .btn-delete {
+            background: rgba(231, 76, 60, 0.1);
+            color: #e74c3c;
+            border: 1px solid #e74c3c;
+        }
+
+        .btn-delete:hover {
+            background: rgba(231, 76, 60, 0.2);
+        }
+
+        /* MODAL (Restored) */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(5px);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background: #1e2621;
+            border: 1px solid #4a7c59;
+            border-radius: 20px;
+            padding: 30px;
+            width: 100%;
+            max-width: 600px;
+            position: relative;
+        }
+
+        .close-modal {
+            position: absolute; top: 20px; right: 20px;
+            color: #c8e6c9; font-size: 1.5rem; cursor: pointer; transition: color 0.3s;
+        }
+
+        .close-modal:hover { color: #ff6b6b; }
+
+        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .form-group { display: flex; flex-direction: column; gap: 8px; }
+        .form-group.full-width { grid-column: 1 / -1; }
+        .form-group label { color: #c8e6c9; font-weight: 600; font-size: 0.9rem; }
+        
+        .form-group input, .form-group select, .form-group textarea {
+            padding: 12px; border-radius: 10px; border: 1px solid rgba(74, 124, 89, 0.3);
+            background: rgba(26, 26, 26, 0.5); color: white; font-family: inherit;
+        }
+
+        .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+            outline: none; border-color: #9FE29F; background: rgba(26, 26, 26, 0.8);
+        }
+        
+        .form-footer {
+            display: flex; align-items: center; gap: 15px; margin-top: 24px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #4a7c59 0%, #6b9c7a 100%);
+            color: white; border: none; padding: 12px 24px; border-radius: 12px; font-weight: bold; cursor: pointer; flex: 2; font-size: 1rem;
+        }
+        
+        .btn-secondary {
+            background: transparent; color: #a4c4b5; border: 1px solid #a4c4b5; padding: 12px 24px; border-radius: 12px; cursor: pointer; flex: 1; font-weight: bold; font-size: 1rem;
+        }
+
+        @media (max-width: 768px) {
+            .dash-layout {
+                grid-template-columns: 1fr;
+            }
+            .dash-sidebar {
+                display: none;
+            }
+            .dash-welcome {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 16px;
+            }
+            .dash-header {
+                padding: 0 20px;
+            }
+            .dash-content-area {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="dash-layout">
+        <!-- FIXED SIDEBAR -->
+        <aside class="dash-sidebar">
+            <a href="/" class="dash-logo">
+                <svg viewBox="0 0 36 36" width="30" height="30" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M18 3C18 3 8 10 8 20C8 25.5 12.5 30 18 30C23.5 30 28 25.5 28 20C28 10 18 3 18 3Z" fill="#4a7c59"/>
+                    <path d="M18 10V26M18 10C14 14 12 18 12 22M18 10C22 14 24 18 24 22" stroke="#9FE29F" stroke-width="1.5" stroke-linecap="round"/>
+                </svg>
+                AgriAid+
+            </a>
+            
+            <nav class="dash-nav">
+                <a href="/dashboard" class="dash-nav-item active">
+                    <svg><rect x="3" y="3" width="7" height="9"></rect><rect x="14" y="3" width="7" height="5"></rect><rect x="14" y="12" width="7" height="9"></rect><rect x="3" y="16" width="7" height="5"></rect></svg>
+                    Dashboard
+                </a>
+                <a href="/croppred" class="dash-nav-item">
+                    <svg><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+                    Crop Predictor
+                </a>
+                <a href="/weather" class="dash-nav-item">
+                    <svg><path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"></path></svg>
+                    Weather
+                </a>
+                <a href="/market" class="dash-nav-item">
+                    <svg><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
+                    Market Trends
+                </a>
+                <a href="/ecom" class="dash-nav-item">
+                    <svg><circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path></svg>
+                    Marketplace
+                </a>
+                <a href="/nakshatra-page" class="dash-nav-item">
+                    <svg><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"></path></svg>
+                    Nakshatra
+                </a>
+            </nav>
+        </aside>
+
+        <!-- MAIN CONTENT AREA -->
+        <main class="dash-main">
+            <!-- TOP HEADER -->
+            <header class="dash-header">
+                <div class="dash-search">
+                    <svg><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                    <input type="text" placeholder="Search crops, forecasts or orders...">
+                </div>
+                
+                <div class="dash-header-actions">
+                    <button class="dash-btn-icon" aria-label="Notifications">
+                        <svg width="24" height="24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
+                    </button>
+                    <div class="dash-avatar" onclick="window.location.href='/login'">
+                        <img src="https://ui-avatars.com/api/?name=Farm+User&background=ebf5ed&color=4a7c59" alt="User">
+                    </div>
+                </div>
+            </header>
+
+            <!-- FLUID GRID CONTENT -->
+            <div class="dash-content-area">
+                <div class="dash-welcome">
+                    <div>
+                        <h1>Hello, <span id="user-display-name">Farmer</span>! 🌾</h1>
+                        <p>Welcome back to your AgriAid+ command center.</p>
+                    </div>
+                    <!-- Add item button logic matches original feature -->
+                    <button class="add-item-btn" onclick="openModal()">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                        Add New Listing
+                    </button>
+                </div>
+
+                <!-- MY LISTINGS SECTION -->
+                <div style="margin-bottom: 24px;">
+                    <h2 style="color: var(--primary-light); font-size: 1.4rem; font-weight: 700; margin: 0 0 8px 0;">🛍️ My Marketplace Listings</h2>
+                    <p style="color: var(--text-muted); margin: 0;">Manage your actively listed crops, fertilizers, and products available on the marketplace.</p>
+                </div>
+
+                <div id="my-listings" class="listings-grid">
+                    <!-- Items actively injected by dashboard.js -->
+                    <div style="grid-column: 1/-1; text-align: center; color: var(--text-muted); padding: 40px; background: var(--bg-card); border-radius: 16px; border: 1px dashed var(--border-color);">
+                        Loading your listings...
+                    </div>
+                </div>
+
+            </div>
+        </main>
+    </div>
+
+    <!-- Restored Add/Edit Item Modal -->
+    <div id="itemModal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="closeModal()">&times;</span>
+            <h2 id="modalTitle" style="color: #b6f5b6; margin-bottom: 5px;">Add New Listing</h2>
+            <p style="color: #6b9c7a; margin-bottom: 20px;">Fill in the details below</p>
+
+            <form id="itemForm">
+                <input type="hidden" id="itemId">
+
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>Item Name</label>
+                        <input type="text" id="itemName" required placeholder="e.g. Organic Wheat">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Price (₹)</label>
+                        <input type="number" id="itemPrice" required placeholder="e.g. 2500">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Category</label>
+                        <select id="itemCategory" required>
+                            <option value="crop">Crop</option>
+                            <option value="fertilizer">Fertilizer</option>
+                            <option value="equipment">Equipment</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Mode</label>
+                        <select id="itemMode" required>
+                            <option value="sell">Sell</option>
+                            <option value="rent">Rent</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group full-width">
+                        <label>Quantity / Unit</label>
+                        <input type="text" id="itemQuantity" required placeholder="e.g. 50 kg or 1 unit">
+                    </div>
+
+                    <div class="form-group full-width">
+                        <label>Description</label>
+                        <textarea id="itemDesc" rows="3" required></textarea>
+                    </div>
+                </div>
+
+                <div class="form-footer">
+                    <button type="submit" class="btn-primary">Publish Listing</button>
+                    <button type="button" class="btn-secondary" onclick="closeModal()">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- AI Morph Panel -->
+    <div id="ai-morph-panel">
+        <div class="ai-panel-toggle">
+            <div class="color-orb"></div>
+            <span>Ask AI</span>
+        </div>
+        <div class="ai-panel-chat">
+            <div class="ai-panel-header">
+                <div class="color-orb small"></div>
+                <div>
+                    <strong>AgriAid AI</strong>
+                    <span class="ai-subtitle">Ask in English, हिंदी, or मराठी</span>
+                </div>
+                <button class="ai-panel-close" aria-label="Close">✕</button>
+            </div>
+            <div class="ai-panel-messages" id="ai-panel-messages">
+                <div class="msg msg-ai">Hello! I'm your AI farming assistant. Ask me anything about crops, soil, weather, or fertilizers!</div>
+            </div>
+            <div class="ai-panel-input">
+                <textarea id="ai-panel-textarea" placeholder="Ask anything..." rows="1"></textarea>
+                <button id="ai-panel-send" aria-label="Send">
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="dashboard.js"></script>
+    <script>
+        // Inline check for auth to redirect if not logged in
+        document.addEventListener('DOMContentLoaded', () => {
+            if (localStorage.getItem('isLoggedIn') !== 'true') {
+                window.location.href = '/login';
+            }
+        });
+    </script>
+</body>
+</html>

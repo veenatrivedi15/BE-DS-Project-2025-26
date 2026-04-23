@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AgriAid+ - Smart Farming Solutions</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+    <!-- Navigation -->
+    <header class="header" id="site-header">
+        <nav class="nav">
+            <a href="/" class="logo">
+                <svg viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M18 3C18 3 8 10 8 20C8 25.5 12.5 30 18 30C23.5 30 28 25.5 28 20C28 10 18 3 18 3Z"
+                        fill="#4a7c59" />
+                    <path d="M18 10V26M18 10C14 14 12 18 12 22M18 10C22 14 24 18 24 22" stroke="#9FE29F"
+                        stroke-width="1.5" stroke-linecap="round" />
+                </svg>
+                AgriAid+
+            </a>
+            <div class="nav-links">
+                <a href="/" class="active">Home</a>
+                <a href="/croppred">Crop Prediction</a>
+                <a href="/weather">Weather</a>
+                <a href="/market">Market</a>
+                <a href="/ecom">E-commerce</a>
+                <a href="/nakshatra-page">Nakshatra</a>
+            </div>
+            <div class="nav-auth">
+                <a href="/login" class="btn-signin">Sign In</a>
+                <a href="/signup" class="btn-getstarted">Get Started</a>
+            </div>
+            <button class="hamburger" id="hamburger-btn" aria-label="Toggle menu">
+                <span></span><span></span><span></span>
+            </button>
+        </nav>
+        <div class="mobile-menu" id="mobile-menu">
+            <a href="/" class="active">Home</a>
+            <a href="/croppred">Crop Prediction</a>
+            <a href="/weather">Weather</a>
+            <a href="/market">Market</a>
+            <a href="/ecom">E-commerce</a>
+            <a href="/nakshatra-page">Nakshatra</a>
+            <div class="mobile-auth">
+                <a href="/login" class="btn-signin">Sign In</a>
+                <a href="/signup" class="btn-getstarted">Get Started</a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Home Page -->
+    <main id="home-page" class="page active">
+        <section class="hero">
+            <div class="container" style="max-width: 1100px;">
+
+                <!-- HEADER AREA -->
+                <div style="text-align: center; margin-bottom: 40px;">
+                    <span
+                        style="display: inline-block; padding: 6px 16px; background: rgba(74, 124, 89, 0.15); color: #9FE29F; border-radius: 20px; font-size: 0.85rem; font-weight: 700; margin-bottom: 16px; letter-spacing: 1px; text-transform: uppercase; border: 1px solid rgba(159, 226, 159, 0.2);">
+                        AgriAid+ Platform
+                    </span>
+                    <h1 style="font-size: 3.2rem; color: #e8f5e8; margin-bottom: 16px; line-height: 1.2;">Smart Tools
+                        for Modern Farming</h1>
+                    <p style="color: #a4c4b5; font-size: 1.15rem; max-width: 600px; margin: 0 auto;">
+                        Your comprehensive digital companion to analyze crops, track weather, monitor market trends, and
+                        trade seamlessly.
+                    </p>
+                </div>
+
+                <!-- TAB NAVIGATION -->
+                <div class="tab-nav">
+                    <button class="tab-btn active" data-target="tab-crop">🌱 Crop Prediction</button>
+                    <button class="tab-btn" data-target="tab-weather">🌤️ Weather Forecast</button>
+                    <button class="tab-btn" data-target="tab-market">📊 Market Trends</button>
+                    <button class="tab-btn" data-target="tab-ecom">🛒 Marketplace</button>
+                    <button class="tab-btn" data-target="tab-expert">💬 Talk with Expert</button>
+                    <button class="tab-btn" data-target="tab-nakshatra">🌙 Nakshatra Recs</button>
+                </div>
+
+                <!-- TAB CONTENT AREA -->
+                <div class="showcase-container">
+
+                    <!-- Pane 1: Crop Prediction -->
+                    <div class="tab-content active" id="tab-crop">
+                        <div class="tab-text">
+                            <span class="tab-badge">AI Analysis</span>
+                            <h2 class="tab-title">Predict the Perfect Crop for Your Soil</h2>
+                            <p class="tab-desc">
+                                Stop guessing. Let our AI analyze your soil conditions, climate data, and rainfall to
+                                recommend the most profitable and high-yielding crops and precise fertilizer
+                                requirements customized specifically for your farm.
+                            </p>
+                            <button class="tab-cta" onclick="window.location.href='/croppred'">Try Predictor →</button>
+                        </div>
+                        <div class="tab-image">
+                            <!-- Placeholder image representing crop ML -->
+                            <img src="https://images.unsplash.com/photo-1625246333195-78d9c38ad449?q=80&w=1000&auto=format&fit=crop"
+                                alt="Crop Recommendation AI">
+                        </div>
+                    </div>
+
+                    <!-- Pane 2: Weather -->
+                    <div class="tab-content" id="tab-weather">
+                        <div class="tab-text">
+                            <span class="tab-badge">Real-Time</span>
+                            <h2 class="tab-title">Hyper-Local Weather Forecasts</h2>
+                            <p class="tab-desc">
+                                Plan your irrigation, sowing, and harvesting with pinpoint accuracy. Access 5-day
+                                forecasts, severe weather alerts, and humidity tracking designed purely for agricultural
+                                needs.
+                            </p>
+                            <button class="tab-cta" onclick="window.location.href='/weather'">Check Weather →</button>
+                        </div>
+                        <div class="tab-image">
+                            <!-- Placeholder image representing weather -->
+                            <img src="https://images.unsplash.com/photo-1592210454359-9043f067919b?q=80&w=1000&auto=format&fit=crop"
+                                alt="Weather Forecast">
+                        </div>
+                    </div>
+
+                    <!-- Pane 3: Market -->
+                    <div class="tab-content" id="tab-market">
+                        <div class="tab-text">
+                            <span class="tab-badge">Data Insights</span>
+                            <h2 class="tab-title"> Market Trend Analysis</h2>
+                            <p class="tab-desc">
+                                Never sell at a loss again. Stay updated with historical price trends, current market
+                                demand across different regions, and profit margins to time your sales perfectly.
+                            </p>
+                            <button class="tab-cta" onclick="window.location.href='/market'">View Trends →</button>
+                        </div>
+                        <div class="tab-image">
+                            <!-- Fixed image representing data -->
+                            <img src="https://images.unsplash.com/photo-1551288049-bebda4e38f71?q=80&w=1000&auto=format&fit=crop"
+                                alt="Market Data Tracking">
+                        </div>
+                    </div>
+
+                    <!-- Pane 4: E-Commerce -->
+                    <div class="tab-content" id="tab-ecom">
+                        <div class="tab-text">
+                            <span class="tab-badge">Peer-to-Peer</span>
+                            <h2 class="tab-title">Farmer-First Digital Marketplace</h2>
+                            <p class="tab-desc">
+                                Bypass the middlemen. List your harvest directly to buyers or purchase seeds,
+                                fertilizers, and farming equipment from trusted local suppliers within the community.
+                            </p>
+                            <button class="tab-cta" onclick="window.location.href='/ecom'">Browse Market →</button>
+                        </div>
+                        <div class="tab-image">
+                            <!-- Placeholder image representing e-commerce -->
+                            <img src="https://images.unsplash.com/photo-1542838132-92c53300491e?q=80&w=1000&auto=format&fit=crop"
+                                alt="Agricultural Marketplace">
+                        </div>
+                    </div>
+
+                    <!-- Pane 5: Expert / Organizations -->
+                    <div class="tab-content" id="tab-expert">
+                        <div class="tab-text">
+                            <span class="tab-badge">Community Help</span>
+                            <h2 class="tab-title">Get Help from Agricultural Experts</h2>
+                            <p class="tab-desc">
+                                Connect directly with agricultural organizations, NGOs, and farming experts ready to assist you with subsidies, modern farming techniques, and problem resolution.
+                            </p>
+                            <button class="tab-cta" onclick="window.location.href='/organisations'">Find Organizations →</button>
+                        </div>
+                        <div class="tab-image">
+                            <!-- Image representing expert help / NGOs -->
+                            <img src="https://images.unsplash.com/photo-1500937386664-56d1dfef3854?q=80&w=1000&auto=format&fit=crop"
+                                alt="Agricultural Community Help">
+                        </div>
+                    </div>
+
+                    <!-- Pane 6: Nakshatra -->
+                    <div class="tab-content" id="tab-nakshatra">
+                        <div class="tab-text">
+                            <span class="tab-badge">Astrological</span>
+                            <h2 class="tab-title">Nakshatra-Based Recommendations</h2>
+                            <p class="tab-desc">
+                                Align your farming with the stars. Get unique crop recommendations based on the Moon's Nakshatra for any given date to maximize your agricultural potential.
+                            </p>
+                            <button class="tab-cta" onclick="window.location.href='/nakshatra-page'">Try Nakshatra Insights →</button>
+                        </div>
+                        <div class="tab-image">
+                            <!-- Image representing stars / nakshatra -->
+                            <img src="https://images.unsplash.com/photo-1534447677768-be436bb09401?q=80&w=1000&auto=format&fit=crop"
+                                alt="Nakshatra Star Insights">
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- AI Morph Panel -->
+    <div id="ai-morph-panel">
+        <div class="ai-panel-toggle">
+            <div class="color-orb"></div>
+            <span>Ask AI</span>
+        </div>
+        <div class="ai-panel-chat">
+            <div class="ai-panel-header">
+                <div class="color-orb small"></div>
+                <div>
+                    <strong>AgriAid AI</strong>
+                    <span class="ai-subtitle">Ask in English, हिंदी, or मराठी</span>
+                </div>
+                <button class="ai-panel-close" aria-label="Close">✕</button>
+            </div>
+            <div class="ai-panel-messages" id="ai-panel-messages">
+                <div class="msg msg-ai">Hello! I'm your AI farming assistant. Ask me anything about crops, soil,
+                    weather, or fertilizers!</div>
+            </div>
+            <div class="ai-panel-input">
+                <textarea id="ai-panel-textarea" placeholder="Ask anything..." rows="1"></textarea>
+                <button id="ai-panel-send" aria-label="Send">
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="22" y1="2" x2="11" y2="13" />
+                        <polygon points="22 2 15 22 11 13 2 9 22 2" />
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js?v=2"></script>
+</body>
+
+</html>
