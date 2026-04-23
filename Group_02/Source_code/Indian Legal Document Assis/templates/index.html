@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Indian Legal Document Generator</title>
+
+    <style>
+        body {
+            font-family: "Segoe UI", Arial, sans-serif;
+            margin: 0;
+            background: #f4f6f9;
+            color: #333;
+        }
+
+        h2, h3 {
+            margin-top: 0;
+        }
+
+        .container {
+            padding: 30px;
+        }
+
+        textarea, input {
+            width: 100%;
+            margin-top: 6px;
+            padding: 8px;
+            font-size: 14px;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+        }
+
+        button {
+            margin-top: 15px;
+            padding: 10px 14px;
+            font-size: 14px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            background: #1e3a8a;
+            color: #fff;
+        }
+
+        button:hover {
+            background: #1e40af;
+        }
+
+        /* ===== Layout ===== */
+        .top-section {
+            max-width: 1100px;
+            margin: auto;
+            background: #fff;
+            padding: 20px;
+            border-radius: 6px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+        }
+
+        .editor {
+            display: grid;
+            grid-template-columns: 1fr 1.4fr;
+            gap: 20px;
+            margin-top: 25px;
+        }
+
+        .panel {
+            background: #fff;
+            padding: 20px;
+            border-radius: 6px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+        }
+
+        .panel h3 {
+            border-bottom: 1px solid #eee;
+            padding-bottom: 8px;
+            margin-bottom: 15px;
+        }
+
+        /* ===== Placeholders ===== */
+        #placeholders label {
+            display: block;
+            margin-top: 12px;
+            font-weight: 600;
+            font-size: 13px;
+        }
+
+        /* ===== Document Preview ===== */
+        #draft {
+            height: 550px;
+            resize: none;
+            font-family: "Times New Roman", serif;
+            line-height: 1.5;
+        }
+
+        .actions {
+            margin-top: 15px;
+            display: flex;
+            gap: 10px;
+        }
+
+        /* ===== Sticky preview ===== */
+        .sticky {
+            position: sticky;
+            top: 20px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div style="background:#1e3a8a; padding:12px 30px; display:flex; justify-content:space-between; align-items:center; color:white;">
+    
+    <h3 style="margin:0;">Legal AI</h3>
+    <button onclick="loadMyDocs()">📄 My Documents</button>
+
+
+    <div id="authSection">
+        
+        <button onclick="goLogin()">Login</button>
+        <button onclick="goRegister()">Register</button>
+    </div>
+    <button onclick="goDashboard()">Lawyer Dashboard</button>
+    <div id="userSection" style="display:none;">
+        <span id="userEmail"></span>
+        <button onclick="logout()">Logout</button>
+    </div>
+
+</div>
+
+
+<div class="container">
+
+    <div class="top-section">
+        <h2>Indian Legal Document Assistant</h2>
+
+        <label>Describe Your Issue</label>
+        <textarea id="issue" rows="4"></textarea>
+
+        <div class="actions">
+            <button onclick="identifyDoc()">Identify Document</button>
+            <button onclick="generateDraft()">Generate Draft</button>
+        </div>
+
+        <h3 id="docName"></h3>
+    </div>
+
+    <div class="editor">
+
+        <!-- LEFT: FORM -->
+        <div class="panel">
+            <h3>Fill Document Details</h3>
+            <div id="placeholders"></div>
+        </div>
+
+        <!-- RIGHT: DOCUMENT -->
+        <div class="panel sticky">
+            <h3>Live Document Preview</h3>
+            <textarea id="draft"></textarea>
+
+            <div class="actions">
+                <div class="actions">
+                    <button onclick="exportFile('docx')">Download DOCX</button>
+                    <button onclick="exportFile('pdf')">Download PDF</button>
+                    <button onclick="sendForVerification()">Send for Verification</button>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+
+<div id="myDocs"></div>
+</div>
+
+
+
+<script src="/static/script.js"></script>
+
+
+<script>
+fetch("/lawyer/documents")
+.then(res => {
+    if (res.status === 401 || res.status === 302) {
+        document.getElementById("authSection").style.display = "block";
+        document.getElementById("userSection").style.display = "none";
+    } else {
+        document.getElementById("authSection").style.display = "none";
+        document.getElementById("userSection").style.display = "block";
+    }
+});
+
+async function loadMyDocs() {
+    const res = await fetch("/my-documents");
+    const data = await res.json();
+
+    let html = "";
+
+    data.documents.forEach(doc => {
+        let status = doc[2] || "pending";
+        let color = "orange";
+
+        if (status === "verified") color = "green";
+        if (status === "rejected") color = "red";
+
+        html += `
+        <div style="background:#fff; padding:15px; margin:10px 0; border-radius:6px; box-shadow:0 2px 6px rgba(0,0,0,0.1);">
+            
+            <p><b>Issue:</b> ${doc[0]}</p>
+
+            <textarea rows="4" readonly>${doc[1]}</textarea>
+
+            <p>
+                <b>Status:</b> 
+                <span style="color:${color}; font-weight:bold;">
+                    ${status.toUpperCase()}
+                </span>
+            </p>
+
+            <p>
+                <b>Lawyer Comment:</b> 
+                ${doc[3] ? doc[3] : "Not reviewed yet"}
+            </p>
+
+        </div>
+        `;
+    });
+
+    document.getElementById("myDocs").innerHTML = html;
+}
+</script>
+
+</body>
+</html>
+    
