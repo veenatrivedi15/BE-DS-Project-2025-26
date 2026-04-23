@@ -1,0 +1,50 @@
+/* Custom CSS for professional font styling */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap');
+
+body {
+    font-family: 'Poppins', sans-serif;
+    background-color: #f3f4f6; /* Light gray background */
+}
+
+/* Base styles for cards */
+.card {
+    transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+}
+
+/* Card hover effects */
+.card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
+}
+
+/* Icon container hover animation */
+.card-icon-container {
+    transition: transform 0.3s ease-in-out;
+}
+
+.card:hover .card-icon-container {
+    transform: scale(1.1);
+}
+
+/* Keyframe animation for the subtle fade-in and slide-up */
+@keyframes fadeInSlideUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.animate-on-load {
+    opacity: 0;
+    animation: fadeInSlideUp 1s ease-out forwards;
+}
+
+/* To give different elements slightly delayed animations */
+.animate-on-load.delay-1 { animation-delay: 0.2s; }
+.animate-on-load.delay-2 { animation-delay: 0.4s; }
+.animate-on-load.delay-3 { animation-delay: 0.6s; }
+.animate-on-load.delay-4 { animation-delay: 0.8s; }
