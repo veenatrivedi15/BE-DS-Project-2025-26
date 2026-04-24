@@ -1,0 +1,798 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Session Report - 🚀SCIAM</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: #0f172a;
+            min-height: 100vh;
+            padding: 40px 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: #111827;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+            overflow: hidden;
+            border: 1px solid #374151;
+        }
+
+        .header {
+            background: #1e3a8a;
+            color: white;
+            padding: 40px;
+            text-align: center;
+            border-bottom: 1px solid #2563eb;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.95;
+        }
+
+        .content {
+            padding: 40px;
+        }
+
+        /* Timeline Intelligence (compact) */
+        .timeline-section {
+            background: #1f2937;
+            border: 1px solid #374151;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+
+        .timeline-title {
+            font-size: 1.3em;
+            font-weight: 600;
+            color: #e5e7eb;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .timeline-container { display: grid; gap: 12px; }
+
+        .timeline-item {
+            background: #111827;
+            border: 1px solid #2d3748;
+            border-radius: 8px;
+            padding: 14px;
+        }
+
+        .timeline-label { font-weight: 700; color: #93c5fd; }
+        .timeline-time { color: #9ca3af; font-size: 0.9em; margin-top: 4px; }
+        .timeline-summary { color: #e5e7eb; margin-top: 8px; }
+        .timeline-chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+        .timeline-chip { background: #1f2937; border: 1px solid #374151; color: #cbd5e1; padding: 4px 8px; border-radius: 6px; font-size: 0.8em; }
+
+        /* Graphs Section */
+        .graphs-section {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 50px;
+        }
+
+        .graph-container {
+            background: #1f2937;
+            border-radius: 10px;
+            padding: 25px;
+            border: 1px solid #374151;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .graph-container:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .graph-title {
+            font-size: 1.3em;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .graph-title::before {
+            content: '';
+            display: inline-block;
+            width: 4px;
+            height: 20px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border-radius: 2px;
+        }
+
+        .canvas-wrapper {
+            position: relative;
+            height: 350px;
+            margin-bottom: 10px;
+        }
+
+        canvas {
+            max-height: 350px !important;
+        }
+
+        /* Contribution Table */
+        .contribution-table {
+            margin-bottom: 40px;
+        }
+
+        .table-title {
+            font-size: 1.5em;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .table-title::before {
+            content: '';
+            display: inline-block;
+            width: 4px;
+            height: 25px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border-radius: 2px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: #1f2937;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+            border: 1px solid #374151;
+        }
+
+        thead {
+            background: #1e3a8a;
+            color: white;
+        }
+
+        th {
+            padding: 18px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 0.95em;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        td {
+            padding: 16px 18px;
+            border-bottom: 1px solid #e9ecef;
+            font-size: 0.95em;
+        }
+
+        tbody tr {
+            transition: background-color 0.2s ease;
+        }
+
+        tbody tr:hover {
+            background-color: #f8f9fa;
+        }
+
+        tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        .user-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 0.85em;
+        }
+
+        .metric-value {
+            font-weight: 600;
+            color: #667eea;
+            font-size: 1.1em;
+        }
+
+        /* MOM Section */
+        .mom-section {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 25px;
+            border: 1px solid #e9ecef;
+            margin-top: 30px;
+        }
+
+        .mom-title {
+            font-size: 1.5em;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .mom-title::before {
+            content: '';
+            display: inline-block;
+            width: 4px;
+            height: 25px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border-radius: 2px;
+        }
+
+        .mom-content {
+            background: white;
+            padding: 24px;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            font-size: 1.15em;
+            line-height: 1.8;
+            color: #222;
+            max-height: 700px;
+            overflow-y: auto;
+        }
+
+        /* User Code Section */
+        .userwise-code-section {
+            margin-top: 30px;
+        }
+
+        .code-title {
+            font-size: 1.5em;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .code-title::before {
+            content: '';
+            display: inline-block;
+            width: 4px;
+            height: 25px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border-radius: 2px;
+        }
+
+        .user-code-block {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-left: 4px solid #667eea;
+        }
+
+        .user-code-header {
+            font-weight: 600;
+            color: #667eea;
+            margin-bottom: 12px;
+            font-size: 1.05em;
+        }
+
+        .user-code-content {
+            background: white;
+            padding: 15px;
+            border-radius: 5px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+            line-height: 1.5;
+            color: #333;
+            overflow-x: auto;
+            border: 1px solid #e9ecef;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: #1e3a8a;
+            color: white;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(37, 99, 235, 0.3);
+            border: 1px solid #2563eb;
+        }
+
+        .stat-label {
+            font-size: 0.9em;
+            opacity: 0.95;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 10px;
+        }
+
+        .stat-value {
+            font-size: 2.5em;
+            font-weight: 700;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            font-size: 1.1em;
+            color: #667eea;
+        }
+
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 20px;
+            border-radius: 8px;
+            border-left: 4px solid #f5c6cb;
+        }
+
+        @media (max-width: 1024px) {
+            .graphs-section {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .header {
+                padding: 25px;
+            }
+
+            .header h1 {
+                font-size: 1.8em;
+            }
+
+            .content {
+                padding: 20px;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            table {
+                font-size: 0.85em;
+            }
+
+            th, td {
+                padding: 12px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📊 Session Report</h1>
+            <p id="session-info">Loading session data...</p>
+        </div>
+
+        <div class="content">
+            <!-- Stats Cards -->
+            <div class="stats-grid" id="stats-grid">
+                <div class="loading">Loading statistics...</div>
+            </div>
+
+            <!-- Compact Timeline Intelligence -->
+            <div class="timeline-section">
+                <div class="timeline-title">🧭 Session Timeline (Condensed)</div>
+                <div id="timeline-container" class="timeline-container">
+                    <div class="loading">Building timeline...</div>
+                </div>
+            </div>
+
+            <!-- Interactive Graphs -->
+            <div class="graphs-section">
+                <!-- Graph 1: Activity Distribution (Pie Chart) -->
+                <div class="graph-container">
+                    <div class="graph-title">📈 Activity Distribution</div>
+                    <div class="canvas-wrapper">
+                        <canvas id="activityChart"></canvas>
+                    </div>
+                    <p style="color: #666; font-size: 0.9em; text-align: center;">
+                        Percentage of code edits per participant
+                    </p>
+                </div>
+
+                <!-- Graph 2: Edits vs Chat (Bar Chart) -->
+                <div class="graph-container">
+                    <div class="graph-title">💬 Edits vs Chat Activity</div>
+                    <div class="canvas-wrapper">
+                        <canvas id="timelineChart"></canvas>
+                    </div>
+                    <p style="color: #666; font-size: 0.9em; text-align: center;">
+                        Code edits (blue) vs chat messages (green) per user
+                    </p>
+                </div>
+            </div>
+
+            <!-- Contribution Summary Table -->
+            <div class="contribution-table">
+                <div class="table-title">👥 Contribution Summary</div>
+                <table id="contribution-table">
+                    <thead>
+                        <tr>
+                            <th>User</th>
+                            <th>Code Edits</th>
+                            <th>Chat Messages</th>
+                            <th>Activity %</th>
+                            <th>Activity Score</th>
+                        </tr>
+                    </thead>
+                    <tbody id="table-body">
+                        <tr><td colspan="5" style="text-align: center; color: #999;">Loading...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- User-wise Code Contributions -->
+            <div class="userwise-code-section">
+                <div class="code-title">💻 User Code Contributions</div>
+                <div id="userwise-code-container">
+                    <div class="loading">Loading code contributions...</div>
+                </div>
+            </div>
+
+            <!-- Minutes of Meeting -->
+            <div class="mom-section">
+                <div class="mom-title">📋 Minutes of Meeting</div>
+                <div class="mom-content" id="mom-content">
+                    Loading MOM...
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Hidden data attributes for JavaScript -->
+    <div id="app-data" data-session-id="{{ session_id }}" data-from-database="{{ from_database|lower }}"></div>
+
+    <script>
+        const sessionIdFromDom = document.getElementById('app-data').dataset.sessionId;
+        const fromDatabase = document.getElementById('app-data').dataset.fromDatabase === 'true';
+        let activityChart = null;
+        let timelineChart = null;
+
+        // Fetch session report data
+        async function loadReport() {
+            try {
+                // Use different endpoint based on data source
+                const endpoint = fromDatabase ? `/report_data/${sessionIdFromDom}` : `/session_report?session_id=${sessionIdFromDom}`;
+                const response = await fetch(endpoint);
+                const data = await response.json();
+
+                if (data.status === 'success') {
+                    renderReport(data);
+                } else {
+                    showError('Failed to load session report: ' + data.message);
+                }
+            } catch (error) {
+                console.error('Error loading report:', error);
+                showError('Error loading session report: ' + error.message);
+            }
+        }
+
+        function renderReport(data) {
+            try {
+                // Handle both database and memory response formats
+                const resolvedSessionId = data.session_id || data.session_metadata?.session_id || sessionIdFromDom;
+                const contribSummary = data.contribution_summary || {};
+                const graphData = data.graph_data || {};
+                const userContribs = data.userwise_contributions || {};
+                const momText = data.mom_text || 'No minutes of meeting available';
+                const timelineIntel = data.timeline_intel || data.timeline || null;
+                
+                // Update header info
+                document.getElementById('session-info').textContent = `Session ID: ${resolvedSessionId}`;
+
+                // Render stats cards
+                renderStatsCards(contribSummary);
+
+                // Render graphs
+                renderGraphs(graphData, contribSummary);
+
+                // Render compact timeline
+                renderTimeline(timelineIntel);
+
+                // Render contribution table
+                renderContributionTable(contribSummary);
+
+                // Render user code contributions
+                renderUserCodeContributions(userContribs);
+
+                // Render MOM
+                document.getElementById('mom-content').textContent = momText;
+            } catch (error) {
+                console.error('Error rendering report:', error);
+                showError('Error rendering session report: ' + error.message);
+            }
+        }
+
+        function renderStatsCards(contributionSummary) {
+            if (!contributionSummary || Object.keys(contributionSummary).length === 0) {
+                document.getElementById('stats-grid').innerHTML = '<div class="error">No contribution data available</div>';
+                return;
+            }
+            
+            const totalEdits = Object.values(contributionSummary).reduce((sum, u) => sum + (u.total_edits || 0), 0);
+            const totalChats = Object.values(contributionSummary).reduce((sum, u) => sum + (u.turns_count || 0), 0);
+            const participantCount = Object.keys(contributionSummary).length;
+
+            const html = `
+                <div class="stat-card">
+                    <div class="stat-label">Total Participants</div>
+                    <div class="stat-value">${participantCount}</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Total Code Edits</div>
+                    <div class="stat-value">${totalEdits}</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Chat Messages</div>
+                    <div class="stat-value">${totalChats}</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Activity Score</div>
+                    <div class="stat-value">${totalEdits + totalChats}</div>
+                </div>
+            `;
+            document.getElementById('stats-grid').innerHTML = html;
+        }
+
+        function renderGraphs(graphData, contributionSummary) {
+            if (!graphData || !graphData.users || graphData.users.length === 0) {
+                console.log('No graph data available');
+                return;
+            }
+            
+            const { users, edits, chat_turns, activity_percents } = graphData;
+
+            // Color palette
+            const colors = ['#38bdf8', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#14b8a6', '#f97316'];
+
+            // 1. Activity Distribution Pie Chart
+            const activityCtx = document.getElementById('activityChart').getContext('2d');
+            if (activityChart) activityChart.destroy();
+            
+            activityChart = new Chart(activityCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: users,
+                    datasets: [{
+                        data: activity_percents,
+                        backgroundColor: colors.slice(0, users.length),
+                        borderColor: '#fff',
+                        borderWidth: 2,
+                        hoverOffset: 10
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                padding: 15,
+                                font: { size: 12, weight: '500' },
+                                usePointStyle: true
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return context.label + ': ' + context.parsed + '%';
+                                }
+                            },
+                            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                            padding: 12,
+                            titleFont: { size: 13, weight: 'bold' },
+                            bodyFont: { size: 12 }
+                        }
+                    }
+                }
+            });
+
+            // 2. Edits vs Chat Bar Chart
+            const timelineCtx = document.getElementById('timelineChart').getContext('2d');
+            if (timelineChart) timelineChart.destroy();
+            
+            timelineChart = new Chart(timelineCtx, {
+                type: 'bar',
+                data: {
+                    labels: users,
+                    datasets: [
+                        {
+                            label: 'Code Edits',
+                            data: edits,
+                            backgroundColor: '#3b82f6',
+                            borderRadius: 5,
+                            borderSkipped: false,
+                            hoverBackgroundColor: '#2563eb'
+                        },
+                        {
+                            label: 'Chat Messages',
+                            data: chat_turns,
+                            backgroundColor: '#10b981',
+                            borderRadius: 5,
+                            borderSkipped: false,
+                            hoverBackgroundColor: '#059669'
+                        }
+                    ]
+                },
+                options: {
+                    indexAxis: 'x',
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                padding: 15,
+                                font: { size: 12, weight: '500' },
+                                usePointStyle: true
+                            }
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                            padding: 12,
+                            titleFont: { size: 13, weight: 'bold' },
+                            bodyFont: { size: 12 }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                stepSize: 1,
+                                font: { size: 11 }
+                            },
+                            grid: {
+                                color: 'rgba(0, 0, 0, 0.05)'
+                            }
+                        },
+                        x: {
+                            ticks: {
+                                font: { size: 11 }
+                            },
+                            grid: {
+                                display: false
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function renderContributionTable(contributionSummary) {
+            const tbody = document.getElementById('table-body');
+            
+            if (!contributionSummary || Object.keys(contributionSummary).length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: #999;">No contribution data available</td></tr>';
+                return;
+            }
+            
+            const rows = Object.entries(contributionSummary).map(([user, stats]) => {
+                const totalEdits = stats.total_edits || 0;
+                const turnCount = stats.turns_count || 0;
+                const activityPct = stats.activity_percent || 0;
+                const activityScore = stats.activity_score || 0;
+                
+                return `
+                <tr>
+                    <td><span class="user-badge">${escapeHtml(user)}</span></td>
+                    <td><span class="metric-value">${totalEdits}</span></td>
+                    <td><span class="metric-value">${turnCount}</span></td>
+                    <td><span class="metric-value">${activityPct}%</span></td>
+                    <td><span class="metric-value">${activityScore}</span></td>
+                </tr>
+            `;
+            }).join('');
+            tbody.innerHTML = rows || '<tr><td colspan="5" style="text-align: center; color: #999;">No data</td></tr>';
+        }
+
+        function renderUserCodeContributions(useriseContributions) {
+            const container = document.getElementById('userwise-code-container');
+            
+            if (!useriseContributions || Object.keys(useriseContributions).length === 0) {
+                container.innerHTML = '<div class="loading">No user contributions to display</div>';
+                return;
+            }
+            
+            const blocks = Object.entries(useriseContributions).map(([user, data]) => {
+                const editCount = data.edit_count || 0;
+                const turnCount = data.turns_count || 0;
+                const code = data.combined_code || '// No code contributions';
+                
+                return `
+                <div class="user-code-block">
+                    <div class="user-code-header">👤 ${escapeHtml(user)}</div>
+                    <div style="margin-bottom: 10px; font-size: 0.9em; color: #666;">
+                        <strong>${editCount}</strong> edits | <strong>${turnCount}</strong> chat messages
+                    </div>
+                    <div class="user-code-content">${escapeHtml(code)}</div>
+                </div>
+            `;
+            }).join('');
+            container.innerHTML = blocks || '<div class="loading">No contributions available</div>';
+        }
+
+        function renderTimeline(timelineIntel) {
+            const container = document.getElementById('timeline-container');
+            if (!timelineIntel || !timelineIntel.phases || timelineIntel.phases.length === 0) {
+                container.innerHTML = '<div class="loading">No timeline available</div>';
+                return;
+            }
+            // Limit to 5 items client-side too
+            const phases = timelineIntel.phases.slice(0, 5);
+            const html = phases.map(ph => {
+                const stats = ph.stats || {};
+                return `
+                    <div class="timeline-item">
+                        <div class="timeline-label">${escapeHtml(ph.label || 'Phase')}</div>
+                        <div class="timeline-time">${formatRange(ph.start, ph.end)}</div>
+                        <div class="timeline-summary">${escapeHtml(ph.summary || '')}</div>
+                        <div class="timeline-chips">
+                            <span class="timeline-chip">✏️ ${stats.edits || 0} edits</span>
+                            <span class="timeline-chip">🧪 ${stats.runs || 0} runs</span>
+                            <span class="timeline-chip">💬 ${stats.chats || 0} chats</span>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            container.innerHTML = html;
+        }
+
+        function formatRange(start, end) {
+            if (!start || !end) return '';
+            const s = new Date(start);
+            const e = new Date(end);
+            const opts = { hour: '2-digit', minute: '2-digit' };
+            return `${s.toLocaleTimeString([], opts)} – ${e.toLocaleTimeString([], opts)}`;
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function showError(message) {
+            const content = document.querySelector('.content');
+            content.innerHTML = `<div class="error">${message}</div>`;
+        }
+
+        // Load report on page load
+        window.addEventListener('load', loadReport);
+    </script>
+</body>
+</html>
