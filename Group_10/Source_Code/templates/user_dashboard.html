@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>User Dashboard - AutismCare</title>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height:100vh; }
+.container { background:white; min-height:100vh; }
+.header { background: linear-gradient(135deg, #667eea, #764ba2); color:white; padding:20px 40px; display:flex; justify-content:space-between; align-items:center; }
+.header h1 { font-size:1.8em; }
+.logout-btn { background: rgba(255,255,255,0.2); color:white; border:1px solid rgba(255,255,255,0.3); padding:8px 16px; border-radius:6px; text-decoration:none;}
+.logout-btn:hover { background: rgba(255,255,255,0.3); }
+.main-content { padding:40px; }
+.dashboard-grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(300px,1fr)); gap:25px; margin-top:30px; }
+.feature-card { background:white; border:2px solid #e1e5e9; border-radius:15px; padding:30px; text-align:center; cursor:pointer; transition:all 0.3s; text-decoration:none; color:inherit; box-shadow:0 5px 15px rgba(0,0,0,0.08); }
+.feature-card:hover { transform: translateY(-5px); box-shadow:0 15px 30px rgba(0,0,0,0.15); border-color:#667eea; }
+.feature-icon { font-size:3em; margin-bottom:15px; }
+.feature-card h3 { color:#333; margin-bottom:10px; font-size:1.3em; }
+.feature-card p { color:#666; line-height:1.5; }
+@media (max-width: 768px) { .header { padding:15px 20px; } .main-content { padding:20px; } .dashboard-grid { grid-template-columns:1fr; gap:15px; } }
+</style>
+</head>
+<body>
+<div class="container">
+<div class="header">
+  <h1>Welcome, {{ user }}</h1>
+  <a href="{{ url_for('logout') }}" class="logout-btn">Logout</a>
+</div>
+
+<div class="main-content">
+<h2>User Dashboard</h2>
+<div class="dashboard-grid">
+  <a href="{{ url_for('autism_detection') }}" class="feature-card">
+  <div class="feature-icon">🧠</div>
+  <h3>Autism Detection</h3>
+  <p>AI-based facial and behavioral test to help detect early signs of autism.</p>
+  </a>
+  <a href="{{ url_for('chat_session') }}" class="feature-card">
+    <div class="feature-icon">💬</div>
+    <h3>Emotional Support Chatbot</h3>
+    <p>Direct communication channel with admin for support, guidance, and assistance</p>
+  </a>
+  <a href="{{ url_for('task_tracker') }}" class="feature-card">
+    <div class="feature-icon">📅</div>
+    <h3>Daily Task Tracker</h3>
+    <p>Complete tasks assigned by admin within specified time limits to maintain routine</p>
+  </a>
+  <a href="{{ url_for('social_skills') }}" class="feature-card">
+    <div class="feature-icon">🎭</div>
+    <h3>Social Skills Coaching</h3>
+    <p>AI-generated conversation scripts for role-play and social learning enhancement</p>
+  </a>
+</div>
+</div>
+</div>
+</body>
+</html>

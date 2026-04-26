@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AutismCare - Login</title>
+    <style>
+        body {
+            box-sizing: border-box; margin: 0; padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            height: 100vh; display: flex; justify-content: center; align-items: center;
+        }
+        .login-container {
+            background: white; padding: 40px; border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1); width: 100%; max-width: 420px;
+            text-align: center;
+        }
+        .logo { font-size: 2.5em; color: #667eea; margin-bottom: 10px; font-weight: bold; }
+        .subtitle { color: #666; margin-bottom: 20px; font-size: 1.1em; }
+        .form-group { margin-bottom: 20px; text-align: left; }
+        .form-group label { display: block; margin-bottom: 8px; color: #333; font-weight: 600; }
+        .form-group input {
+            width: 100%; padding: 14px; border: 2px solid #e1e5e9;
+            border-radius: 10px; font-size: 16px; box-sizing: border-box;
+        }
+        .user-type-card {
+            border: 2px solid #e1e5e9; border-radius: 10px; padding: 12px;
+            cursor: pointer; transition: 0.3s; text-align: left; margin-bottom: 8px;
+        }
+        .user-type-card.selected { border-color: #667eea; background: #f0f3ff; }
+        .user-type-card input { display: none; }
+        .user-type-content { display: flex; align-items: center; }
+        .user-type-icon { font-size: 1.8em; margin-right: 12px; }
+        .conditional-field { display: none; }
+        .conditional-field.show { display: block; animation: fadeIn 0.3s ease; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; } }
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white; padding: 14px; border: none; border-radius: 10px;
+            font-size: 16px; font-weight: 600; cursor: pointer; width: 100%; margin-top: 10px;
+        }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <div class="logo">🧠 AutismCare</div>
+        <p class="subtitle">AI-Powered Support System</p>
+
+        <form id="loginForm" method="POST" action="/login">
+            <div class="form-group">
+                <label>Select User Type</label>
+                <div class="user-type-options">
+                    
+                    <div class="user-type-card" onclick="selectUserType('admin')">
+                        <div class="user-type-content">
+                            <input type="radio" name="userType" value="admin" id="admin" required>
+                            <span class="user-type-icon">👨‍💼</span>
+                            <span style="font-weight:600">Admin</span>
+                        </div>
+                    </div>
+
+                    <div class="user-type-card" onclick="selectUserType('therapist')">
+                        <div class="user-type-content">
+                            <input type="radio" name="userType" value="therapist" id="therapist">
+                            <span class="user-type-icon">👨‍⚕️</span>
+                            <span style="font-weight:600">Therapist</span>
+                        </div>
+                    </div>
+
+                    <div class="user-type-card" onclick="selectUserType('user')">
+                        <div class="user-type-content">
+                            <input type="radio" name="userType" value="user" id="user">
+                            <span class="user-type-icon">👤</span>
+                            <span style="font-weight:600">User/Parent</span>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <div class="form-group conditional-field" id="usernameGroup">
+                <label for="username">Username</label> 
+                <input type="text" id="username" name="username" placeholder="Enter username">
+            </div>
+
+            <div class="form-group conditional-field" id="passwordGroup">
+                <label for="password">Password</label> 
+                <input type="password" id="password" name="password" placeholder="Enter password">
+            </div>
+
+            <button type="submit" class="btn" id="loginBtn" disabled>Continue to Dashboard</button>
+        </form>
+    </div>
+
+    <script>
+        let selectedType = null;
+        const loginBtn = document.getElementById('loginBtn');
+        const usernameGroup = document.getElementById('usernameGroup');
+        const passwordGroup = document.getElementById('passwordGroup');
+        const usernameInput = document.getElementById('username');
+        const passwordInput = document.getElementById('password');
+
+        function selectUserType(type) {
+            selectedType = type;
+            document.querySelectorAll('.user-type-card').forEach(card => card.classList.remove('selected'));
+            
+            const radio = document.getElementById(type);
+            radio.checked = true;
+            radio.closest('.user-type-card').classList.add('selected');
+
+            // Toggle logic
+            if (type === 'admin') {
+                usernameGroup.classList.remove('show');
+                passwordGroup.classList.add('show');
+                usernameInput.value = ""; 
+            } else {
+                usernameGroup.classList.add('show');
+                passwordGroup.classList.add('show');
+            }
+            updateLoginBtn();
+        }
+
+        function updateLoginBtn() {
+            const hasPass = passwordInput.value.trim().length > 0;
+            const hasUser = usernameInput.value.trim().length > 0;
+
+            if (selectedType === 'admin') {
+                loginBtn.disabled = !hasPass;
+            } else if (selectedType) {
+                loginBtn.disabled = !(hasUser && hasPass);
+            }
+        }
+
+        usernameInput.addEventListener('input', updateLoginBtn);
+        passwordInput.addEventListener('input', updateLoginBtn);
+    </script>
+</body>
+</html>

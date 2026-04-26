@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Social Skills Assignment</title>
+    <script src="{{ url_for('static', filename='js/data_sdk.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/element_sdk.js') }}"></script>
+    <style>
+        body {
+            box-sizing: border-box; margin: 0; padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+
+        .app-wrapper { width: 100%; max-width: 1200px; margin: 0 auto; padding: 25px; }
+
+        .page-header {
+            background: white; border-radius: 20px; padding: 30px;
+            margin-bottom: 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+
+        .content-card {
+            background: white; border-radius: 20px; padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1); margin-bottom: 30px;
+        }
+
+        .section-title { font-size: 1.5em; color: #1e293b; margin-bottom: 20px; display: flex; align-items: center; gap: 10px; }
+
+        /* Overview Stats */
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; margin-bottom: 25px; }
+        .stat-card { background: #f8fafc; padding: 20px; border-radius: 12px; text-align: center; border: 1px solid #e2e8f0; }
+        .stat-number { font-size: 1.8em; font-weight: 700; color: #764ba2; }
+        .stat-label { font-size: 0.9em; color: #64748b; }
+
+        /* Select Patient */
+        .user-selector select {
+            width: 100%; padding: 15px; border: 2px solid #e2e8f0; border-radius: 12px;
+            font-size: 1em; margin-bottom: 20px;
+        }
+
+        /* Scenario Section */
+        .scenario-section {
+            background: #f0f9ff; padding: 25px; border-radius: 15px;
+            border: 2px solid #7dd3fc; margin-bottom: 20px;
+        }
+
+        textarea {
+            width: 100%; padding: 15px; border: 2px solid #cbd5e1; border-radius: 10px;
+            font-family: inherit; margin-bottom: 15px; box-sizing: border-box;
+        }
+
+        .btn {
+            padding: 12px 24px; border: none; border-radius: 10px;
+            font-weight: 700; cursor: pointer; transition: 0.3s;
+            display: inline-flex; align-items: center; gap: 8px;
+        }
+
+        .btn-primary { background: #764ba2; color: white; }
+        .btn-secondary { background: #06b6d4; color: white; }
+
+        .generated-scenarios {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px; margin-top: 15px;
+        }
+
+        .scenario-card {
+            background: white; border: 1px solid #7dd3fc; padding: 15px;
+            border-radius: 10px; font-size: 0.9em;
+        }
+
+        .assignments-grid {
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px; margin-top: 20px;
+        }
+
+        .assignment-card {
+            border: 1px solid #e2e8f0; padding: 20px; border-radius: 15px;
+            background: #fff; position: relative;
+        }
+
+        .assignment-card::before {
+            content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px; background: #764ba2;
+        }
+    </style>
+</head>
+<body>
+    <div class="app-wrapper">
+        <div class="page-header">
+            <h1>👥 Social Skills</h1>
+            <button class="back-btn" onclick="history.back()">← Back to Dashboard</button>
+            <p>Assign scenarios to help patients practice social interactions.</p>
+        </div>
+
+        <div class="content-card">
+            <div class="section-title">📊 Overview</div>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-number" id="totalAssignments">0</div>
+                    <div class="stat-label">Total</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="activeAssignments">0</div>
+                    <div class="stat-label">Active</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="completedAssignments">0</div>
+                    <div class="stat-label">Completed</div>
+                </div>
+            </div>
+
+            <div class="user-selector">
+                <div class="section-title">👤 Select Patient</div>
+                <div class="form-group">
+                    <label for="userSelect">Assign Social Skill To *</label>
+                    <select id="userSelect" required>
+                        <option value="">-- Select an Assigned Patient --</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="scenario-section">
+                <div class="section-title">🎬 Generate Scenarios</div>
+                <textarea id="scenarioPrompt" placeholder="Example: Practice sharing toys at a park or ordering food at a cafe..."></textarea>
+                <div style="display: flex; gap: 10px;">
+                    <button class="btn btn-secondary" id="generateBtn" onclick="generateScenarios()">✨ AI Generate</button>
+                    <button class="btn btn-primary" id="assignBtn" onclick="handleAssignSkill()">✅ Assign to Patient</button>
+                </div>
+                <div class="generated-scenarios" id="generatedScenariosContainer"></div>
+            </div>
+
+            <div class="section-title">📋 Active Assignments</div>
+            <div id="assignmentsList"></div>
+        </div>
+    </div>
+
+    <script>
+        let allRecords = [];
+        let selectedUserId = ''; 
+        let generatedScenarios = [];
+
+        const dataHandler = {
+            onDataChanged: (data) => {
+                console.log("Data sync received:", data);
+                allRecords = Array.isArray(data) ? data : [];
+                updateStatistics();
+                renderAssignmentsList();
+            }
+        };
+
+        // The handler for Elements (UI components)
+        const elementHandler = {
+            onElementChanged: (element) => {
+                console.log("Element changed:", element);
+            }
+        };
+
+        async function initializeApp() {
+            if (!window.dataSdk) {
+                console.error("SDK Error: data_sdk.js is not loaded.");
+                return; 
+            }
+
+            try {
+                // Now both handlers are defined and ready!
+                await window.dataSdk.init(dataHandler);
+                
+                if (window.elementSdk) {
+                    window.elementSdk.init(elementHandler);
+                }
+
+                await populateUserSelect(); 
+                console.log("✅ App successfully initialized");
+            } catch (err) {
+                console.error("Initialization failed:", err);
+            }
+        }
+
+        async function populateUserSelect() {
+            try {
+                const response = await fetch('/social_skills_api/get_my_patients'); 
+                const patients = await response.json();
+                const select = document.getElementById('userSelect');
+                if(!select) return;
+                
+                select.innerHTML = '<option value="">-- Select a Patient --</option>';
+                patients.forEach(patient => {
+                    const option = document.createElement('option');
+                    option.value = patient.id; 
+                    option.textContent = patient.name;
+                    select.appendChild(option);
+                });
+            } catch (error) {
+                console.error("Error loading users:", error);
+            }
+        }
+
+        document.getElementById('userSelect').addEventListener('change', function(e) {
+            selectedUserId = e.target.value;
+            renderAssignmentsList(); 
+        });
+
+        async function generateScenarios() {
+            const promptValue = document.getElementById('scenarioPrompt').value;
+            if (!promptValue) return alert("Please type a context first!");
+            
+            const btn = document.getElementById('generateBtn');
+            btn.disabled = true;
+            btn.textContent = "⌛ AI is Thinking...";
+            
+            try {
+                const response = await fetch('/social_skills_api/generate_scenarios', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ skill: "Social Interaction", context: promptValue })
+                });
+                const data = await response.json();
+                if(data.error) throw new Error(data.error);
+                
+                generatedScenarios = data.scenarios || [];
+                renderGeneratedScenarios();
+            } catch (e) {
+                alert("AI Error: Check if you changed model to 'gemini-flash' in backend.");
+                console.error(e);
+            } finally {
+                btn.disabled = false;
+                btn.textContent = "✨ AI Generate";
+            }
+        }
+
+        function renderGeneratedScenarios() {
+            const container = document.getElementById('generatedScenariosContainer');
+            // If there's only one, we can make it a bigger, centered card
+            container.innerHTML = generatedScenarios.map(s => `
+                <div class="scenario-card" style="border-left: 5px solid #764ba2; font-weight: 500;">
+                    ${s}
+                </div>
+            `).join('');
+        }
+
+        async function handleAssignSkill() {
+            if (!selectedUserId || generatedScenarios.length === 0) {
+                return alert("Please select a patient and generate scenarios first!");
+            }
+
+            const btn = document.getElementById('assignBtn');
+            btn.disabled = true;
+            btn.textContent = "⌛ Saving...";
+
+            const payload = {
+                user_id: selectedUserId,
+                practice_scenarios: generatedScenarios.join('\n\n'),
+                type: 'social_skill_task',
+                status: 'active'
+            };
+
+            try {
+                const response = await fetch('/social_skills_api/assign_skill', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify(payload)
+                });
+                const result = await response.json();
+                
+                if (result.isOk) {
+                    alert("✅ Assigned successfully!");
+                    
+                    // FORCE REFRESH: This tells the SDK to pull the new data
+                    // This will trigger dataHandler.onDataChanged automatically
+                    if (window.dataSdk && typeof window.dataSdk.refresh === 'function') {
+                        await window.dataSdk.refresh();
+                    } else {
+                        location.reload(); // Fallback if refresh is missing
+                    }
+
+                    // Clear the UI
+                    document.getElementById('scenarioPrompt').value = '';
+                    generatedScenarios = [];
+                    document.getElementById('generatedScenariosContainer').innerHTML = '';
+                } else {
+                    alert("Error: " + result.message);
+                }
+            } catch (e) {
+                console.error("Assign Error:", e);
+                alert("Failed to connect to the server.");
+            } finally {
+                btn.disabled = false;
+                btn.textContent = "✅ Assign to Patient";
+            }
+        }
+
+        function updateStatistics() {
+            // Filter for social skill records belonging to the selected patient
+            const assignments = allRecords.filter(r => 
+                r.practice_scenarios && 
+                (!selectedUserId || String(r.user_id) === String(selectedUserId))
+            );
+            
+            const active = assignments.filter(a => a.status === 'active' || !a.status).length;
+            const completed = assignments.filter(a => a.status === 'completed').length;
+
+            document.getElementById('totalAssignments').textContent = assignments.length;
+            document.getElementById('activeAssignments').textContent = active;
+            document.getElementById('completedAssignments').textContent = completed;
+        }
+
+        function renderAssignmentsList() {
+            const list = document.getElementById('assignmentsList');
+            if (!list) return;
+
+            // Use the exact same filter logic as statistics
+            const filtered = allRecords.filter(r => 
+                r.practice_scenarios && 
+                (!selectedUserId || String(r.user_id) === String(selectedUserId))
+            );
+            
+            if (filtered.length === 0) {
+                list.innerHTML = `<p style="color:gray; text-align:center; padding: 20px;">
+                    ${selectedUserId ? 'No assignments for this patient.' : 'Please select a patient to view assignments.'}
+                </p>`;
+                return;
+            }
+
+            list.innerHTML = `<div class="assignments-grid">` + filtered.map(a => {
+                const isCompleted = a.status === 'completed';
+                const statusColor = isCompleted ? '#10b981' : '#764ba2'; // Green for completed, Purple for active
+
+                return `
+                    <div class="assignment-card" style="opacity: ${isCompleted ? '0.8' : '1'}; border-top: 4px solid ${statusColor}">
+                        <div style="display:flex; justify-content:space-between; align-items:start;">
+                            <strong style="color: ${statusColor}">Social Practice</strong>
+                            <span style="font-size:0.7em; background:${statusColor}; color:white; padding:2px 8px; border-radius:10px;">
+                                ${(a.status || 'Active').toUpperCase()}
+                            </span>
+                        </div>
+                        <p style="font-size:0.85em; margin: 15px 0; white-space: pre-wrap; ${isCompleted ? 'text-decoration: line-through; color: #64748b;' : ''}">
+                            ${a.practice_scenarios}
+                        </p>
+                        ${isCompleted ? '<div style="font-size: 0.75em; color: #10b981; font-weight: bold;">✓ Task Finished</div>' : ''}
+                    </div>
+                `;
+            }).join('') + `</div>`;
+        }
+
+        // 7. EVENT LISTENERS
+        document.getElementById('userSelect').addEventListener('change', (e) => {
+            selectedUserId = e.target.value;
+            renderAssignmentsList(); 
+        });
+
+        // Run on startup
+        initializeApp();
+    </script>
+</body>
+</html>
