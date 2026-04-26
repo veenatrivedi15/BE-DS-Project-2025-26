@@ -1,0 +1,127 @@
+{
+  "model_type": "SVR_Konkan_Rainfall",
+  "version": "1.0",
+  "trained_date": "2026-03-18T13:09:46.741119",
+  "status": "active",
+  "prediction_method": "rule_based_from_svr",
+  "rules": [
+    {
+      "priority": 1,
+      "condition": "Monsoon season + High humidity + Low pressure",
+      "criteria": {
+        "month": [
+          6,
+          7,
+          8,
+          9
+        ],
+        "humidity_min": 80,
+        "pressure_max": 1010
+      },
+      "rain_probability": 85,
+      "confidence": "high"
+    },
+    {
+      "priority": 2,
+      "condition": "Monsoon season + Moderate humidity",
+      "criteria": {
+        "month": [
+          6,
+          7,
+          8,
+          9
+        ],
+        "humidity_min": 70,
+        "pressure_max": 1012
+      },
+      "rain_probability": 65,
+      "confidence": "medium"
+    },
+    {
+      "priority": 3,
+      "condition": "High humidity + Low pressure (any season)",
+      "criteria": {
+        "humidity_min": 75,
+        "pressure_max": 1011
+      },
+      "rain_probability": 55,
+      "confidence": "medium"
+    },
+    {
+      "priority": 4,
+      "condition": "Moderate conditions",
+      "criteria": {
+        "humidity_min": 60,
+        "pressure_max": 1013
+      },
+      "rain_probability": 35,
+      "confidence": "low"
+    },
+    {
+      "priority": 5,
+      "condition": "Dry season + Low humidity",
+      "criteria": {
+        "month": [
+          12,
+          1,
+          2,
+          3
+        ],
+        "humidity_max": 60
+      },
+      "rain_probability": 10,
+      "confidence": "high"
+    }
+  ],
+  "regional_info": {
+    "region": "Konkan (Mumbai-Ratnagiri)",
+    "monsoon_months": [
+      6,
+      7,
+      8,
+      9
+    ],
+    "dry_months": [
+      12,
+      1,
+      2,
+      3
+    ],
+    "transition_months": [
+      4,
+      5,
+      10,
+      11
+    ]
+  },
+  "adjustments": {
+    "temperature_factor": {
+      "very_hot": {
+        "threshold": 35,
+        "multiplier": 1.15,
+        "reason": "Convective activity"
+      },
+      "hot": {
+        "threshold": 30,
+        "multiplier": 1.05,
+        "reason": "Increased evaporation"
+      },
+      "cold": {
+        "threshold": 20,
+        "multiplier": 0.9,
+        "reason": "Reduced evaporation"
+      }
+    }
+  },
+  "features_required": [
+    "temperature",
+    "humidity",
+    "pressure",
+    "month"
+  ],
+  "output": {
+    "type": "probability",
+    "threshold": 0.5,
+    "unit": "percentage"
+  }
+}
