@@ -1,0 +1,11 @@
+fastapi
+neo4j
+uvicorn
+sqlalchemy
+psycopg2-binary
+pydantic
+python-dotenv
+langchain
+langchain-groq
+paramiko
+boto3n-dotenv

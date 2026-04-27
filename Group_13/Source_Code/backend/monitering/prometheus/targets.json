@@ -1,0 +1,29 @@
+[
+  {
+    "targets": [
+      "13.234.115.98:9100"
+    ],
+    "labels": {
+      "job": "node_exporter",
+      "env": "production"
+    }
+  },
+  {
+    "targets": [
+      "15.207.106.193:9100"
+    ],
+    "labels": {
+      "job": "node_exporter",
+      "env": "production"
+    }
+  },
+  {
+    "targets": [
+      "13.127.125.116:9100"
+    ],
+    "labels": {
+      "job": "node_exporter",
+      "env": "production"
+    }
+  }
+]
