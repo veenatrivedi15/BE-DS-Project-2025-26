@@ -1,0 +1,13 @@
+/* index.css - The Clean Slate */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box; /* This makes padding not affect the width of boxes */
+}
+
+body,
+html {
+  width: 100%;
+  height: 100%;
+  /* overflow: hidden; Prevents accidental scrolling on your dashboard */
+}
