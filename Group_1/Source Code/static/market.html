@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Market Trends - AgriAid+</title>
+    <link rel="stylesheet" href="styles.css">
+    <!-- Chart.js for plotting price trends -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <!-- Navigation -->
+    <header class="header" id="site-header">
+        <nav class="nav">
+            <a href="/" class="logo">
+                <svg viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M18 3C18 3 8 10 8 20C8 25.5 12.5 30 18 30C23.5 30 28 25.5 28 20C28 10 18 3 18 3Z" fill="#4a7c59"/>
+                    <path d="M18 10V26M18 10C14 14 12 18 12 22M18 10C22 14 24 18 24 22" stroke="#9FE29F" stroke-width="1.5" stroke-linecap="round"/>
+                </svg>
+                AgriAid+
+            </a>
+            <div class="nav-links">
+                <a href="/">Home</a>
+                <a href="/croppred">Crop Prediction</a>
+                <a href="/weather">Weather</a>
+                <a href="/market" class="active">Market</a>
+                <a href="/ecom">E-commerce</a>
+                <a href="/nakshatra-page">Nakshatra</a>
+            </div>
+            <div class="nav-auth">
+                <a href="/login" class="btn-signin">Sign In</a>
+                <a href="/signup" class="btn-getstarted">Get Started</a>
+            </div>
+            <button class="hamburger" id="hamburger-btn" aria-label="Toggle menu">
+                <span></span><span></span><span></span>
+            </button>
+        </nav>
+        <div class="mobile-menu" id="mobile-menu">
+            <a href="/">Home</a>
+            <a href="/croppred">Crop Prediction</a>
+            <a href="/weather">Weather</a>
+            <a href="/market" class="active">Market</a>
+            <a href="/ecom">E-commerce</a>
+            <a href="/nakshatra-page">Nakshatra</a>
+            <div class="mobile-auth">
+                <a href="/login" class="btn-signin">Sign In</a>
+                <a href="/signup" class="btn-getstarted">Get Started</a>
+            </div>
+        </div>
+    </header>
+
+    <div style="height: 24px;"></div>
+
+    <div class="container">
+        <section id="market-results" class="results">
+            <div style="margin-bottom: 24px;">
+                <h2>📈 Market Price Trend Explorer</h2>
+                <p style="color: #7f8c8d; font-size: 0.95rem;">
+                    Select a crop and city to see yearly price trends (2020–2025) from the market dataset.
+                </p>
+            </div>
+
+            <!-- Input form: crop + city -->
+            <form id="market-trend-form" class="card" style="margin-bottom: 24px; padding: 20px; border-radius: 16px; background: rgba(26, 26, 26, 0.9); border: 1px solid rgba(74, 124, 89, 0.5);">
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; align-items: flex-end;">
+                    <div>
+                        <label for="crop-select" style="display:block; margin-bottom: 6px; font-weight: 600;">Crop</label>
+                        <select id="crop-select" name="crop" required style="width: 100%; padding: 10px; border-radius: 8px;">
+                            <option value="">Select crop</option>
+                            <option value="Onion">Onion</option>
+                            <option value="Potato">Potato</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label for="city-select" style="display:block; margin-bottom: 6px; font-weight: 600;">City / District</label>
+                        <select id="city-select" name="city" required style="width: 100%; padding: 10px; border-radius: 8px;">
+                            <option value="">Select city</option>
+                            <option value="Mumbai">Mumbai</option>
+                            <option value="Pune">Pune</option>
+                            <option value="Nashik">Nashik</option>
+                            <option value="Kolhapur">Kolhapur</option>
+                            <option value="Satara">Satara</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <button type="submit" class="btn" style="width: 100%; max-width: 220px; margin-top: 4px;">
+                            🔍 Show Market Trend
+                        </button>
+                    </div>
+                </div>
+                <p id="market-status" style="margin-top: 10px; font-size: 0.9rem; color: #7f8c8d;"></p>
+            </form>
+
+            <!-- Graph container -->
+            <div class="results" id="market-trend-output" style="display:none;">
+                <h3 id="market-trend-title" style="margin-bottom: 12px;"></h3>
+                <div style="max-width: 720px; margin: 0 auto;">
+                    <canvas id="market-trend-chart" style="width: 100%; height: 220px;"></canvas>
+                </div>
+
+                <!-- Summary / insights -->
+                <div id="market-trend-summary" style="margin-top: 24px; display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px;"></div>
+            </div>
+        </section>
+    </div>
+
+
+    <!-- AI Morph Panel -->
+    <div id="ai-morph-panel">
+        <div class="ai-panel-toggle">
+            <div class="color-orb"></div>
+            <span>Ask AI</span>
+        </div>
+        <div class="ai-panel-chat">
+            <div class="ai-panel-header">
+                <div class="color-orb small"></div>
+                <div>
+                    <strong>AgriAid AI</strong>
+                    <span class="ai-subtitle">Ask in English, हिंदी, or मराठी</span>
+                </div>
+                <button class="ai-panel-close" aria-label="Close">✕</button>
+            </div>
+            <div class="ai-panel-messages" id="ai-panel-messages">
+                <div class="msg msg-ai">Hello! I'm your AI farming assistant. Ask me anything about crops, soil, weather, or fertilizers!</div>
+            </div>
+            <div class="ai-panel-input">
+                <textarea id="ai-panel-textarea" placeholder="Ask anything..." rows="1"></textarea>
+                <button id="ai-panel-send" aria-label="Send">
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js?v=2"></script>
+</body>
+</html>

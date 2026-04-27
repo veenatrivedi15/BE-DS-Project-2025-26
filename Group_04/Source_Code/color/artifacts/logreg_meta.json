@@ -1,0 +1,10 @@
+{
+  "classes": [
+    "Normal",
+    "Protanopia",
+    "nan"
+  ],
+  "feature_count": 106,
+  "samples": 84,
+  "model_file": "logreg_model.pkl"
+}

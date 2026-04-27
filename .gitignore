@@ -1,0 +1,13 @@
+# Ignore large model files
+*.pth
+*.pt
+*.h5
+
+# Ignore virtual environments
+.venv/
+venv/
+env/
+
+# Ignore pycache
+__pycache__/
+*.pyc

@@ -1,0 +1,294 @@
+{% extends "base.html" %}
+{% block title %}I-Care | AI Eye Health Platform{% endblock %}
+
+{% block content %}
+<section class="relative overflow-hidden py-16 lg:py-24 section-texture">
+  <div class="hero-aurora"></div>
+  <div class="hero-grid-overlay"></div>
+  <div class="absolute -top-28 left-1/2 -translate-x-1/2 w-[860px] h-[860px] rounded-full bg-gradient-to-br from-brand-100/90 via-sky-100/50 to-mint-200/60 blur-3xl"></div>
+  <div class="absolute -right-20 bottom-0 w-[380px] h-[380px] rounded-full bg-gradient-to-br from-cyan-200/30 to-transparent blur-3xl"></div>
+  <div class="absolute right-16 top-32 w-20 h-20 rounded-2xl border border-mint-200/60 bg-mint-100/55 backdrop-blur-md rotate-12"></div>
+
+  <div class="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+    <div class="grid lg:grid-cols-2 gap-10 lg:gap-14 items-center">
+      <div data-reveal="left">
+        <div class="inline-flex items-center gap-2 rounded-full border border-brand-200/70 bg-white/70 px-4 py-1.5 text-xs font-semibold uppercase tracking-[0.15em] text-brand-700">
+          <span class="h-2 w-2 rounded-full bg-mint-600"></span>
+          Trusted AI Eye Screening
+        </div>
+        <h1 class="mt-6 font-display text-4xl sm:text-5xl lg:text-[3.7rem] leading-[1.04] tracking-tight text-slate-900">
+          Clinical-grade eye insights,
+          <span class="bg-gradient-to-r from-brand-600 to-mint-600 bg-clip-text text-transparent">in one elegant platform</span>
+        </h1>
+        <p class="mt-6 text-lg text-slate-600 leading-relaxed max-w-xl">
+          I-Care helps people detect early risk signs, monitor digital fatigue, and understand color vision in minutes with a premium and intuitive healthcare experience.
+        </p>
+
+        <div class="mt-9 flex flex-col sm:flex-row gap-3 sm:items-center">
+          <a href="#capabilities" class="btn-primary px-7 py-3 text-sm sm:text-base">Explore Capabilities</a>
+          <a href="{{ url_for('signup') if not session.get('username') else url_for('recommendations') }}" class="inline-flex items-center justify-center px-7 py-3 rounded-xl border border-slate-300/90 bg-white/85 text-sm sm:text-base font-semibold text-slate-700 hover:text-slate-900 hover:border-brand-300 hover:bg-brand-50/70 transition-all">
+            {{ 'Create Free Account' if not session.get('username') else 'Open Recommendations' }}
+          </a>
+        </div>
+
+        <div class="mt-10 grid grid-cols-2 sm:grid-cols-4 gap-2.5 text-center">
+          <div class="surface-card rounded-xl py-3 px-2">
+            <p class="font-display text-xl text-slate-900">98%</p>
+            <p class="text-[11px] uppercase tracking-wider text-slate-500">Accuracy</p>
+          </div>
+          <div class="surface-card rounded-xl py-3 px-2">
+            <p class="font-display text-xl text-slate-900">&lt;30s</p>
+            <p class="text-[11px] uppercase tracking-wider text-slate-500">Analysis</p>
+          </div>
+          <div class="surface-card rounded-xl py-3 px-2">
+            <p class="font-display text-xl text-slate-900">5+</p>
+            <p class="text-[11px] uppercase tracking-wider text-slate-500">AI Modules</p>
+          </div>
+          <div class="surface-card rounded-xl py-3 px-2">
+            <p class="font-display text-xl text-slate-900">24/7</p>
+            <p class="text-[11px] uppercase tracking-wider text-slate-500">Access</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="relative" data-reveal="right">
+        <div class="surface-card shine-frame rounded-[1.6rem] p-3 lift-card">
+          <img src="{{ url_for('static', filename='images/e1.jpg') }}" alt="Eye health preview" class="w-full h-[500px] object-cover rounded-[1.2rem]">
+        </div>
+
+        <div class="absolute -bottom-7 -left-5 max-w-[260px] surface-card rounded-2xl p-4 lift-card">
+          <p class="text-xs uppercase tracking-[0.14em] text-slate-500 font-semibold">Proactive Monitoring</p>
+          <p class="mt-2 text-sm text-slate-700 leading-relaxed">Continuous visual fatigue tracking with actionable lifestyle recommendations.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="py-5 border-y border-slate-200/80 bg-white/70 backdrop-blur-sm">
+  <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+    <div class="flex flex-wrap items-center justify-center gap-x-10 gap-y-2 text-sm text-slate-500 font-semibold tracking-wide" data-reveal>
+      <span>Predictive Diagnostics</span>
+      <span>Color Accessibility Intelligence</span>
+      <span>Fatigue Prevention</span>
+      <span>Personalized Guidance</span>
+    </div>
+  </div>
+</section>
+
+<section id="capabilities" class="py-20 lg:py-24">
+  <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+    <div class="max-w-3xl" data-reveal="left">
+      <p class="text-xs font-semibold tracking-[0.18em] uppercase text-brand-700">Capabilities</p>
+      <h2 class="mt-3 font-display text-3xl sm:text-4xl text-slate-900 tracking-tight">A full-stack eye health suite built for modern care journeys</h2>
+      <p class="mt-4 text-lg text-slate-600">Every module was designed to reduce friction, improve trust, and move users from uncertainty to clarity.</p>
+    </div>
+
+    {% set cards = [
+      ('bi-camera2', 'Eye Disease Detection', 'Upload retinal images to identify glaucoma, cataract, and diabetic retinopathy risks.', url_for('detection') if session.get('username') else url_for('login'), 'from-sky-500 to-blue-600'),
+      ('bi-palette', 'Color Blindness Test', 'Run an Ishihara-inspired exam to quickly assess color perception deficiencies.', url_for('colorblind') if session.get('username') else url_for('login'), 'from-rose-500 to-pink-600'),
+      ('bi-moon-stars', 'Eye Fatigue Analysis', 'Evaluate blinking behavior, screen strain, and daily visual load signals.', url_for('fatigue') if session.get('username') else url_for('login'), 'from-amber-500 to-orange-600'),
+      ('bi-image', 'Color Vision Simulator', 'Preview any image under multiple deficiency profiles and adjust severity.', url_for('color_feature.simulator') if session.get('username') else url_for('login'), 'from-emerald-500 to-teal-600'),
+      ('bi-stars', 'Personalized Recommendations', 'Receive practical recommendations driven by your own screening data.', url_for('recommendations') if session.get('username') else url_for('login'), 'from-indigo-500 to-violet-600')
+    ] %}
+
+    <div class="mt-12 grid lg:grid-cols-3 sm:grid-cols-2 gap-5">
+      {% for icon, title, desc, link, gradient in cards %}
+      <article data-reveal class="group relative rounded-2xl p-[1px] bg-gradient-to-br from-slate-200 via-slate-100 to-slate-200 hover:from-brand-300 hover:to-mint-300 transition-all duration-300 lift-card spotlight-card">
+        <div class="h-full rounded-2xl bg-white/90 p-6 flex flex-col">
+          <span class="h-11 w-11 rounded-xl bg-gradient-to-br {{ gradient }} text-white inline-flex items-center justify-center shadow-sm">
+            <i class="bi {{ icon }} text-lg"></i>
+          </span>
+          <h3 class="mt-4 text-lg font-bold text-slate-900">{{ title }}</h3>
+          <p class="mt-2 text-sm leading-relaxed text-slate-600 flex-1">{{ desc }}</p>
+          <a href="{{ link }}" class="mt-5 inline-flex items-center gap-2 text-sm font-semibold text-brand-700 group-hover:text-brand-800">
+            Launch Feature <i class="bi bi-arrow-right"></i>
+          </a>
+        </div>
+      </article>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<section class="py-20 lg:py-24 relative overflow-hidden">
+  <div class="absolute inset-0 bg-gradient-to-r from-brand-50/75 via-white to-cyan-50/70"></div>
+  <div class="absolute -left-24 top-8 w-[320px] h-[320px] rounded-full bg-brand-200/35 blur-3xl"></div>
+  <div class="absolute -right-24 bottom-8 w-[320px] h-[320px] rounded-full bg-mint-200/35 blur-3xl"></div>
+  <div class="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+    <div class="max-w-3xl" data-reveal="left">
+      <p class="text-xs font-semibold tracking-[0.18em] uppercase text-brand-700">In Practice</p>
+      <h2 class="mt-3 font-display text-3xl sm:text-4xl text-slate-900 tracking-tight">Designed for real-world care scenarios</h2>
+      <p class="mt-4 text-lg text-slate-600">From first-time screenings to routine monitoring, I-Care adapts to each stage of a user's eye health journey.</p>
+    </div>
+
+    <div class="mt-10 grid lg:grid-cols-3 gap-5">
+      <article class="surface-card rounded-2xl overflow-hidden lift-card" data-reveal>
+        <img src="{{ url_for('static', filename='images/eyedisease.webp') }}" alt="Retinal disease analysis" class="h-48 w-full object-cover">
+        <div class="p-5">
+          <p class="text-xs uppercase tracking-[0.16em] text-brand-700 font-semibold">Risk Detection</p>
+          <h3 class="mt-2 text-lg font-bold text-slate-900">Clinical early warning support</h3>
+          <p class="mt-2 text-sm text-slate-600 leading-relaxed">Spot risk markers early and make faster referral decisions with confidence.</p>
+        </div>
+      </article>
+
+      <article class="surface-card rounded-2xl overflow-hidden lift-card" data-reveal>
+        <img src="{{ url_for('static', filename='images/colorblindness.jpg') }}" alt="Color blindness screening" class="h-48 w-full object-cover">
+        <div class="p-5">
+          <p class="text-xs uppercase tracking-[0.16em] text-brand-700 font-semibold">Accessibility</p>
+          <h3 class="mt-2 text-lg font-bold text-slate-900">Visual inclusion assessments</h3>
+          <p class="mt-2 text-sm text-slate-600 leading-relaxed">Evaluate color perception quickly and improve design, education, and workplace access.</p>
+        </div>
+      </article>
+
+      <article class="surface-card rounded-2xl overflow-hidden lift-card" data-reveal>
+        <img src="{{ url_for('static', filename='images/eyefatigue.webp') }}" alt="Fatigue and digital strain monitoring" class="h-48 w-full object-cover">
+        <div class="p-5">
+          <p class="text-xs uppercase tracking-[0.16em] text-brand-700 font-semibold">Wellness</p>
+          <h3 class="mt-2 text-lg font-bold text-slate-900">Digital fatigue prevention</h3>
+          <p class="mt-2 text-sm text-slate-600 leading-relaxed">Understand strain patterns, improve habits, and lower long-session visual fatigue.</p>
+        </div>
+      </article>
+    </div>
+  </div>
+</section>
+
+<section class="py-20 bg-slate-950 text-slate-100 relative overflow-hidden">
+  <div class="absolute inset-0 opacity-45 bg-[radial-gradient(circle_at_25%_20%,rgba(56,189,248,.32),transparent_42%),radial-gradient(circle_at_75%_85%,rgba(52,211,153,.28),transparent_40%)]"></div>
+  <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+    <div class="grid lg:grid-cols-2 gap-10 items-start">
+      <div data-reveal="left" class="relative">
+        <p class="text-xs font-semibold tracking-[0.2em] uppercase text-sky-300">How It Works</p>
+        <h2 class="mt-3 font-display text-3xl sm:text-4xl tracking-tight">From scan to decision-ready insights in three steps</h2>
+        <p class="mt-4 text-slate-300 leading-relaxed">No noisy interfaces, no complex setup. I-Care guides users from input to meaningful outcomes through a clean clinical workflow.</p>
+        <div class="mt-6 rounded-2xl overflow-hidden border border-slate-800/90 lift-card">
+          <img src="{{ url_for('static', filename='images/eyetech.jpg') }}" alt="AI powered eye technology" class="w-full h-52 object-cover">
+        </div>
+      </div>
+      <div class="space-y-4" data-reveal="right">
+        <div class="rounded-2xl border border-slate-800 bg-slate-900/80 p-5 lift-card">
+          <p class="text-xs uppercase tracking-[0.18em] text-slate-400">Step 01</p>
+          <h3 class="mt-2 font-semibold text-lg">Collect signal data</h3>
+          <p class="mt-2 text-sm text-slate-300">Upload image data or complete guided tests in under two minutes.</p>
+        </div>
+        <div class="rounded-2xl border border-slate-800 bg-slate-900/80 p-5 lift-card">
+          <p class="text-xs uppercase tracking-[0.18em] text-slate-400">Step 02</p>
+          <h3 class="mt-2 font-semibold text-lg">Run AI analysis</h3>
+          <p class="mt-2 text-sm text-slate-300">Models evaluate patterns, score risk factors, and summarize confidence.</p>
+        </div>
+        <div class="rounded-2xl border border-slate-800 bg-slate-900/80 p-5 lift-card">
+          <p class="text-xs uppercase tracking-[0.18em] text-slate-400">Step 03</p>
+          <h3 class="mt-2 font-semibold text-lg">Act on recommendations</h3>
+          <p class="mt-2 text-sm text-slate-300">Follow targeted lifestyle and prevention guidance tailored to each user.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="py-20 lg:py-24 relative overflow-hidden">
+  <div class="absolute inset-0 bg-gradient-to-r from-brand-50/70 via-white to-cyan-50/60"></div>
+  <div class="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+    <div class="max-w-3xl" data-reveal="left">
+      <p class="text-xs font-semibold uppercase tracking-[0.18em] text-brand-700">Clinical Trust</p>
+      <h2 class="mt-3 font-display text-3xl sm:text-4xl tracking-tight text-slate-900">Presented directly to doctors in a real clinic environment</h2>
+      <p class="mt-4 text-lg text-slate-600">Our team showcased I-Care to clinicians, discussed practical adoption, and captured feedback from real healthcare interactions.</p>
+    </div>
+
+    <div class="mt-10 grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <article class="col-span-2 row-span-2 rounded-2xl overflow-hidden surface-card lift-card" data-reveal>
+        <img src="{{ url_for('static', filename='images/v1.jpeg') }}" alt="Team presenting I-Care to doctor in clinic" class="w-full h-full min-h-[260px] object-cover">
+      </article>
+      <article class="rounded-2xl overflow-hidden surface-card lift-card" data-reveal>
+        <img src="{{ url_for('static', filename='images/v2.jpeg') }}" alt="Clinic demo session with doctor" class="w-full h-full min-h-[180px] object-cover">
+      </article>
+      <article class="rounded-2xl overflow-hidden surface-card lift-card" data-reveal>
+        <img src="{{ url_for('static', filename='images/v3.jpeg') }}" alt="Doctor reviewing project flow" class="w-full h-full min-h-[180px] object-cover">
+      </article>
+      <article class="rounded-2xl overflow-hidden surface-card lift-card" data-reveal>
+        <img src="{{ url_for('static', filename='images/v7.jpeg') }}" alt="Discussion during clinic presentation" class="w-full h-full min-h-[180px] object-cover">
+      </article>
+      <article class="rounded-2xl overflow-hidden surface-card lift-card" data-reveal>
+        <img src="{{ url_for('static', filename='images/v8.jpeg') }}" alt="Team and doctor project interaction" class="w-full h-full min-h-[180px] object-cover">
+      </article>
+    </div>
+  </div>
+</section>
+
+<section class="py-20 lg:py-24">
+  <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+    <div class="grid lg:grid-cols-2 gap-8 items-center">
+      <div data-reveal="left">
+        <p class="text-xs font-semibold uppercase tracking-[0.18em] text-brand-700">Experience</p>
+        <h2 class="mt-3 font-display text-3xl sm:text-4xl tracking-tight text-slate-900">A calm, modern interface people trust instantly</h2>
+        <p class="mt-4 text-slate-600 leading-relaxed text-lg">Thoughtful visuals, smooth transitions, and clear information hierarchy keep users engaged while reducing cognitive load.</p>
+      </div>
+      <div class="grid grid-cols-2 gap-4" data-reveal="right">
+        <div class="rounded-2xl overflow-hidden lift-card shine-frame">
+          <img src="{{ url_for('static', filename='images/recomm.jpeg') }}" alt="Personalized recommendation view" class="h-48 w-full object-cover">
+        </div>
+        <div class="rounded-2xl overflow-hidden lift-card mt-8">
+          <img src="{{ url_for('static', filename='images/colorblindness.jpg') }}" alt="Color visual testing interface" class="h-48 w-full object-cover">
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="py-20 lg:py-24">
+  <div class="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
+    <div data-reveal class="surface-card rounded-[2rem] p-8 sm:p-12 text-center relative overflow-hidden lift-card">
+      <div class="absolute inset-0 bg-gradient-to-br from-brand-500/10 via-transparent to-mint-500/10"></div>
+      <div class="relative">
+        <p class="text-xs font-semibold tracking-[0.2em] uppercase text-brand-700">Get Started</p>
+        <h2 class="mt-3 font-display text-3xl sm:text-4xl text-slate-900">Build healthier visual habits with intelligent support</h2>
+        <p class="mt-4 text-slate-600 text-lg max-w-2xl mx-auto">The sooner users understand their visual risks, the sooner they can protect long-term eye health.</p>
+        <div class="mt-8 flex flex-col sm:flex-row items-center justify-center gap-3">
+          <a href="{{ url_for('signup') if not session.get('username') else url_for('detection') }}" class="btn-primary px-8 py-3 text-sm sm:text-base">
+            {{ 'Create Free Account' if not session.get('username') else 'Run First Scan' }}
+          </a>
+          <a href="{{ url_for('aboutus') }}" class="inline-flex items-center justify-center px-8 py-3 rounded-xl border border-slate-300 bg-white text-sm sm:text-base font-semibold text-slate-700 hover:bg-slate-50">
+            Learn About I-Care
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer class="border-t border-slate-200/80 bg-white/90">
+  <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-10">
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-6">
+      <div>
+        <p class="font-display text-lg text-slate-900">I-Care</p>
+        <p class="text-sm text-slate-500 mt-1">AI-powered tools for proactive and accessible eye care.</p>
+      </div>
+      <div class="flex flex-wrap gap-5 text-sm font-semibold text-slate-600">
+        <a href="{{ url_for('detection') }}" class="hover:text-brand-700">Disease Detection</a>
+        <a href="{{ url_for('colorblind') }}" class="hover:text-brand-700">Color Test</a>
+        <a href="{{ url_for('fatigue') }}" class="hover:text-brand-700">Fatigue Analysis</a>
+        <a href="{{ url_for('recommendations') }}" class="hover:text-brand-700">Recommendations</a>
+      </div>
+    </div>
+    <div class="mt-7 pt-6 border-t border-slate-200/70 text-xs text-slate-500 flex flex-col sm:flex-row justify-between gap-2">
+      <p>&copy; 2026 I-Care. All rights reserved.</p>
+      <p>Healthcare screening support. Not a substitute for professional diagnosis.</p>
+    </div>
+  </div>
+</footer>
+
+<script>
+  (function () {
+    const cards = document.querySelectorAll('.spotlight-card');
+    cards.forEach((card) => {
+      card.addEventListener('mousemove', (event) => {
+        const rect = card.getBoundingClientRect();
+        const x = ((event.clientX - rect.left) / rect.width) * 100;
+        const y = ((event.clientY - rect.top) / rect.height) * 100;
+        card.style.setProperty('--spot-x', `${x}%`);
+        card.style.setProperty('--spot-y', `${y}%`);
+      });
+    });
+  })();
+</script>
+{% endblock %}

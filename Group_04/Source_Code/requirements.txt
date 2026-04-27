@@ -1,0 +1,33 @@
+Flask==3.0.0
+Werkzeug>=3.0.1
+itsdangerous>=2.1.2
+Jinja2>=3.1.2
+cryptography>=41.0.0
+bcrypt>=4.1.2
+
+# Libraries updated for Python 3.13 compatibility
+# We use >= constraints because exact versions (e.g. numpy 1.26.2) may not support Python 3.13
+numpy>=1.26.2
+scipy>=1.10.0
+pandas>=2.2.0
+scikit-learn>=1.3.2
+Pillow>=10.1.0
+
+# TensorFlow 2.19+ (likely 2.20+ on Python 3.13)
+tensorflow>=2.19.0
+
+# New Feature Requirements
+# Compatible with Python 3.8 - 3.12
+inference-sdk>=0.9.15
+
+# Optional dependencies for future model experimentation
+lightgbm>=4.0.0
+imbalanced-learn>=0.11.0
+
+# New Feature specific requirements
+groq==1.0.0
+python-dotenv==1.0.0
+requests>=2.31.0
+deep-translator==1.11.4
+serpapi>=0.1.5
+google-search-results>=2.4.2

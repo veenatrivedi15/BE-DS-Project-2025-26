@@ -1,0 +1,152 @@
+{% extends 'base.html' %}
+
+{% block title %}Daily Inspiration - VayuNetra{% endblock %}
+
+{% block extra_css %}
+<style>
+    .quote-container {
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        padding: 2rem;
+    }
+    
+    .quote-card {
+        max-width: 800px;
+        width: 100%;
+        background: white;
+        border-radius: 20px;
+        padding: 3rem;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        text-align: center;
+        animation: fadeInUp 0.6s ease-out;
+    }
+    
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    .quote-icon {
+        font-size: 4rem;
+        color: #10B981;
+        margin-bottom: 1.5rem;
+    }
+    
+    .quote-text {
+        font-size: 1.75rem;
+        line-height: 1.8;
+        color: #1F2937;
+        font-style: italic;
+        margin-bottom: 2rem;
+        font-weight: 400;
+    }
+    
+    .quote-author {
+        font-size: 1.25rem;
+        color: #6B7280;
+        font-weight: 500;
+        margin-bottom: 3rem;
+    }
+    
+    .quote-author::before {
+        content: "— ";
+    }
+    
+    .quote-actions {
+        display: flex;
+        gap: 1rem;
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+    
+    .btn-quote {
+        padding: 0.875rem 2rem;
+        border-radius: 0.5rem;
+        font-weight: 600;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+        cursor: pointer;
+        border: none;
+        text-decoration: none;
+        display: inline-block;
+    }
+    
+    .btn-primary-quote {
+        background: linear-gradient(135deg, #10B981 0%, #059669 100%);
+        color: white;
+    }
+    
+    .btn-primary-quote:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 20px rgba(16, 185, 129, 0.3);
+    }
+    
+    .btn-secondary-quote {
+        background: #F3F4F6;
+        color: #374151;
+    }
+    
+    .btn-secondary-quote:hover {
+        background: #E5E7EB;
+    }
+    
+    .quote-footer {
+        margin-top: 2rem;
+        font-size: 0.875rem;
+        color: #9CA3AF;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="quote-container">
+    <div class="quote-card">
+        <div class="quote-icon">🌱</div>
+        
+        <div class="quote-text">
+            "{{ quote }}"
+        </div>
+        
+        <div class="quote-author">
+            {{ author }}
+        </div>
+        
+        <div class="quote-actions">
+            <a href="{% url redirect_url %}" class="btn-quote btn-primary-quote">
+                Continue to Dashboard →
+            </a>
+            <button onclick="showAnotherQuote()" class="btn-quote btn-secondary-quote">
+                Show Another Quote
+            </button>
+        </div>
+        
+        <div class="quote-footer">
+            Start your sustainable journey today and make a difference!
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function showAnotherQuote() {
+        // Reload the page to get a new random quote
+        window.location.reload();
+    }
+    
+    // Auto-redirect after 10 seconds (optional)
+    // setTimeout(function() {
+    //     window.location.href = "{% url redirect_url %}";
+    // }, 10000);
+</script>
+{% endblock %}
+

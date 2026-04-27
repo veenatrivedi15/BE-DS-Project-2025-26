@@ -1,0 +1,167 @@
+/* ---------- Base ---------- */
+* {
+    box-sizing: border-box;
+    font-family: "Segoe UI", Roboto, Arial, sans-serif;
+}
+
+body {
+    background: #f4f6f9;
+    margin: 0;
+    padding: 0;
+    color: #333;
+}
+
+/* ---------- Layout ---------- */
+.container {
+    max-width: 1100px;
+    margin: 40px auto;
+    padding: 0 20px;
+}
+
+.header {
+    background: #1e2a38;
+    color: white;
+    padding: 20px;
+    text-align: center;
+}
+
+.header h1 {
+    margin: 0;
+    font-size: 26px;
+}
+
+/* ---------- Upload Card ---------- */
+.upload-card {
+    background: white;
+    padding: 30px;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    text-align: center;
+}
+
+.upload-card input[type="file"] {
+    margin: 20px 0;
+}
+
+.upload-card button {
+    background: #2563eb;
+    color: white;
+    border: none;
+    padding: 12px 22px;
+    font-size: 15px;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+.upload-card button:hover {
+    background: #1d4ed8;
+}
+
+/* ---------- Summary ---------- */
+.summary {
+    background: white;
+    padding: 20px;
+    margin-bottom: 25px;
+    border-radius: 8px;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.07);
+}
+
+.summary span {
+    display: inline-block;
+    margin-right: 15px;
+    font-weight: 600;
+}
+
+/* ---------- Clause Card ---------- */
+.card {
+    background: white;
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 25px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+}
+
+.card h2 {
+    margin-top: 0;
+    font-size: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+/* ---------- Severity ---------- */
+.severity {
+    font-size: 13px;
+    padding: 4px 10px;
+    border-radius: 12px;
+    color: white;
+}
+
+.high {
+    background: #dc2626;
+}
+
+.medium {
+    background: #f59e0b;
+}
+
+.low {
+    background: #16a34a;
+}
+
+/* ---------- Sections ---------- */
+.section-title {
+    margin-top: 18px;
+    font-size: 15px;
+    font-weight: 700;
+}
+
+ul {
+    padding-left: 18px;
+}
+
+li {
+    margin-bottom: 6px;
+}
+
+/* ---------- Explanation ---------- */
+.explanation {
+    background: #f1f5f9;
+    padding: 12px;
+    border-left: 4px solid #2563eb;
+    margin-top: 10px;
+    border-radius: 4px;
+}
+
+/* ---------- Footer ---------- */
+.footer {
+    text-align: center;
+    font-size: 13px;
+    color: #666;
+    margin: 40px 0;
+}
+/* ---------- Collapsible Cards ---------- */
+.card-header {
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.card-content {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.4s ease, opacity 0.3s ease;
+    opacity: 0;
+}
+
+.card-content.open {
+    max-height: 2000px;
+    opacity: 1;
+}
+
+.toggle-icon {
+    font-size: 14px;
+    margin-left: 10px;
+    color: #555;
+}

@@ -1,0 +1,767 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Carbon Credits Wallet - VayuNetra{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/design-system.css' %}">
+<style>
+    .wallet-grid {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 2rem;
+    }
+    
+    @media (min-width: 1024px) {
+        .wallet-grid {
+            grid-template-columns: 2fr 1fr;
+        }
+    }
+    
+    .balance-card {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 20px;
+        padding: 2.5rem;
+        color: white;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .balance-card::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -50%;
+        width: 200%;
+        height: 200%;
+        background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+        animation: float 6s ease-in-out infinite;
+    }
+    
+    @keyframes float {
+        0%, 100% { transform: translateY(0px) rotate(0deg); }
+        50% { transform: translateY(-20px) rotate(180deg); }
+    }
+    
+    .balance-amount {
+        font-size: 3rem;
+        font-weight: bold;
+        margin-bottom: 0.5rem;
+        position: relative;
+        z-index: 1;
+    }
+    
+    .balance-label {
+        font-size: 1.125rem;
+        opacity: 0.9;
+        margin-bottom: 1rem;
+        position: relative;
+        z-index: 1;
+    }
+    
+    .balance-details {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1rem;
+        position: relative;
+        z-index: 1;
+    }
+    
+    .balance-detail {
+        text-align: center;
+        padding: 1rem;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 12px;
+        backdrop-filter: blur(10px);
+    }
+    
+    .detail-value {
+        font-size: 1.5rem;
+        font-weight: bold;
+        margin-bottom: 0.25rem;
+    }
+    
+    .detail-label {
+        font-size: 0.875rem;
+        opacity: 0.8;
+    }
+    
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        margin-bottom: 2rem;
+    }
+    
+    .stat-card {
+        background: white;
+        border-radius: 16px;
+        padding: 1.5rem;
+        text-align: center;
+        border: 1px solid #e5e7eb;
+        transition: all 0.3s ease;
+    }
+    
+    .stat-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0px 12px 24px rgba(0, 0, 0, 0.1);
+        border-color: #d1d5db;
+    }
+    
+    .stat-value {
+        font-size: 2rem;
+        font-weight: bold;
+        color: #1f2937;
+        margin-bottom: 0.25rem;
+    }
+    
+    .stat-label {
+        font-size: 0.875rem;
+        color: #6b7280;
+    }
+    
+    .transaction-list {
+        background: white;
+        border-radius: 16px;
+        padding: 2rem;
+        border: 1px solid #e5e7eb;
+    }
+    
+    .transaction-item {
+        display: flex;
+        align-items: center;
+        padding: 1rem 0;
+        border-bottom: 1px solid #f3f4f6;
+        transition: all 0.3s ease;
+    }
+    
+    .transaction-item:last-child {
+        border-bottom: none;
+    }
+    
+    .transaction-item:hover {
+        background: #f9fafb;
+        margin: 0 -1rem;
+        padding: 1rem;
+        border-radius: 8px;
+    }
+    
+    .transaction-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.25rem;
+        margin-right: 1rem;
+    }
+    
+    .transaction-icon.credit {
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        color: white;
+    }
+    
+    .transaction-icon.debit {
+        background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+        color: white;
+    }
+    
+    .transaction-icon.transfer {
+        background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+        color: white;
+    }
+    
+    .transaction-details {
+        flex: 1;
+    }
+    
+    .transaction-title {
+        font-weight: 600;
+        color: #1f2937;
+        margin-bottom: 0.25rem;
+    }
+    
+    .transaction-date {
+        font-size: 0.875rem;
+        color: #6b7280;
+    }
+    
+    .transaction-amount {
+        font-weight: bold;
+        font-size: 1.125rem;
+    }
+    
+    .transaction-amount.positive {
+        color: #10b981;
+    }
+    
+    .transaction-amount.negative {
+        color: #ef4444;
+    }
+    
+    .transfer-form {
+        background: white;
+        border-radius: 16px;
+        padding: 2rem;
+        border: 1px solid #e5e7eb;
+        margin-bottom: 2rem;
+    }
+    
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+    
+    .form-label {
+        display: block;
+        font-weight: 500;
+        color: #374151;
+        margin-bottom: 0.5rem;
+    }
+    
+    .form-input {
+        width: 100%;
+        padding: 0.75rem 1rem;
+        border: 1px solid #d1d5db;
+        border-radius: 8px;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+    }
+    
+    .form-input:focus {
+        outline: none;
+        border-color: #667eea;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+    
+    .form-textarea {
+        width: 100%;
+        padding: 0.75rem 1rem;
+        border: 1px solid #d1d5db;
+        border-radius: 8px;
+        font-size: 1rem;
+        resize: vertical;
+        min-height: 100px;
+        transition: all 0.3s ease;
+    }
+    
+    .form-textarea:focus {
+        outline: none;
+        border-color: #667eea;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+    
+    .btn-primary {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+        padding: 0.75rem 2rem;
+        border-radius: 8px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        width: 100%;
+    }
+    
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0px 4px 12px rgba(102, 126, 234, 0.4);
+    }
+    
+    .btn-primary:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+        transform: none;
+    }
+    
+    .verification-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.5rem 1rem;
+        background: #f0fdf4;
+        color: #166534;
+        border-radius: 20px;
+        font-size: 0.875rem;
+        font-weight: 500;
+    }
+    
+    .verification-badge.verified {
+        background: #f0fdf4;
+        color: #166534;
+    }
+    
+    .verification-badge.pending {
+        background: #fef3c7;
+        color: #92400e;
+    }
+    
+    .verification-badge.error {
+        background: #fef2f2;
+        color: #991b1b;
+    }
+    
+    .loading-spinner {
+        display: inline-block;
+        width: 20px;
+        height: 20px;
+        border: 3px solid rgba(255, 255, 255, 0.3);
+        border-radius: 50%;
+        border-top-color: white;
+        animation: spin 1s ease-in-out infinite;
+    }
+    
+    @keyframes spin {
+        to { transform: rotate(360deg); }
+    }
+    
+    .alert {
+        padding: 1rem;
+        border-radius: 8px;
+        margin-bottom: 1rem;
+    }
+    
+    .alert-success {
+        background: #f0fdf4;
+        color: #166534;
+        border: 1px solid #bbf7d0;
+    }
+    
+    .alert-error {
+        background: #fef2f2;
+        color: #991b1b;
+        border: 1px solid #fecaca;
+    }
+    
+    .alert-info {
+        background: #eff6ff;
+        color: #1e40af;
+        border: 1px solid #bfdbfe;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-container">
+    <!-- Page Header -->
+    <div class="page-header">
+        <div class="px-6">
+            <h1 class="page-title">Carbon Credits Wallet</h1>
+            <p class="page-subtitle">Manage your digital carbon credits and transactions</p>
+        </div>
+    </div>
+
+    <div class="wallet-grid">
+        <!-- Main Content -->
+        <div>
+            <!-- Balance Card -->
+            <div class="balance-card mb-6">
+                <div class="balance-amount" id="totalBalance">0.0000</div>
+                <div class="balance-label">Total Carbon Credits</div>
+                <div class="balance-details">
+                    <div class="balance-detail">
+                        <div class="detail-value" id="availableBalance">0.0000</div>
+                        <div class="detail-label">Available</div>
+                    </div>
+                    <div class="balance-detail">
+                        <div class="detail-value" id="frozenBalance">0.0000</div>
+                        <div class="detail-label">Frozen</div>
+                    </div>
+                    <div class="balance-detail">
+                        <div class="detail-value" id="walletId">Loading...</div>
+                        <div class="detail-label">Wallet ID</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Stats Grid -->
+            <div class="stats-grid mb-6">
+                <div class="stat-card">
+                    <div class="stat-value" id="totalEarned">0</div>
+                    <div class="stat-label">Total Earned</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="totalSpent">0</div>
+                    <div class="stat-label">Total Spent</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="transactionCount">0</div>
+                    <div class="stat-label">Transactions</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="netEarned">0</div>
+                    <div class="stat-label">Net Earned</div>
+                </div>
+            </div>
+
+            <!-- Transfer Form -->
+            <div class="transfer-form">
+                <h2 class="section-title mb-4">Transfer Credits</h2>
+                <div id="transferAlert"></div>
+                <form id="transferForm">
+                    <div class="form-group">
+                        <label class="form-label" for="recipientEmail">Recipient Email</label>
+                        <input type="email" id="recipientEmail" class="form-input" placeholder="user@example.com" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="transferAmount">Amount</label>
+                        <input type="number" id="transferAmount" class="form-input" placeholder="0.0000" step="0.0001" min="0.0001" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="transferMessage">Message (Optional)</label>
+                        <textarea id="transferMessage" class="form-textarea" placeholder="Add a message..."></textarea>
+                    </div>
+                    <button type="submit" class="btn-primary" id="transferBtn">
+                        <span id="transferBtnText">Transfer Credits</span>
+                    </button>
+                </form>
+            </div>
+
+            <!-- Recent Transactions -->
+            <div class="transaction-list">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="section-title">Recent Transactions</h2>
+                    <button onclick="loadTransactions()" class="text-blue-600 hover:text-blue-700 text-sm font-medium">
+                        Refresh
+                    </button>
+                </div>
+                <div id="transactionList">
+                    <!-- Transactions will be loaded here -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar -->
+        <div>
+            <!-- Wallet Verification -->
+            <div class="modern-card p-6 mb-6">
+                <h3 class="section-title mb-4">Wallet Verification</h3>
+                <div id="verificationStatus" class="verification-badge pending">
+                    <span>🔍</span>
+                    <span>Checking...</span>
+                </div>
+                <button onclick="verifyWallet()" class="btn-primary mt-4">
+                    Verify Wallet
+                </button>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="modern-card p-6 mb-6">
+                <h3 class="section-title mb-4">Quick Actions</h3>
+                <div class="space-y-3">
+                    <button onclick="showTransactionHistory()" class="action-btn w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+                        View Full History
+                    </button>
+                    <button onclick="showPendingTransfers()" class="action-btn w-full px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700">
+                        Pending Transfers
+                    </button>
+                    <button onclick="exportTransactions()" class="action-btn w-full px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700">
+                        Export Statement
+                    </button>
+                </div>
+            </div>
+
+            <!-- Recent Activity -->
+            <div class="modern-card p-6">
+                <h3 class="section-title mb-4">Recent Activity</h3>
+                <div id="recentActivity" class="space-y-3">
+                    <!-- Activity will be loaded here -->
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+class CarbonWallet {
+    constructor() {
+        this.walletData = null;
+        this.init();
+    }
+    
+    async init() {
+        await this.loadWalletData();
+        this.setupEventListeners();
+        this.startAutoRefresh();
+    }
+    
+    async loadWalletData() {
+        try {
+            const response = await fetch('/employee/wallet/summary/');
+            const data = await response.json();
+            
+            if (data.success) {
+                this.walletData = data.data;
+                this.updateUI();
+            } else {
+                this.showError('Failed to load wallet data');
+            }
+        } catch (error) {
+            console.error('Error loading wallet data:', error);
+            this.showError('Error loading wallet data');
+        }
+    }
+    
+    updateUI() {
+        if (!this.walletData) return;
+        
+        const { balance, stats } = this.walletData;
+        
+        // Update balance
+        document.getElementById('totalBalance').textContent = balance.total_balance.toFixed(4);
+        document.getElementById('availableBalance').textContent = balance.available_balance.toFixed(4);
+        document.getElementById('frozenBalance').textContent = balance.frozen_balance.toFixed(4);
+        document.getElementById('walletId').textContent = balance.wallet_id ? balance.wallet_id.substring(0, 8) + '...' : 'N/A';
+        
+        // Update stats
+        document.getElementById('totalEarned').textContent = stats.total_earned.toFixed(4);
+        document.getElementById('totalSpent').textContent = stats.total_spent.toFixed(4);
+        document.getElementById('transactionCount').textContent = stats.transaction_count;
+        document.getElementById('netEarned').textContent = stats.net_earned.toFixed(4);
+        
+        // Update transactions
+        this.updateTransactions(this.walletData.recent_transactions);
+        
+        // Update recent activity
+        this.updateRecentActivity(stats.recent_transfers);
+    }
+    
+    updateTransactions(transactions) {
+        const container = document.getElementById('transactionList');
+        
+        if (!transactions || transactions.length === 0) {
+            container.innerHTML = '<div class="text-center text-gray-500 py-8">No transactions yet</div>';
+            return;
+        }
+        
+        container.innerHTML = transactions.map(tx => {
+            const iconClass = this.getTransactionIconClass(tx.type);
+            const amountClass = tx.amount >= 0 ? 'positive' : 'negative';
+            const amountText = tx.amount >= 0 ? `+${tx.amount}` : tx.amount;
+            
+            return `
+                <div class="transaction-item">
+                    <div class="transaction-icon ${iconClass}">
+                        ${this.getTransactionIcon(tx.type)}
+                    </div>
+                    <div class="transaction-details">
+                        <div class="transaction-title">${this.getTransactionTitle(tx)}</div>
+                        <div class="transaction-date">${new Date(tx.created_at).toLocaleString()}</div>
+                    </div>
+                    <div class="transaction-amount ${amountClass}">
+                        ${amountText}
+                    </div>
+                </div>
+            `;
+        }).join('');
+    }
+    
+    updateRecentActivity(transfers) {
+        const container = document.getElementById('recentActivity');
+        
+        if (!transfers || transfers.length === 0) {
+            container.innerHTML = '<div class="text-center text-gray-500 py-4">No recent transfers</div>';
+            return;
+        }
+        
+        container.innerHTML = transfers.map(transfer => `
+            <div class="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+                <div class="text-sm">
+                    <div class="font-medium">To: ${transfer.recipient}</div>
+                    <div class="text-gray-500">${new Date(transfer.date).toLocaleDateString()}</div>
+                </div>
+                <div class="font-semibold text-blue-600">${transfer.amount}</div>
+            </div>
+        `).join('');
+    }
+    
+    getTransactionIconClass(type) {
+        const iconMap = {
+            'credit': 'credit',
+            'reward': 'credit',
+            'debit': 'debit',
+            'penalty': 'debit',
+            'transfer_in': 'transfer',
+            'transfer_out': 'transfer'
+        };
+        return iconMap[type] || 'credit';
+    }
+    
+    getTransactionIcon(type) {
+        const iconMap = {
+            'credit': '📈',
+            'reward': '🎁',
+            'debit': '📉',
+            'penalty': '⚠️',
+            'transfer_in': '📥',
+            'transfer_out': '📤'
+        };
+        return iconMap[type] || '💰';
+    }
+    
+    getTransactionTitle(tx) {
+        const titleMap = {
+            'credit': 'Credits Added',
+            'reward': 'Reward Received',
+            'debit': 'Credits Deducted',
+            'penalty': 'Penalty Applied',
+            'transfer_in': 'Transfer Received',
+            'transfer_out': 'Transfer Sent'
+        };
+        return titleMap[tx.type] || tx.description || 'Transaction';
+    }
+    
+    setupEventListeners() {
+        const form = document.getElementById('transferForm');
+        form.addEventListener('submit', (e) => {
+            e.preventDefault();
+            this.handleTransfer();
+        });
+    }
+    
+    async handleTransfer() {
+        const recipientEmail = document.getElementById('recipientEmail').value;
+        const amount = parseFloat(document.getElementById('transferAmount').value);
+        const message = document.getElementById('transferMessage').value;
+        
+        if (!recipientEmail || !amount || amount <= 0) {
+            this.showAlert('Please fill in all required fields', 'error');
+            return;
+        }
+        
+        const btn = document.getElementById('transferBtn');
+        const btnText = document.getElementById('transferBtnText');
+        
+        // Show loading state
+        btn.disabled = true;
+        btnText.innerHTML = '<span class="loading-spinner"></span> Processing...';
+        
+        try {
+            const response = await fetch('/employee/wallet/transfer/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': this.getCookie('csrftoken')
+                },
+                body: JSON.stringify({
+                    recipient_email: recipientEmail,
+                    amount: amount,
+                    message: message
+                })
+            });
+            
+            const data = await response.json();
+            
+            if (data.success) {
+                this.showAlert('Transfer completed successfully!', 'success');
+                form.reset();
+                await this.loadWalletData(); // Refresh data
+            } else {
+                this.showAlert(data.error || 'Transfer failed', 'error');
+            }
+        } catch (error) {
+            console.error('Transfer error:', error);
+            this.showAlert('Error processing transfer', 'error');
+        } finally {
+            // Reset button state
+            btn.disabled = false;
+            btnText.textContent = 'Transfer Credits';
+        }
+    }
+    
+    async verifyWallet() {
+        try {
+            const response = await fetch('/employee/wallet/verify/');
+            const data = await response.json();
+            
+            const statusElement = document.getElementById('verificationStatus');
+            
+            if (data.success) {
+                const { balance_verified, transaction_count, verified_transactions } = data.data;
+                
+                if (balance_verified) {
+                    statusElement.className = 'verification-badge verified';
+                    statusElement.innerHTML = '<span>✅</span><span>Verified</span>';
+                } else {
+                    statusElement.className = 'verification-badge error';
+                    statusElement.innerHTML = '<span>❌</span><span>Verification Failed</span>';
+                }
+                
+                this.showAlert(`Wallet verified! ${transaction_count} transactions checked.`, 'success');
+            } else {
+                statusElement.className = 'verification-badge error';
+                statusElement.innerHTML = '<span>❌</span><span>Error</span>';
+                this.showAlert('Verification failed', 'error');
+            }
+        } catch (error) {
+            console.error('Verification error:', error);
+            this.showAlert('Error verifying wallet', 'error');
+        }
+    }
+    
+    showAlert(message, type) {
+        const alertContainer = document.getElementById('transferAlert');
+        const alertClass = `alert-${type}`;
+        
+        alertContainer.innerHTML = `<div class="alert ${alertClass}">${message}</div>`;
+        
+        // Auto-hide after 5 seconds
+        setTimeout(() => {
+            alertContainer.innerHTML = '';
+        }, 5000);
+    }
+    
+    showError(message) {
+        this.showAlert(message, 'error');
+    }
+    
+    getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+    
+    startAutoRefresh() {
+        // Refresh wallet data every 30 seconds
+        setInterval(() => {
+            this.loadWalletData();
+        }, 30000);
+    }
+    
+    async loadTransactions() {
+        await this.loadWalletData();
+    }
+    
+    showTransactionHistory() {
+        // Navigate to full transaction history
+        window.location.href = '/employee/wallet/transactions/';
+    }
+    
+    showPendingTransfers() {
+        // Show pending transfers modal or navigate
+        window.location.href = '/employee/wallet/transfers/pending/';
+    }
+    
+    exportTransactions() {
+        // Export transactions to CSV
+        window.open('/employee/wallet/transactions/?export=csv', '_blank');
+    }
+}
+
+// Initialize wallet when DOM is ready
+document.addEventListener('DOMContentLoaded', () => {
+    window.carbonWallet = new CarbonWallet();
+});
+</script>
+{% endblock %}

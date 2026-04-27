@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LawGrid - AI Legal Solutions</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body class="bg-gray-100 text-gray-800">
+
+    <header class="bg-white shadow-md py-4">
+        <div class="container mx-auto px-6 flex justify-between items-center">
+            <div class="flex items-center space-x-3">
+                <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-indigo-600"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+                <span class="text-2xl font-bold text-gray-900">LawGrid</span>
+            </div>
+            <nav class="hidden md:flex space-x-6 text-gray-600 text-sm font-medium">
+                <a href="#" class="hover:text-indigo-600 transition-colors duration-200">About Us</a>
+                <a href="#" class="hover:text-indigo-600 transition-colors duration-200">Services</a>
+                <a href="#" class="hover:text-indigo-600 transition-colors duration-200">Contact</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container mx-auto px-6 py-12 flex flex-col items-center">
+        <div class="text-center mb-10 max-w-4xl animate-on-load">
+            <h1 class="text-4xl md:text-5xl font-extrabold text-gray-900 mb-3 leading-tight">
+                Your Intelligent Partner for Legal Insights
+            </h1>
+            <p class="text-lg md:text-xl text-gray-600 max-w-2xl mx-auto">
+                Streamline legal processes with our AI-powered suite of tools, designed for efficiency and accuracy.
+            </p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 w-full max-w-6xl">
+           
+                <div class="card bg-white p-6 rounded-3xl shadow-xl border border-gray-200 hover:shadow-2xl animate-on-load delay-1">
+                    <div class="flex flex-col items-center text-center">
+                        <div class="card-icon-container bg-indigo-100 p-5 rounded-full mb-4">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-indigo-600"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
+                        </div>
+                        <h3 class="text-xl font-bold text-gray-900 mb-1">Contract Drafting</h3>
+                        <p class="text-sm text-gray-500">Generate legal documents efficiently from user-provided input.</p>
+                    </div>
+                </div>
+        
+
+            
+            
+                <div class="card bg-white p-6 rounded-3xl shadow-xl border border-gray-200 hover:shadow-2xl animate-on-load delay-2">
+                    <div class="flex flex-col items-center text-center">
+                        <div class="card-icon-container bg-indigo-100 p-5 rounded-full mb-4">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-indigo-600"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+                        </div>
+                        <h3 class="text-xl font-bold text-gray-900 mb-1">Contract Review</h3>
+                        <p class="text-sm text-gray-500">Analyze contracts for risks and propose actionable solutions.</p>
+                    </div>
+                </div>
+            
+
+            <a href="{{ url_for('chatbot_page') }}">
+                <div class="card bg-white p-6 rounded-3xl shadow-xl border border-gray-200 hover:shadow-2xl animate-on-load delay-3">
+                    <div class="flex flex-col items-center text-center">
+                        <div class="card-icon-container bg-indigo-100 p-5 rounded-full mb-4">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-indigo-600"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/><line x1="9" y1="12" x2="9.01" y2="12"/><line x1="15" y1="12" x2="15.01" y2="12"/></svg>
+                        </div>
+                        <h3 class="text-xl font-bold text-gray-900 mb-1">Legal Q&A</h3>
+                        <p class="text-sm text-gray-500">Ask legal questions and receive precise, evidence-based answers.</p>
+                    </div>
+                </div>
+            </a>
+
+            <div class="card bg-white p-6 rounded-3xl shadow-xl border border-gray-200 hover:shadow-2xl animate-on-load delay-4">
+                 <a href="{{ url_for('contract_draft') }}">
+                <div class="flex flex-col items-center text-center">
+                    <div class="card-icon-container bg-indigo-100 p-5 rounded-full mb-4">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-indigo-600"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                    </div>
+                    <h3 class="text-xl font-bold text-gray-900 mb-1">Event Timeline</h3>
+                    <p class="text-sm text-gray-500">Generate a chronological timeline of key legal events and dates from documents.</p>
+                </div>
+                </a>
+            </div>
+        </div>
+    </main>
+</body>
+</html>

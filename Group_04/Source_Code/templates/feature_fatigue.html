@@ -1,0 +1,196 @@
+{% extends "base.html" %}
+{% block title %}Eye Health Analysis — I-Care{% endblock %}
+
+{% block head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/fatigue_style.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-10 bg-gradient-to-br from-amber-50 via-orange-50 to-slate-50 rounded-3xl border border-amber-100/70">
+    <!-- Header -->
+    <div class="text-center mb-8">
+        <div class="inline-flex items-center gap-1.5 bg-amber-100/60 border border-amber-200/60 rounded-full px-3 py-1 mb-3">
+            <span class="text-xs font-semibold text-amber-700 uppercase tracking-wider">AI Analysis</span>
+        </div>
+        <h1 class="text-3xl sm:text-4xl font-bold text-slate-900 tracking-tight">Comprehensive Eye Health Analysis</h1>
+        <p class="mt-2 text-slate-500">Advanced AI-powered detection for Redness, Fatigue, and Dryness</p>
+    </div>
+
+    <!-- Upload Section -->
+    <div class="upload-section">
+        <div class="upload-area" id="uploadArea">
+            <div class="upload-icon">📸</div>
+            <h3>Drop your eye image here or click to browse</h3>
+            <p>Supported formats: PNG, JPG, JPEG (Max 16MB)</p>
+            <input type="file" id="fileInput" accept="image/png, image/jpeg, image/jpg" hidden>
+            <button class="browse-btn" id="browseBtn">Choose File</button>
+        </div>
+    </div>
+
+    <!-- Preview & Questionnaire -->
+    <div class="preview-section" id="previewSection" style="display: none;">
+        <h3>Selected Image</h3>
+        <div class="image-preview">
+            <img id="imagePreview" src="" alt="Preview">
+        </div>
+
+        <div class="questionnaire">
+            <h3>📋 Health Questionnaire</h3>
+            <p class="questionnaire-subtitle">Please answer the following questions for better diagnosis</p>
+            
+            <div class="question-grid">
+                <div class="question-item">
+                    <label>Burning sensation in eyes?</label>
+                    <div class="radio-group">
+                        <label><input type="radio" name="burning" value="yes"> Yes</label>
+                        <label><input type="radio" name="burning" value="no" checked> No</label>
+                    </div>
+                </div>
+                <div class="question-item">
+                    <label>Itching or irritation?</label>
+                    <div class="radio-group">
+                        <label><input type="radio" name="itching" value="yes"> Yes</label>
+                        <label><input type="radio" name="itching" value="no" checked> No</label>
+                    </div>
+                </div>
+                <div class="question-item">
+                    <label>Watery eyes?</label>
+                    <div class="radio-group">
+                        <label><input type="radio" name="watery_eyes" value="yes"> Yes</label>
+                        <label><input type="radio" name="watery_eyes" value="no" checked> No</label>
+                    </div>
+                </div>
+                <div class="question-item">
+                    <label>Sensitivity to light?</label>
+                    <div class="radio-group">
+                        <label><input type="radio" name="sensitivity" value="yes"> Yes</label>
+                        <label><input type="radio" name="sensitivity" value="no" checked> No</label>
+                    </div>
+                </div>
+                <div class="question-item">
+                    <label>Visible redness in eyes?</label>
+                    <div class="radio-group">
+                        <label><input type="radio" name="redness_visible" value="yes"> Yes</label>
+                        <label><input type="radio" name="redness_visible" value="no" checked> No</label>
+                    </div>
+                </div>
+                <div class="question-item">
+                    <label>Do you wear contact lenses?</label>
+                    <div class="radio-group">
+                        <label><input type="radio" name="contact_lens" value="yes"> Yes</label>
+                        <label><input type="radio" name="contact_lens" value="no" checked> No</label>
+                    </div>
+                </div>
+                <div class="question-item">
+                    <label>Screen time per day (hours)</label>
+                    <select name="screen_time" id="screenTime">
+                        <option value="0">Less than 2</option>
+                        <option value="3">2-4 hours</option>
+                        <option value="5">4-6 hours</option>
+                        <option value="7">6-8 hours</option>
+                        <option value="9">8+ hours</option>
+                    </select>
+                </div>
+                <div class="question-item">
+                    <label>Sleep hours per night</label>
+                    <select name="sleep_hours" id="sleepHours">
+                        <option value="4">Less than 5</option>
+                        <option value="6">5-7 hours</option>
+                        <option value="8">7-9 hours</option>
+                        <option value="9">9+ hours</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <div class="action-buttons">
+            <button class="analyze-btn" id="analyzeBtn">Analyze Eye Health</button>
+            <button class="clear-btn" id="clearBtn">Clear</button>
+        </div>
+    </div>
+
+    <!-- Loading -->
+    <div class="loading" id="loading" style="display: none;">
+        <div class="spinner"></div>
+        <p>Analyzing your eye health...</p>
+        <p class="loading-subtitle">Running AI models for comprehensive analysis</p>
+    </div>
+
+    <!-- Results -->
+    <div class="results-section" id="resultsSection" style="display: none;">
+        <h3>📊 Comprehensive Analysis Results</h3>
+        <div class="result-card">
+            <div class="overall-status" id="overallStatus">
+                <div class="status-icon" id="statusIcon"></div>
+                <div class="status-content">
+                    <h2 id="statusText">Analyzing...</h2>
+                    <div class="overall-score-display">
+                        <span class="score-label">Overall Eye Health Score:</span>
+                        <span class="score-value" id="overallScoreValue">0</span>
+                        <span class="score-unit">/100</span>
+                    </div>
+                </div>
+            </div>
+            <div class="detection-grid">
+                <div class="detection-card redness">
+                    <h4>🔴 Redness Detection</h4>
+                    <div class="circular-progress" id="rednessProgress">
+                        <span class="progress-value" id="rednessValue">0%</span>
+                    </div>
+                    <p class="detection-status" id="rednessStatus">Normal</p>
+                </div>
+                <div class="detection-card fatigue">
+                    <h4>😴 Fatigue Detection</h4>
+                    <div class="circular-progress" id="fatigueProgress">
+                        <span class="progress-value" id="fatigueValue">0%</span>
+                    </div>
+                    <p class="detection-status" id="fatigueStatus">Normal</p>
+                </div>
+                <div class="detection-card dryness">
+                    <h4>💧 Dryness Detection</h4>
+                    <div class="circular-progress" id="drynessProgress">
+                        <span class="progress-value" id="drynessValue">0%</span>
+                    </div>
+                    <p class="detection-status" id="drynessStatus">Normal</p>
+                </div>
+            </div>
+            <div class="diagnosis-section">
+                <h4>🏥 Clinical Findings</h4>
+                <div id="conditionsList" class="conditions-list"></div>
+                <div id="findingsList" class="findings-list"></div>
+            </div>
+            <div class="recommendations-section">
+                <h4>💡 Professional Recommendations</h4>
+                <div id="recommendationsList" class="recommendations-list"></div>
+            </div>
+            <div class="medical-disclaimer">
+                <h4>⚕️ Medical Disclaimer</h4>
+                <p id="medicalNote"></p>
+            </div>
+            <div class="analyzed-image">
+                <h4>Analyzed Image</h4>
+                <img id="analyzedImage" src="" alt="Analyzed Image">
+            </div>
+            <button class="new-analysis-btn" id="newAnalysisBtn">New Analysis</button>
+        </div>
+    </div>
+
+    <!-- Error -->
+    <div class="error-section" id="errorSection" style="display: none;">
+        <div class="error-card">
+            <div class="error-icon">⚠️</div>
+            <h3>Error</h3>
+            <p id="errorMessage"></p>
+            <button class="retry-btn" id="retryBtn">Try Again</button>
+        </div>
+    </div>
+
+    <div class="text-center mt-12">
+        <p class="text-xs text-slate-400">⚠️ This tool is for informational purposes only and does not replace professional medical advice</p>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/fatigue_script.js') }}"></script>
+{% endblock %}

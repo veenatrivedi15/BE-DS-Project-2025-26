@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - AgriAid+</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #2d4a3e 0%, #0d2818 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Navigation */
+        nav {
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            background: rgba(26, 26, 26, 0.95);
+            border-bottom: 1px solid rgba(74, 124, 89, 0.25);
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.3s ease;
+        }
+
+        nav.scrolled {
+            backdrop-filter: blur(14px);
+            background: rgba(26, 26, 26, 0.98);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            font-size: 1.55rem;
+            font-weight: 800;
+            color: #e8f5e8;
+            text-decoration: none;
+            letter-spacing: -0.3px;
+        }
+
+        .logo:hover {
+            color: #9FE29F;
+            transition: color 0.3s ease;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+            align-items: center;
+            list-style: none;
+        }
+
+        .nav-links a {
+            color: #b0c9b5;
+            text-decoration: none;
+            font-weight: 500;
+            position: relative;
+            transition: color 0.3s ease;
+        }
+
+        .nav-links a::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: #9FE29F;
+            transition: width 0.3s ease;
+        }
+
+        .nav-links a:hover {
+            color: #9FE29F;
+        }
+
+        .nav-links a:hover::after {
+            width: 100%;
+        }
+
+        .nav-auth {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .btn-getstarted {
+            padding: 0.75rem 1.8rem;
+            background: linear-gradient(135deg, #4a7c59 0%, #6b9c7a 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(74, 124, 89, 0.35);
+            text-decoration: none;
+        }
+
+        .btn-getstarted:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 25px rgba(74, 124, 89, 0.45);
+        }
+
+        /* Main Content */
+        main {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
+
+        .login-container {
+            width: 100%;
+            max-width: 450px;
+        }
+
+        .login-card {
+            background: rgba(22, 58, 42, 0.65);
+            backdrop-filter: blur(18px);
+            border: 1px solid rgba(110, 231, 183, 0.25);
+            border-radius: 18px;
+            padding: 3rem 2rem;
+            box-shadow: 0 25px 60px rgba(0, 0, 0, 0.45);
+            animation: slideInUp 0.6s ease-out;
+        }
+
+        @keyframes slideInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .login-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .login-header h1 {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #e8f5e8;
+            margin-bottom: 0.5rem;
+        }
+
+        .login-header p {
+            color: #9FE29F;
+            font-size: 0.95rem;
+            font-weight: 500;
+        }
+
+        /* Form Group */
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            font-weight: 600;
+            color: #e8f5e8;
+            margin-bottom: 0.5rem;
+            font-size: 0.95rem;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px 15px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid rgba(45, 74, 62, 0.3);
+            border-radius: 12px;
+            color: #e8f5e8;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            font-family: inherit;
+        }
+
+        .form-group input::placeholder {
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #4a7c59;
+            background: rgba(255, 255, 255, 0.15);
+            box-shadow: 0 0 0 4px rgba(74, 124, 89, 0.1);
+        }
+
+        .password-toggle {
+            position: relative;
+        }
+
+        .toggle-btn {
+            position: absolute;
+            right: 15px;
+            top: 45px;
+            background: none;
+            border: none;
+            color: #9FE29F;
+            cursor: pointer;
+            font-size: 1.2rem;
+            transition: color 0.3s ease;
+        }
+
+        .toggle-btn:hover {
+            color: #6ee7b7;
+        }
+
+        /* Submit Button */
+        .btn-login {
+            width: 100%;
+            padding: 12px 20px;
+            background: linear-gradient(135deg, #4a7c59 0%, #6b9c7a 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(74, 124, 89, 0.35);
+            margin-top: 1rem;
+        }
+
+        .btn-login:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 25px rgba(74, 124, 89, 0.45);
+        }
+
+        .btn-login:active {
+            transform: translateY(0);
+        }
+
+        .btn-login:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        /* Links */
+        .login-footer {
+            text-align: center;
+            margin-top: 1.5rem;
+            font-size: 0.9rem;
+        }
+
+        .login-footer a {
+            color: #9FE29F;
+            text-decoration: none;
+            font-weight: 600;
+            transition: color 0.3s ease;
+        }
+
+        .login-footer a:hover {
+            color: #6ee7b7;
+            text-decoration: underline;
+        }
+
+        .signup-link {
+            color: #b0c9b5;
+        }
+
+        .signup-link a {
+            color: #9FE29F;
+        }
+
+        /* Alert Messages */
+        .alert {
+            padding: 12px 15px;
+            border-radius: 12px;
+            margin-bottom: 1.5rem;
+            font-size: 0.9rem;
+            animation: slideInUp 0.4s ease;
+        }
+
+        .alert-error {
+            background: rgba(220, 38, 38, 0.15);
+            border: 1px solid rgba(220, 38, 38, 0.3);
+            color: #fca5a5;
+        }
+
+        .alert-success {
+            background: rgba(34, 197, 94, 0.15);
+            border: 1px solid rgba(34, 197, 94, 0.3);
+            color: #86efac;
+        }
+
+        /* Divider */
+        .divider {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin: 1.5rem 0;
+            color: #b0c9b5;
+        }
+
+        .divider::before,
+        .divider::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: rgba(110, 231, 183, 0.2);
+        }
+
+        /* Social Login */
+        .social-login {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            margin-top: 1.5rem;
+        }
+
+        .social-btn {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(110, 231, 183, 0.2);
+            color: #e8f5e8;
+            cursor: pointer;
+            font-size: 1.2rem;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .social-btn:hover {
+            background: rgba(110, 231, 183, 0.2);
+            border-color: rgba(110, 231, 183, 0.4);
+            color: #9FE29F;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            nav {
+                padding: 1rem;
+            }
+
+            nav .logo {
+                font-size: 1.3rem;
+            }
+
+            .nav-links {
+                gap: 1rem;
+            }
+
+            main {
+                padding: 1rem;
+            }
+
+            .login-card {
+                padding: 2rem 1.5rem;
+            }
+
+            .login-header h1 {
+                font-size: 1.5rem;
+            }
+
+            .toggle-btn {
+                top: 42px;
+            }
+        }
+
+        .btn-login.loading {
+            pointer-events: none;
+            opacity: 0.7;
+        }
+
+        .btn-login.loading::after {
+            content: '';
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            margin-left: 8px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <nav id="navbar">
+        <a href="/" class="logo">
+            <span>🌱</span> AgriAid+
+        </a>
+        <ul class="nav-links">
+            <li><a href="/#features">Features</a></li>
+            <li><a href="/#about">About</a></li>
+            <li><a href="/#contact">Contact</a></li>
+        </ul>
+        <div class="nav-auth">
+            <a href="/signup" class="btn-getstarted">Get Started</a>
+        </div>
+    </nav>
+
+    <main>
+        <div class="login-container">
+            <div class="login-card">
+                <div class="login-header">
+                    <h1>Welcome Back 👋</h1>
+                    <p>Login to AgriAid+ with OTP</p>
+                </div>
+
+                <div id="alertBox" class="alert alert-error" style="display: none;"></div>
+
+                <form id="loginForm">
+                    <div class="form-group">
+                        <label for="username">Username or Mobile Number</label>
+                        <input type="text" id="username" name="username" placeholder="Enter username or mobile" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="mobile">Mobile Number</label>
+                        <input type="tel" id="mobile" name="mobile" placeholder="10-digit mobile" pattern="[0-9]{10}" required>
+                    </div>
+
+                    <div class="form-group password-toggle">
+                        <label for="password">Password (Optional)</label>
+                        <input type="password" id="password" name="password" placeholder="Enter password if available">
+                        <button type="button" class="toggle-btn" id="togglePassword">👁️</button>
+                    </div>
+
+                    <button type="submit" class="btn-login" id="submitBtn">Send OTP</button>
+                </form>
+
+                <div class="divider">or</div>
+
+                <div class="social-login">
+                    <button class="social-btn" title="Google">G</button>
+                    <button class="social-btn" title="Facebook">f</button>
+                    <button class="social-btn" title="Apple">🍎</button>
+                </div>
+
+                <div class="login-footer">
+                    <p class="signup-link">Don't have account? <a href="/signup">Sign up here</a></p>
+                    <p style="margin-top: 0.8rem;"><a href="#">Forgot Password?</a></p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        window.addEventListener('scroll', () => {
+            const navbar = document.getElementById('navbar');
+            if (window.scrollY > 50) {
+                navbar.classList.add('scrolled');
+            } else {
+                navbar.classList.remove('scrolled');
+            }
+        });
+
+        const togglePassword = document.getElementById('togglePassword');
+        const passwordInput = document.getElementById('password');
+
+        if (togglePassword) {
+            togglePassword.addEventListener('click', (e) => {
+                e.preventDefault();
+                const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+                passwordInput.setAttribute('type', type);
+                togglePassword.textContent = type === 'password' ? '👁️' : '👁️‍🗨️';
+            });
+        }
+
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const username = document.getElementById('username').value;
+            const mobile = document.getElementById('mobile').value;
+            const submitBtn = document.getElementById('submitBtn');
+            const alertBox = document.getElementById('alertBox');
+
+            if (!username || !mobile || !/^\d{10}$/.test(mobile)) {
+                alertBox.textContent = '⚠️ Please fill valid details';
+                alertBox.className = 'alert alert-error';
+                alertBox.style.display = 'block';
+                return;
+            }
+
+            submitBtn.classList.add('loading');
+            submitBtn.disabled = true;
+
+            try {
+                const response = await fetch('/api/send-login-otp', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({username, mobile})
+                });
+
+                const data = await response.json();
+                if (data.success) {
+                    alertBox.textContent = '✅ OTP sent successfully!';
+                    alertBox.className = 'alert alert-success';
+                    alertBox.style.display = 'block';
+                    setTimeout(() => {
+                        window.location.href = `/login?step=otp&username=${username}&mobile=${mobile}`;
+                    }, 1500);
+                } else {
+                    alertBox.textContent = '❌ ' + (data.message || 'Login failed');
+                    alertBox.className = 'alert alert-error';
+                    alertBox.style.display = 'block';
+                }
+            } catch (error) {
+                alertBox.textContent = '❌ Error occurred. Try again.';
+                alertBox.className = 'alert alert-error';
+                alertBox.style.display = 'block';
+            } finally {
+                submitBtn.classList.remove('loading');
+                submitBtn.disabled = false;
+            }
+        });
+    </script>
+</body>
+</html>

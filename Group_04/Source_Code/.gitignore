@@ -1,0 +1,26 @@
+﻿myenv312/
+venv/
+env/
+.venv/
+__pycache__/
+*.py[cod]
+*.class
+# Models and Artifacts
+*.pkl
+*.h5
+*.keras
+# Project Data
+static/uploads/
+color/results.csv
+color/responses.csv
+color/web/plates/generated/
+# Environment Variables
+.env
+# VS Code
+.vscode/
+# System
+.DS_Store
+Thumbs.db
+icare.db
+
+static/color/plates/generated/

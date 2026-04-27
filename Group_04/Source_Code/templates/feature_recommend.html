@@ -1,0 +1,170 @@
+{% extends "base.html" %}
+{% block title %}AI Recommendations — I-Care{% endblock %}
+
+{% block head %}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<style>
+    /* ── Map ── */
+    #map { height: 520px; width: 100%; border-radius: .75rem; z-index: 0; display: block; }
+
+    /* ── Chat panel card ── */
+    .chat-card { display: flex; flex-direction: column; height: 100%; }
+
+    /* ── Scrollable message area ── */
+    #chat-window {
+        flex: 1 1 0;
+        min-height: 320px;
+        max-height: 620px;
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+        gap: .5rem;
+        padding: 1rem;
+        background: #f8fafc;
+        border-radius: .75rem;
+        border: 1px solid #e2e8f0;
+        margin-bottom: 1rem;
+    }
+
+    /* ── Message bubbles ── */
+    .message { max-width: 82%; padding: .625rem 1rem; border-radius: .75rem; font-size: .875rem; line-height: 1.6; word-break: break-word; white-space: pre-line; }
+    .message.user { align-self: flex-end; background: #6366f1; color: white; border-bottom-right-radius: .25rem; }
+    .message.bot  { align-self: flex-start; background: white; color: #334155; border: 1px solid #e2e8f0; border-bottom-left-radius: .25rem; }
+
+    /* ── Typing indicator ── */
+    .typing-indicator { align-self: flex-start; display: flex; align-items: center; gap: 4px; background: white; border: 1px solid #e2e8f0; border-radius: .75rem; border-bottom-left-radius: .25rem; padding: .625rem .875rem; }
+    .typing-indicator span { width: 7px; height: 7px; border-radius: 50%; background: #94a3b8; display: inline-block; animation: typingBounce 1.2s infinite ease-in-out; }
+    .typing-indicator span:nth-child(2) { animation-delay: .2s; }
+    .typing-indicator span:nth-child(3) { animation-delay: .4s; }
+    @keyframes typingBounce { 0%, 60%, 100% { transform: translateY(0); opacity: .4; } 30% { transform: translateY(-6px); opacity: 1; } }
+
+    .suggestion-wrap {
+        display: flex;
+        flex-wrap: wrap;
+        gap: .4rem;
+        margin-top: .25rem;
+    }
+
+    .suggestion-chip {
+        border: 1px solid #cbd5e1;
+        background: #ffffff;
+        color: #1e293b;
+        border-radius: 999px;
+        font-size: .72rem;
+        padding: .35rem .65rem;
+        cursor: pointer;
+        transition: all .15s ease;
+    }
+
+    .suggestion-chip:hover {
+        border-color: #2563eb;
+        color: #1d4ed8;
+        background: #eff6ff;
+    }
+
+    #clinics-list {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+        gap: .75rem;
+    }
+
+    .clinic-card {
+        border: 1px solid #e2e8f0;
+        border-radius: .75rem;
+        padding: .75rem;
+        background: #ffffff;
+    }
+
+    .clinic-name {
+        color: #0f172a;
+        font-weight: 700;
+        font-size: .9rem;
+    }
+
+    .clinic-meta {
+        color: #475569;
+        font-size: .78rem;
+        margin-top: .25rem;
+        line-height: 1.45;
+    }
+
+    .clinic-meta a {
+        color: #2563eb;
+        text-decoration: underline;
+        font-weight: 600;
+    }
+
+    .clinic-meta a:hover {
+        color: #1d4ed8;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 bg-gradient-to-br from-cyan-50 via-blue-50 to-slate-50 rounded-3xl border border-cyan-100/70">
+
+    <!-- Header -->
+    <div class="text-center mb-8">
+        <div class="inline-flex items-center gap-1.5 bg-violet-100/60 border border-violet-200/60 rounded-full px-3 py-1 mb-3">
+            <span class="text-xs font-semibold text-violet-700 uppercase tracking-wider">AI Chatbot</span>
+        </div>
+        <h1 class="text-3xl sm:text-4xl font-bold text-slate-900 tracking-tight">Eye Health Assistant</h1>
+        <p class="mt-2 text-slate-500">Ask about eye health, get multilingual advice, and find nearby clinics</p>
+    </div>
+
+    <!-- Chat first, map below -->
+    <div class="space-y-6">
+
+        <!-- ── Chat Panel ── -->
+        <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-5 chat-card">
+
+            <!-- Scrollable messages -->
+            <div id="chat-window">
+                <div class="message bot">👋 Hello! I'm your AI eye-health assistant. Ask me anything about eye care, symptoms, or treatments. I can respond in English, Hindi, or Marathi.</div>
+            </div>
+
+            <!-- Input area -->
+            <div class="flex flex-col gap-2 mt-auto">
+                <!-- Language selector full-width on its own row -->
+                <select id="language-select" class="w-full h-10 rounded-lg border border-slate-200 bg-white text-sm px-3 focus:outline-none focus:ring-2 focus:ring-brand-500/30 focus:border-brand-500">
+                    <option value="en">English</option>
+                    <option value="mr">Marathi</option>
+                    <option value="hi">Hindi</option>
+                </select>
+                <!-- Text input + send button on same row -->
+                <div class="flex items-center gap-2">
+                    <input id="user-input" type="text" placeholder="Type your question…"
+                        class="flex-1 min-w-0 h-10 rounded-lg border border-slate-200 px-4 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/30 focus:border-brand-500">
+                    <button onclick="sendMessage()"
+                        class="shrink-0 h-10 px-5 bg-brand-600 text-white text-sm font-semibold rounded-lg hover:bg-brand-700 shadow-sm transition-colors flex items-center gap-1.5">
+                        <i class="bi bi-send-fill text-xs"></i> Send
+                    </button>
+                </div>
+            </div>
+
+            <!-- Disclaimer (under input, inside chat card) -->
+            <p class="mt-3 text-[11px] text-slate-400 leading-relaxed">
+                <strong class="text-amber-600">Disclaimer:</strong> This chatbot provides general information only and is not a substitute for professional medical advice.
+            </p>
+        </div>
+
+        <!-- ── Map Panel ── -->
+        <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-5 flex flex-col gap-3">
+            <h3 class="text-sm font-semibold text-slate-900 uppercase tracking-wider">Nearby Eye Clinics</h3>
+            <p class="text-sm text-slate-600">Use your current location to search for nearby eye clinics and hospitals.</p>
+            <div id="map"></div>
+            <button id="find-clinics-btn" onclick="getClinics()"
+                class="w-full text-sm font-semibold text-white bg-brand-600 rounded-xl py-3 hover:bg-brand-700 shadow-sm shadow-brand-600/25 transition-colors flex items-center justify-center gap-2">
+                <i class="bi bi-geo-alt-fill"></i> Find Clinics Near Me
+            </button>
+            <div id="clinics-list"></div>
+        </div>
+
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="{{ url_for('static', filename='js/recommend.script.js') }}"></script>
+{% endblock %}

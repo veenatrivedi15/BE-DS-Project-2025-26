@@ -1,0 +1,149 @@
+{% extends 'base.html' %}
+{% block title %}Color Vision Simulator — I-Care{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 bg-gradient-to-br from-teal-50 via-cyan-50 to-slate-50 rounded-3xl border border-teal-100/70">
+  <div class="mb-8">
+    <div class="inline-flex items-center gap-1.5 bg-teal-100/60 border border-teal-200/60 rounded-full px-3 py-1 mb-3">
+      <span class="text-xs font-semibold text-teal-700 uppercase tracking-wider">Simulator</span>
+    </div>
+    <h1 class="text-3xl sm:text-4xl font-bold text-slate-900 tracking-tight">Color Vision Deficiency Simulator</h1>
+    <p class="mt-2 text-slate-500">Upload an image and preview how it appears under different color vision deficiencies.</p>
+  </div>
+
+  <div class="flex flex-col lg:flex-row gap-6">
+    <!-- Controls -->
+    <div class="lg:w-64 flex-shrink-0">
+      <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-5 sticky top-24 space-y-5">
+        <div>
+          <label class="block text-sm font-medium text-slate-700 mb-1.5">Type</label>
+          <select id="typeSelect" class="w-full px-3 py-2.5 rounded-xl border border-slate-300 bg-white text-sm text-slate-900 shadow-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500">
+            <option value="Protanopia">Protanopia</option>
+            <option value="Deuteranopia" selected>Deuteranopia</option>
+            <option value="Tritanopia">Tritanopia</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-slate-700 mb-1.5">Severity: <span id="severityValue" class="text-brand-600 font-semibold">1.00</span></label>
+          <input id="severity" type="range" min="0" max="1" step="0.01" value="1" class="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-brand-600" />
+        </div>
+        <button id="downloadBtn" class="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium text-slate-600 border border-slate-200 hover:bg-slate-50 transition-colors disabled:opacity-40" disabled>
+          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+          Download
+        </button>
+        <button id="clearImageBtn" class="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium text-slate-600 border border-slate-200 hover:bg-slate-50 transition-colors">
+          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+          Clear Image
+        </button>
+      </div>
+    </div>
+
+    <!-- Canvas area -->
+    <div class="flex-1">
+      <div class="grid md:grid-cols-2 gap-6">
+        <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
+          <div class="px-5 py-3 border-b border-slate-100">
+            <p class="text-sm font-semibold text-slate-700">Original</p>
+          </div>
+          <div class="relative flex items-center justify-center p-4" style="min-height:400px;">
+            <div id="drop-zone-sim" class="absolute inset-4 border-2 border-dashed border-slate-300 rounded-2xl bg-slate-50/90 cursor-pointer flex flex-col items-center justify-center gap-2 text-center transition-all hover:border-brand-400 hover:bg-brand-50/30 z-10">
+              <svg class="w-8 h-8 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5"/></svg>
+              <p class="text-sm font-semibold text-slate-600">Drag & Drop Image</p>
+              <p class="text-xs text-slate-400">or click to browse</p>
+              <input id="fileInput" type="file" accept="image/*" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer" aria-label="Upload image" />
+            </div>
+            <canvas id="canvasOriginal" width="640" height="480" class="max-w-full h-auto"></canvas>
+          </div>
+        </div>
+        <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
+          <div class="px-5 py-3 border-b border-slate-100">
+            <p class="text-sm font-semibold text-slate-700">Simulation</p>
+          </div>
+          <div class="flex items-center justify-center p-4" style="min-height:400px;">
+            <canvas id="canvasSim" width="640" height="480" class="max-w-full h-auto"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="mt-8 bg-white rounded-2xl border border-slate-200/80 shadow-sm p-6 sm:p-8">
+    <div class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3 mb-6">
+      <div>
+        <p class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold bg-amber-100 text-amber-800 mb-2">Hidden Plates Lab</p>
+        <h2 class="text-2xl font-bold text-slate-900">How hidden plates may appear to different viewers</h2>
+        <p class="text-sm text-slate-600 mt-1">These sample plates already contain two columns in a single image: left side is what a normal viewer may perceive, right side shows what a color-deficient viewer may perceive.</p>
+      </div>
+      <p class="text-xs sm:text-sm text-slate-500">Built-in side-by-side view</p>
+    </div>
+
+    <div class="grid lg:grid-cols-2 gap-6" id="hiddenPlatesGrid">
+      <article class="rounded-2xl border border-slate-200 overflow-hidden bg-gradient-to-br from-slate-50 to-amber-50/30">
+        <div class="px-4 py-3 border-b border-slate-200 bg-white/70 flex items-center justify-between">
+          <p class="text-sm font-semibold text-slate-800">Hidden Plate I1</p>
+          <span class="text-xs font-medium text-slate-500">Two-column visual plate</span>
+        </div>
+        <div class="p-4 space-y-3">
+          <img src="{{ url_for('static', filename='images/i1.jpg') }}" alt="Hidden Ishihara plate i1 with normal and color-deficient columns" class="w-full rounded-xl border border-slate-200 bg-white object-contain" loading="lazy" />
+          <p class="text-xs text-slate-500">Left column: normal vision. Right column: color-deficient perception. The expected answer is embedded in the plate.</p>
+        </div>
+      </article>
+
+      <article class="rounded-2xl border border-slate-200 overflow-hidden bg-gradient-to-br from-slate-50 to-amber-50/30">
+        <div class="px-4 py-3 border-b border-slate-200 bg-white/70 flex items-center justify-between">
+          <p class="text-sm font-semibold text-slate-800">Hidden Plate I2</p>
+          <span class="text-xs font-medium text-slate-500">Two-column visual plate</span>
+        </div>
+        <div class="p-4 space-y-3">
+          <img src="{{ url_for('static', filename='images/i2.jpg') }}" alt="Hidden Ishihara plate i2 with normal and color-deficient columns" class="w-full rounded-xl border border-slate-200 bg-white object-contain" loading="lazy" />
+          <p class="text-xs text-slate-500">Left column: normal vision. Right column: color-deficient perception. The expected answer is embedded in the plate.</p>
+        </div>
+      </article>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='color/js/color_simulator.js') }}"></script>
+<script>
+  (function(){
+    const dz = document.getElementById('drop-zone-sim');
+    const fileInput = document.getElementById('fileInput');
+    const clearBtn = document.getElementById('clearImageBtn');
+    if(!dz || !fileInput) return;
+
+    function setActive(a){
+      if(a){ dz.classList.add('border-brand-500','bg-brand-50/50'); dz.classList.remove('border-slate-300'); }
+      else { dz.classList.remove('border-brand-500','bg-brand-50/50'); dz.classList.add('border-slate-300'); }
+    }
+
+    ['dragenter','dragover'].forEach(ev=> dz.addEventListener(ev, e=>{e.preventDefault(); e.stopPropagation(); setActive(true);}));
+    ['dragleave','drop'].forEach(ev=> dz.addEventListener(ev, e=>{e.preventDefault(); e.stopPropagation(); setActive(false);}));
+    dz.addEventListener('drop', e=>{
+      const dt = e.dataTransfer; if(dt && dt.files && dt.files[0]) {
+        fileInput.files = dt.files;
+        fileInput.dispatchEvent(new Event('change', {bubbles:true}));
+        dz.style.opacity='0'; dz.style.pointerEvents='none';
+      }
+    });
+    dz.addEventListener('click', e=> { if (e.target === dz) fileInput.click(); });
+    fileInput.addEventListener('change', ()=> { if(fileInput.files && fileInput.files[0]){ dz.style.opacity='0'; dz.style.pointerEvents='none'; } });
+
+    if(clearBtn){
+      clearBtn.addEventListener('click', ()=>{
+        fileInput.value='';
+        dz.style.opacity='1'; dz.style.pointerEvents='auto';
+        dz.classList.remove('border-brand-500','bg-brand-50/50');
+        dz.classList.add('border-slate-300');
+        const canvasO=document.getElementById('canvasOriginal');
+        const canvasS=document.getElementById('canvasSim');
+        if(canvasO) canvasO.getContext('2d').clearRect(0,0,canvasO.width,canvasO.height);
+        if(canvasS) canvasS.getContext('2d').clearRect(0,0,canvasS.width,canvasS.height);
+        if(window && window.__CB_SIM_STATE){ window.__CB_SIM_STATE.img=null; }
+        const downloadBtn=document.getElementById('downloadBtn'); if(downloadBtn) downloadBtn.disabled=true;
+      });
+    }
+  })();
+</script>
+{% endblock %}

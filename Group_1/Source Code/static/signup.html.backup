@@ -1,0 +1,727 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign Up - AgriAid+</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #2d4a3e 0%, #0d2818 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Navigation */
+        nav {
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            background: rgba(26, 26, 26, 0.95);
+            border-bottom: 1px solid rgba(74, 124, 89, 0.25);
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.3s ease;
+        }
+
+        nav.scrolled {
+            backdrop-filter: blur(14px);
+            background: rgba(26, 26, 26, 0.98);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            font-size: 1.55rem;
+            font-weight: 800;
+            color: #e8f5e8;
+            text-decoration: none;
+            letter-spacing: -0.3px;
+        }
+
+        .logo:hover {
+            color: #9FE29F;
+            transition: color 0.3s ease;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+            align-items: center;
+            list-style: none;
+        }
+
+        .nav-links a {
+            color: #b0c9b5;
+            text-decoration: none;
+            font-weight: 500;
+            position: relative;
+            transition: color 0.3s ease;
+        }
+
+        .nav-links a::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: #9FE29F;
+            transition: width 0.3s ease;
+        }
+
+        .nav-links a:hover {
+            color: #9FE29F;
+        }
+
+        .nav-links a:hover::after {
+            width: 100%;
+        }
+
+        .nav-auth {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .btn-login {
+            padding: 0.75rem 1.8rem;
+            background: linear-gradient(135deg, #4a7c59 0%, #6b9c7a 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(74, 124, 89, 0.35);
+            text-decoration: none;
+        }
+
+        .btn-login:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 25px rgba(74, 124, 89, 0.45);
+        }
+
+        /* Main Content */
+        main {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
+
+        .signup-container {
+            width: 100%;
+            max-width: 500px;
+        }
+
+        .signup-card {
+            background: rgba(22, 58, 42, 0.65);
+            backdrop-filter: blur(18px);
+            border: 1px solid rgba(110, 231, 183, 0.25);
+            border-radius: 18px;
+            padding: 3rem 2rem;
+            box-shadow: 0 25px 60px rgba(0, 0, 0, 0.45);
+            animation: slideInUp 0.6s ease-out;
+        }
+
+        @keyframes slideInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .signup-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .signup-header h1 {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #e8f5e8;
+            margin-bottom: 0.5rem;
+        }
+
+        .signup-header p {
+            color: #9FE29F;
+            font-size: 0.95rem;
+            font-weight: 500;
+        }
+
+        /* Role Selection */
+        .role-selection {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .role-btn {
+            padding: 1rem;
+            background: rgba(255, 255, 255, 0.08);
+            border: 2px solid rgba(110, 231, 183, 0.2);
+            border-radius: 12px;
+            color: #b0c9b5;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .role-btn span {
+            font-size: 1.5rem;
+        }
+
+        .role-btn:hover {
+            border-color: rgba(110, 231, 183, 0.4);
+            background: rgba(110, 231, 183, 0.1);
+        }
+
+        .role-btn.active {
+            background: linear-gradient(135deg, rgba(74, 124, 89, 0.3) 0%, rgba(107, 156, 122, 0.3) 100%);
+            border-color: #9FE29F;
+            color: #e8f5e8;
+            box-shadow: 0 0 20px rgba(159, 226, 159, 0.2);
+        }
+
+        /* Form Group */
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            font-weight: 600;
+            color: #e8f5e8;
+            margin-bottom: 0.5rem;
+            font-size: 0.95rem;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px 15px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid rgba(45, 74, 62, 0.3);
+            border-radius: 12px;
+            color: #e8f5e8;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            font-family: inherit;
+        }
+
+        .form-group input::placeholder {
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #4a7c59;
+            background: rgba(255, 255, 255, 0.15);
+            box-shadow: 0 0 0 4px rgba(74, 124, 89, 0.1);
+        }
+
+        /* Password Strength */
+        .password-group {
+            position: relative;
+        }
+
+        .strength-meter {
+            margin-top: 0.5rem;
+            height: 6px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 3px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .strength-bar {
+            height: 100%;
+            width: 0%;
+            transition: all 0.3s ease;
+            background: linear-gradient(90deg, #ef4444, #eab308, #22c55e);
+            background-position: 0% 0%;
+            background-size: 300% 100%;
+        }
+
+        .strength-bar.weak {
+            width: 33%;
+            background-color: #ef4444;
+        }
+
+        .strength-bar.fair {
+            width: 66%;
+            background-color: #eab308;
+        }
+
+        .strength-bar.good {
+            width: 100%;
+            background-color: #22c55e;
+        }
+
+        .strength-text {
+            display: inline-block;
+            margin-top: 0.3rem;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: #eab308;
+        }
+
+        .strength-text.weak {
+            color: #ef4444;
+        }
+
+        .strength-text.fair {
+            color: #eab308;
+        }
+
+        .strength-text.good {
+            color: #22c55e;
+        }
+
+        .toggle-btn {
+            position: absolute;
+            right: 15px;
+            top: 45px;
+            background: none;
+            border: none;
+            color: #9FE29F;
+            cursor: pointer;
+            font-size: 1.2rem;
+            transition: color 0.3s ease;
+        }
+
+        .toggle-btn:hover {
+            color: #6ee7b7;
+        }
+
+        /* Checkbox */
+        .form-group input[type="checkbox"] {
+            width: auto;
+            margin-right: 0.5rem;
+        }
+
+        .checkbox-label {
+            display: flex;
+            align-items: center;
+            font-size: 0.9rem;
+            cursor: pointer;
+        }
+
+        .checkbox-label a {
+            color: #9FE29F;
+            text-decoration: none;
+            margin: 0 0.3rem;
+        }
+
+        .checkbox-label a:hover {
+            text-decoration: underline;
+        }
+
+        /* Submit Button */
+        .btn-signup {
+            width: 100%;
+            padding: 12px 20px;
+            background: linear-gradient(135deg, #4a7c59 0%, #6b9c7a 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(74, 124, 89, 0.35);
+            margin-top: 1.5rem;
+        }
+
+        .btn-signup:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 25px rgba(74, 124, 89, 0.45);
+        }
+
+        .btn-signup:active {
+            transform: translateY(0);
+        }
+
+        .btn-signup:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .btn-signup.loading {
+            pointer-events: none;
+            opacity: 0.7;
+        }
+
+        .btn-signup.loading::after {
+            content: '';
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            margin-left: 8px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Alert Messages */
+        .alert {
+            padding: 12px 15px;
+            border-radius: 12px;
+            margin-bottom: 1.5rem;
+            font-size: 0.9rem;
+            animation: slideInUp 0.4s ease;
+        }
+
+        .alert-error {
+            background: rgba(220, 38, 38, 0.15);
+            border: 1px solid rgba(220, 38, 38, 0.3);
+            color: #fca5a5;
+        }
+
+        .alert-success {
+            background: rgba(34, 197, 94, 0.15);
+            border: 1px solid rgba(34, 197, 94, 0.3);
+            color: #86efac;
+        }
+
+        /* Footer */
+        .signup-footer {
+            text-align: center;
+            margin-top: 1.5rem;
+            font-size: 0.9rem;
+        }
+
+        .signup-footer a {
+            color: #9FE29F;
+            text-decoration: none;
+            font-weight: 600;
+            transition: color 0.3s ease;
+        }
+
+        .signup-footer a:hover {
+            color: #6ee7b7;
+            text-decoration: underline;
+        }
+
+        .login-link {
+            color: #b0c9b5;
+        }
+
+        .login-link a {
+            color: #9FE29F;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            nav {
+                padding: 1rem;
+            }
+
+            nav .logo {
+                font-size: 1.3rem;
+            }
+
+            .nav-links {
+                gap: 1rem;
+            }
+
+            main {
+                padding: 1rem;
+            }
+
+            .signup-card {
+                padding: 2rem 1.5rem;
+            }
+
+            .signup-header h1 {
+                font-size: 1.5rem;
+            }
+
+            .role-selection {
+                grid-template-columns: 1fr;
+            }
+
+            .toggle-btn {
+                top: 42px;
+            }
+
+            .form-group {
+                margin-bottom: 1.2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav id="navbar">
+        <a href="/" class="logo">
+            <span>🌱</span> AgriAid+
+        </a>
+        <ul class="nav-links">
+            <li><a href="/#features">Features</a></li>
+            <li><a href="/#about">About</a></li>
+            <li><a href="/#contact">Contact</a></li>
+        </ul>
+        <div class="nav-auth">
+            <a href="/login" class="btn-login">Login</a>
+        </div>
+    </nav>
+
+    <main>
+        <div class="signup-container">
+            <div class="signup-card">
+                <div class="signup-header">
+                    <h1>Join AgriAid+ 🌾</h1>
+                    <p>Create your account and start farming smarter</p>
+                </div>
+
+                <div id="alertBox" class="alert alert-error" style="display: none;"></div>
+
+                <div class="role-selection">
+                    <button type="button" class="role-btn active" data-role="farmer">
+                        <span>🚜</span> Farmer
+                    </button>
+                    <button type="button" class="role-btn" data-role="organization">
+                        <span>🏢</span> Org
+                    </button>
+                    <button type="button" class="role-btn" data-role="buyer">
+                        <span>👤</span> Buyer
+                    </button>
+                </div>
+
+                <form id="signupForm">
+                    <div class="form-group">
+                        <label for="fullname">Full Name</label>
+                        <input type="text" id="fullname" name="fullname" placeholder="John Doe" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="email">Email Address</label>
+                        <input type="email" id="email" name="email" placeholder="john@example.com" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="mobile">Mobile Number</label>
+                        <input type="tel" id="mobile" name="mobile" placeholder="10-digit mobile" pattern="[0-9]{10}" required>
+                    </div>
+
+                    <div class="form-group password-group">
+                        <label for="password">Password</label>
+                        <input type="password" id="password" name="password" placeholder="Create strong password" required>
+                        <button type="button" class="toggle-btn" id="togglePassword">👁️</button>
+                        <div class="strength-meter">
+                            <div class="strength-bar" id="strengthBar"></div>
+                        </div>
+                        <span class="strength-text" id="strengthText"></span>
+                    </div>
+
+                    <div class="form-group password-group">
+                        <label for="confirmPassword">Confirm Password</label>
+                        <input type="password" id="confirmPassword" name="confirmPassword" placeholder="Re-enter password" required>
+                        <button type="button" class="toggle-btn" id="toggleConfirmPassword">👁️</button>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="terms" name="terms" required>
+                            I agree to <a href="#terms" onclick="event.preventDefault(); alert('Terms & Conditions');">Terms & Conditions</a>
+                        </label>
+                    </div>
+
+                    <button type="submit" class="btn-signup" id="submitBtn">Create Account</button>
+                </form>
+
+                <div class="signup-footer">
+                    <p class="login-link">Already have account? <a href="/login">Login here</a></p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        let selectedRole = 'farmer';
+
+        // Navigation scroll effect
+        window.addEventListener('scroll', () => {
+            const navbar = document.getElementById('navbar');
+            if (window.scrollY > 50) {
+                navbar.classList.add('scrolled');
+            } else {
+                navbar.classList.remove('scrolled');
+            }
+        });
+
+        // Role Selection
+        document.querySelectorAll('.role-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                document.querySelectorAll('.role-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                selectedRole = btn.dataset.role;
+            });
+        });
+
+        // Password Strength Meter
+        const passwordInput = document.getElementById('password');
+        const strengthBar = document.getElementById('strengthBar');
+        const strengthText = document.getElementById('strengthText');
+
+        function checkStrength(password) {
+            let strength = 0;
+            const hasLower = /[a-z]/.test(password);
+            const hasUpper = /[A-Z]/.test(password);
+            const hasNumbers = /\d/.test(password);
+            const hasSpecial = /[!@#$%^&*]/.test(password);
+            const isLongEnough = password.length >= 8;
+
+            if (hasLower) strength++;
+            if (hasUpper) strength++;
+            if (hasNumbers) strength++;
+            if (hasSpecial) strength++;
+            if (isLongEnough) strength++;
+
+            let level = '';
+            if (strength < 2) level = 'weak';
+            else if (strength < 4) level = 'fair';
+            else level = 'good';
+
+            return { level, strength };
+        }
+
+        passwordInput.addEventListener('input', (e) => {
+            const { level, strength } = checkStrength(e.target.value);
+            strengthBar.className = `strength-bar ${level}`;
+            strengthText.textContent = level.charAt(0).toUpperCase() + level.slice(1);
+            strengthText.className = `strength-text ${level}`;
+        });
+
+        // Password Toggle
+        const togglePassword = document.getElementById('togglePassword');
+        const toggleConfirmPassword = document.getElementById('toggleConfirmPassword');
+
+        togglePassword.addEventListener('click', (e) => {
+            e.preventDefault();
+            const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+            passwordInput.setAttribute('type', type);
+            togglePassword.textContent = type === 'password' ? '👁️' : '👁️‍🗨️';
+        });
+
+        toggleConfirmPassword.addEventListener('click', (e) => {
+            e.preventDefault();
+            const confirmInput = document.getElementById('confirmPassword');
+            const type = confirmInput.getAttribute('type') === 'password' ? 'text' : 'password';
+            confirmInput.setAttribute('type', type);
+            toggleConfirmPassword.textContent = type === 'password' ? '👁️' : '👁️‍🗨️';
+        });
+
+        // Form Submission
+        document.getElementById('signupForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const fullname = document.getElementById('fullname').value;
+            const email = document.getElementById('email').value;
+            const mobile = document.getElementById('mobile').value;
+            const password = document.getElementById('password').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+            const terms = document.getElementById('terms').checked;
+            const alertBox = document.getElementById('alertBox');
+            const submitBtn = document.getElementById('submitBtn');
+
+            // Validation
+            if (!fullname || !email || !mobile || !password) {
+                alertBox.textContent = '⚠️ Please fill all fields';
+                alertBox.className = 'alert alert-error';
+                alertBox.style.display = 'block';
+                return;
+            }
+
+            if (!/^[0-9]{10}$/.test(mobile)) {
+                alertBox.textContent = '❌ Mobile must be 10 digits';
+                alertBox.className = 'alert alert-error';
+                alertBox.style.display = 'block';
+                return;
+            }
+
+            if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+                alertBox.textContent = '❌ Invalid email format';
+                alertBox.className = 'alert alert-error';
+                alertBox.style.display = 'block';
+                return;
+            }
+
+            if (password !== confirmPassword) {
+                alertBox.textContent = '❌ Passwords do not match';
+                alertBox.className = 'alert alert-error';
+                alertBox.style.display = 'block';
+                return;
+            }
+
+            if (!terms) {
+                alertBox.textContent = '⚠️ Please accept Terms & Conditions';
+                alertBox.className = 'alert alert-error';
+                alertBox.style.display = 'block';
+                return;
+            }
+
+            submitBtn.classList.add('loading');
+            submitBtn.disabled = true;
+
+            try {
+                const response = await fetch('/api/send-otp', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        fullname, email, mobile, password, role: selectedRole
+                    })
+                });
+
+                const data = await response.json();
+                if (data.success) {
+                    alertBox.textContent = '✅ Account created! OTP sent to your mobile.';
+                    alertBox.className = 'alert alert-success';
+                    alertBox.style.display = 'block';
+                    setTimeout(() => {
+                        window.location.href = `/signup?step=otp&email=${email}&mobile=${mobile}`;
+                    }, 2000);
+                } else {
+                    alertBox.textContent = '❌ ' + (data.message || 'Registration failed');
+                    alertBox.className = 'alert alert-error';
+                    alertBox.style.display = 'block';
+                }
+            } catch (error) {
+                alertBox.textContent = '❌ Error occurred. Try again.';
+                alertBox.className = 'alert alert-error';
+                alertBox.style.display = 'block';
+            } finally {
+                submitBtn.classList.remove('loading');
+                submitBtn.disabled = false;
+            }
+        });
+    </script>
+</body>
+</html>
