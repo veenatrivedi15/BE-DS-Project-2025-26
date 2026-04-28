@@ -1,0 +1,12 @@
+Flask
+werkzeug
+flask-cors
+torch
+torchvision
+transformers
+opencv-python
+numpy
+pandas
+scikit-learn
+Pillow
+grad-cam
